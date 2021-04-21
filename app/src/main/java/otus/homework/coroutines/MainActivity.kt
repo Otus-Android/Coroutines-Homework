@@ -3,7 +3,7 @@ package otus.homework.coroutines
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 
-class MainActivity : AppCompatActivity() {
+class   MainActivity : AppCompatActivity() {
 
     lateinit var catsPresenter: CatsPresenter
 
@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         if (isFinishing) {
             catsPresenter.detachView()
+            catsPresenter.catsJob?.cancel()
         }
         super.onStop()
     }
