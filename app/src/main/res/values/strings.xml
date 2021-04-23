@@ -2,4 +2,5 @@
     <string name="app_name">Cat Facts </string>
     <string name="more_facts">More Facts</string>
     <string name="no_server_response">Couldn\'t get response from a server.</string>
+    <string name="loading">Loading...</string>
 </resources>
