@@ -11,4 +11,4 @@ class PresenterScope(context: CoroutineContext) : CoroutineScope {
 }
 
 val presenterScope: PresenterScope =
-    PresenterScope(SupervisorJob() + Dispatchers.Main + CoroutineName("CatsCoroutine"))
+    PresenterScope(SupervisorJob() + Dispatchers.Main.immediate + CoroutineName("CatsCoroutine"))

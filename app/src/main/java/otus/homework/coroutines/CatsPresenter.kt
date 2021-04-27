@@ -4,7 +4,8 @@ import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsServiceFact: CatsServiceFact,
+    private val catsServiceImage: CatsServiceImage
 ) {
 
     private var _catsView: ICatsView? = null
@@ -15,12 +16,24 @@ class CatsPresenter(
     }
 
     fun onInitComplete() {
-        presenterScope.launch(exceptionHandler) {
-            val response = presenterScope.async {
-                withContext(Dispatchers.IO) { catsService.getCatFact() }
-            }.await()
-            if (response.isSuccessful) response.body()?.let { _catsView?.populate(it) }
-            else CrashMonitor.trackWarning()
+        presenterScope.launch() {
+            try {
+                val requestImage = presenterScope.async { withContext(Dispatchers.IO) { catsServiceImage.getCatImage() } }
+                val requestFact = presenterScope.async { withContext(Dispatchers.IO) { catsServiceFact.getCatFact() } }
+                val responseImage = requestImage.await()
+                val responseFact = requestFact.await()
+                if (responseFact.isSuccessful && responseImage.isSuccessful) {
+                    responseFact.body()?.let { fact ->
+                        responseImage.body()
+                            ?.let { image -> _catsView?.populate(fact, image.getImageUrl()) }
+                    }
+                } else CrashMonitor.trackWarning()
+            } catch (e: SocketTimeoutException) {
+                _catsView?.showNetworkError()
+                CrashMonitor.trackWarning()
+            } catch (e: Exception) {
+                CrashMonitor.trackWarning()
+            }
         }
     }
 
