@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import otus.homework.coroutines.api.Fact
 import otus.homework.coroutines.utils.showToast
 
 class CatsView @JvmOverloads constructor(
