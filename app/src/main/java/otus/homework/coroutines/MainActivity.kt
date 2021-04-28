@@ -2,30 +2,50 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
+import com.squareup.picasso.Picasso
 
-class   MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
+    lateinit var catsViewModel: CatsViewModel
 
     private val diContainer = DiContainer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
-        setContentView(view)
+        setContentView(layoutInflater.inflate(R.layout.activity_main, null))
 
-        catsPresenter = CatsPresenter(diContainer.service, diContainer.imageService)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-    }
+        val textView = findViewById<TextView>(R.id.fact_textView)
+        val imageView = findViewById<ImageView>(R.id.imageView)
+        findViewById<Button>(R.id.button).apply { this.setOnClickListener { catsViewModel.onButtonClicked() } }
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
-            catsPresenter.cancelCatsJob()
+        catsViewModel = CatsViewModel(diContainer.service, diContainer.imageService)
+        catsViewModel.getCatInfo().observe(this){
+            when(it){
+                is Error ->{
+                    textView.text = it.errorMsg
+                    Picasso.get()
+                        .load(R.drawable.ic_launcher_foreground)
+                        .fit()
+                        .centerInside()
+                        .into(imageView)
+                }
+                is Success<*> ->{
+                    if (it.data is CatsModel){
+                        textView.text = it.data.fact.text
+                        Picasso.get()
+                            .load(it.data.image.fileUrl)
+                            .fit()
+                            .centerInside()
+                            .into(imageView)
+                    }
+
+                }
+            }
         }
-        super.onStop()
     }
+
 }
