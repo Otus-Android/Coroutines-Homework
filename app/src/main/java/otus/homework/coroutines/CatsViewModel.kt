@@ -1,31 +1,32 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import kotlin.coroutines.CoroutineContext
 
-class CatsPresenter(
+class CatsViewModel(
     private val catsService: CatsService,
     private val imgService: ImgService
-) {
+) : ViewModel() {
 
     private var _catsView: ICatsView? = null
     private var job: Job? = null
 
     fun onInitComplete() {
-        job = PresenterScope().launch {
+        job = viewModelScope.launch(CoroutineExceptionHandler { coroutineContext, throwable ->
+            CrashMonitor.trackWarning(throwable)
+            throwable.message?.let { processResult(Error(it)) }
+        }) {
             try {
                 val img = async { getImg() }
                 val txt = async { getTxt() }
-                _catsView?.populate(Fact(txt.await(), img.await()))
+                processResult(Success(Fact(txt.await(), img.await())))
             } catch (e: SocketTimeoutException) {
-                _catsView?.toast("Не удалось получить ответ от сервера")
+                processResult(Error("Не удалось получить ответ от сервера"))
             } catch (e: UnknownHostException) {
-                _catsView?.toast("Проверьте интернет-подключение")
-            } catch (e: Throwable) {
-                CrashMonitor.trackWarning(e)
-                e.message?.let { _catsView?.toast(it) }
+                processResult(Error("Проверьте интернет-подключение"))
             }
         }
     }
@@ -46,6 +47,13 @@ class CatsPresenter(
         return ""
     }
 
+    fun processResult(result: Result) {
+        when (result) {
+            is Success -> _catsView?.populate(result.fact)
+            is Error -> _catsView?.toast(result.errorTxt)
+        }
+    }
+
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
@@ -54,9 +62,8 @@ class CatsPresenter(
         job?.cancel()
         _catsView = null
     }
-
-    class PresenterScope : CoroutineScope {
-        override val coroutineContext: CoroutineContext
-            get() = Dispatchers.Main + CoroutineName("CatsCoroutine")
-    }
 }
+
+sealed class Result
+data class Error(var errorTxt: String) : Result()
+data class Success(var fact: Fact) : Result()
