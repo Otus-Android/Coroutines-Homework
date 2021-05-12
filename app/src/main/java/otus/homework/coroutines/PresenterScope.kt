@@ -6,8 +6,6 @@ import kotlin.coroutines.CoroutineContext
 class PresenterScope(context: CoroutineContext) : CoroutineScope {
 
     override val coroutineContext: CoroutineContext = context
-
-    fun cancel() = coroutineContext.cancel()
 }
 
 val presenterScope: PresenterScope =
