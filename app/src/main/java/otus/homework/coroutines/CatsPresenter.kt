@@ -1,10 +1,7 @@
 package otus.homework.coroutines
 
+import android.util.Log
 import kotlinx.coroutines.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.lang.Exception
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -14,45 +11,45 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
     private val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
-    private var factJob: Job? = null
-    private var refreshJob: Job? = null
 
     fun onInitComplete() {
         presenterScope.launch {
-            factJob?.cancelAndJoin()
-            factJob = launch {
-                try {
-                    val result = withContext(Dispatchers.IO) {
-                        catsService.getCatFact()
-                    }
-                    _catsView?.populate(result)
-                } catch (ex: SocketTimeoutException) {
-                    _catsView?.showErrorDialog(ex.localizedMessage ?: "error")
+            try {
+                _catsView?.onLoading(true)
+                val result = withContext(Dispatchers.IO) {
+                    catsService.getCatFact()
                 }
-                catch (ex : Exception) {
-                    CrashMonitor.trackWarning()
+                if (result.isSuccessful) {
+                    _catsView?.populate(Fact(result.body()!!.text))
+                } else throw Exception("Not successful result")
+            } catch (ex: Exception) {
+                when (ex) {
+                    is SocketTimeoutException -> _catsView?.showErrorDialog(ex.localizedMessage ?: "error")
+                    else -> CrashMonitor.trackWarning()
                 }
+            } finally {
+                _catsView?.onLoading(false)
             }
         }
     }
 
     fun loadFactAndImage() {
         presenterScope.launch {
-            refreshJob?.cancelAndJoin()
-            refreshJob = launch {
+            try {
                 val factResult = async(Dispatchers.IO) { catsService.getCatFact() }
                 val imageResult = async(Dispatchers.IO) { imageService.getCatImage() }
-                try {
-                    val factWithImage = factResult.await().copy(image = imageResult.await().fileName)
-                    _catsView?.populate(factWithImage)
-                } catch (ex: SocketTimeoutException) {
-                    _catsView?.showErrorDialog(ex.localizedMessage ?: "error")
+                _catsView?.onLoading(true)
+                if (factResult.await().isSuccessful && imageResult.await().isSuccessful) {
+                    _catsView?.populate(Fact(factResult.await().body()!!.text, imageResult.await().body()!!.fileName))
+                } else throw Exception("Not successful result")
+            } catch (ex: Exception) {
+                when (ex) {
+                    is SocketTimeoutException -> _catsView?.showErrorDialog(ex.localizedMessage ?: "error")
+                    else -> CrashMonitor.trackWarning()
                 }
-                catch (ex : Exception) {
-                    CrashMonitor.trackWarning()
-                } finally {
-                    _catsView?.stopRefreshing()
-                }
+            } finally {
+                _catsView?.stopRefreshing()
+                _catsView?.onLoading(false)
             }
         }
     }

@@ -3,7 +3,6 @@ package otus.homework.coroutines
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.*
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.squareup.picasso.Picasso
 
@@ -13,12 +12,14 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var presenter: CatsPresenter? = null
     private var swipeRefresh: SwipeRefreshLayout? = null
+    private var factButton: Button? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
+        factButton = findViewById<Button>(R.id.button)
+        factButton?.setOnClickListener {
             presenter?.onInitComplete()
         }
         swipeRefresh = findViewById(R.id.refresh_layout)
@@ -34,7 +35,6 @@ class CatsView @JvmOverloads constructor(
             Picasso.get().load(fact.image).into(
                 findViewById<ImageView>(R.id.cat_image_view)
             )
-            Toast.makeText(this.context, fact.image, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -45,6 +45,11 @@ class CatsView @JvmOverloads constructor(
     override fun stopRefreshing() {
         swipeRefresh?.isRefreshing = false
     }
+
+    override fun onLoading(value: Boolean) {
+        factButton?.isEnabled = !value
+        swipeRefresh?.isEnabled = !value
+    }
 }
 
 interface ICatsView {
@@ -52,4 +57,5 @@ interface ICatsView {
     fun populate(fact: Fact)
     fun showErrorDialog(message: String)
     fun stopRefreshing()
+    fun onLoading(value: Boolean)
 }
