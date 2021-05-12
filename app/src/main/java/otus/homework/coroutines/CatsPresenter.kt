@@ -17,14 +17,9 @@ class CatsPresenter(
             try {
                 val requestImage = presenterScope.async { withContext(Dispatchers.IO) { catsServiceImage.getCatImage() } }
                 val requestFact = presenterScope.async { withContext(Dispatchers.IO) { catsServiceFact.getCatFact() } }
-                val responseImage = requestImage.await()
-                val responseFact = requestFact.await()
-                if (responseFact.isSuccessful && responseImage.isSuccessful) {
-                    responseFact.body()?.let { fact ->
-                        responseImage.body()
-                            ?.let { image -> _catsView?.populate(fact, image.getImageUrl()) }
-                    }
-                } else CrashMonitor.trackWarning()
+                val image = requestImage.await()
+                val fact = requestFact.await()
+                _catsView?.populate(fact, image.getImageUrl())
             } catch (e: SocketTimeoutException) {
                 _catsView?.showNetworkError()
                 CrashMonitor.trackWarning()

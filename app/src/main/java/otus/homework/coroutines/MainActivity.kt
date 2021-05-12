@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.squareup.picasso.Picasso
+import otus.homework.coroutines.api.Result
 import otus.homework.coroutines.utils.showToast
 
 class MainActivity : AppCompatActivity() {
@@ -20,9 +21,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         findViewById<Button>(R.id.button).setOnClickListener { viewModel.onInitComplete() }
         viewModel.onInitComplete()
-        viewModel.catInfo.observe(this, ::populate)
+        viewModel.catInfo.observe(this, ::handleCatInfoResult)
         viewModel.showServerError.observe(this, ::showServerError)
-        viewModel.showErrorDialog.observe(this, ::showErrorDialog)
+    }
+
+    private fun handleCatInfoResult(catInfo: Result<CatInfo>) {
+        when (catInfo) {
+            is Result.Success -> populate(catInfo.data)
+            is Result.Error -> showToast(catInfo.exception.message.orEmpty())
+        }
     }
 
     private fun populate(catInfo: CatInfo) {
@@ -32,9 +39,5 @@ class MainActivity : AppCompatActivity() {
 
     private fun showServerError(show: Boolean) {
         if (show) showToast(R.string.error_text_no_network)
-    }
-
-    private fun showErrorDialog(message: String) {
-        showToast(message)
     }
 }
