@@ -22,7 +22,10 @@ class CatsViewModel(
 
     private val catInfo: MutableLiveData<Result> = MutableLiveData<Result>()
     private val exceptionHandler = CoroutineExceptionHandler() { _, exception ->
-        catInfo.value = Error(exception.localizedMessage ?: "An error occurred")
+        when(exception){
+            is SocketTimeoutException -> catInfo.value = Error(exception.localizedMessage ?: "An error occurred")
+            else -> CrashMonitor.trackWarning()
+        }
     }
 
     init {
@@ -35,8 +38,8 @@ class CatsViewModel(
 
     private fun loadInfo() {
         viewModelScope.launch(exceptionHandler) {
-            val fact = async { catsService.getCatFact() }
-            val image = async { imageService.getRandomImage() }
+            val fact = async { handleResponse(catsService.getCatFact()) }
+            val image = async { handleResponse(imageService.getRandomImage()) }
             catInfo.value = Success<CatsModel>(CatsModel(fact.await(), image.await()))
         }
     }
