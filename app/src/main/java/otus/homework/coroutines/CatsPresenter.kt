@@ -36,12 +36,15 @@ class CatsPresenter(
     fun loadFactAndImage() {
         presenterScope.launch {
             try {
-                val factResult = async(Dispatchers.IO) { catsService.getCatFact() }
-                val imageResult = async(Dispatchers.IO) { imageService.getCatImage() }
-                _catsView?.onLoading(true)
-                if (factResult.await().isSuccessful && imageResult.await().isSuccessful) {
-                    _catsView?.populate(Fact(factResult.await().body()!!.text, imageResult.await().body()!!.fileName))
-                } else throw Exception("Not successful result")
+                supervisorScope {
+                    val factResult = async(Dispatchers.IO) {
+                        catsService.getCatFact() }
+                    val imageResult = async(Dispatchers.IO) { imageService.getCatImage() }
+                    _catsView?.onLoading(true)
+                    if (factResult.await().isSuccessful && imageResult.await().isSuccessful) {
+                        _catsView?.populate(Fact(factResult.await().body()!!.text, imageResult.await().body()!!.fileName))
+                    } else throw Exception("Not successful result")
+                }
             } catch (ex: Exception) {
                 when (ex) {
                     is SocketTimeoutException -> _catsView?.showErrorDialog(ex.localizedMessage ?: "error")
