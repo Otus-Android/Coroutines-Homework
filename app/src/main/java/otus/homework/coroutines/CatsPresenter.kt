@@ -1,28 +1,30 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.*
+import java.net.SocketTimeoutException
+import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
     private val catsService: CatsService
 ) {
 
     private var _catsView: ICatsView? = null
+    private lateinit var job: Job
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+        job = PresenterScope().launch {
+            try {
+                val fact = withContext(Dispatchers.IO) {
+                    catsService.getCatFact()
                 }
-            }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
+                _catsView?.populate(fact)
+            } catch (t: SocketTimeoutException) {
+                _catsView?.showError("Не удалось получить ответ от сервера")
+            } catch (t: Throwable) {
+                t.message?.let { _catsView?.showError(it) }
                 CrashMonitor.trackWarning()
             }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -30,6 +32,14 @@ class CatsPresenter(
     }
 
     fun detachView() {
+        job.cancel()
         _catsView = null
     }
+
+}
+
+class PresenterScope : CoroutineScope {
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + CoroutineName("CatsCoroutine") + Job()
+
 }
