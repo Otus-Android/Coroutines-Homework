@@ -7,7 +7,7 @@ class DiContainerImage {
 
     private val retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://aws.random.catы/")
+            .baseUrl("https://aws.random.cat/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

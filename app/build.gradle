@@ -46,4 +46,7 @@ dependencies {
     //coroutin
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.0'
+
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
 }
