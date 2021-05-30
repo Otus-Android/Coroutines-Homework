@@ -3,6 +3,7 @@ package otus.homework.coroutines
 import android.util.Log
 import kotlinx.coroutines.*
 import retrofit2.Response
+import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
@@ -12,37 +13,30 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
     private val presenterScope =
-        PresenterScope(Job(), Dispatchers.Main, CoroutineName("CatsCoroutine"))
+        PresenterScope(Dispatchers.Main, CoroutineName("CatsCoroutine"))
 
     fun onInitComplete() {
         presenterScope.launch {
-            try {
-                val factResponse = getCatFactResponse()
-                val imageResponse = getCatImageResponse()
-                if (factResponse != null
-                    && imageResponse != null ) {
+            withContext(Dispatchers.IO) {
+                try {
+                    val factResponse = catsServiceFact.getCatFact()
+                    val imageResponse = catsServiceImage.getCatImage()
                     val factImage = FactImage(factResponse, imageResponse)
                     _catsView?.populate(factImage)
-                } else
-                    CrashMonitor.trackWarning()
-
-            } catch (e: java.net.SocketTimeoutException) {
-                _catsView?.showToast("Не удалось получить ответ от сервером")
-            } catch (e: Exception) {
-                _catsView?.showToast(e.message.toString())
-                e.printStackTrace()
+                } catch (e: Exception) {
+                    when (e) {
+                        is SocketTimeoutException -> {
+                            _catsView?.showToast("Не удалось получить ответ от сервером")
+                        }
+                        else -> {
+                            _catsView?.showToast(e.message.toString())
+                            CrashMonitor.trackWarning()
+                            e.printStackTrace()
+                        }
+                    }
+                }
             }
-
         }
-    }
-
-    private suspend fun getCatFactResponse(): Fact {
-        return catsServiceFact.getCatFact()
-    }
-
-
-    private suspend fun getCatImageResponse(): Image {
-        return catsServiceImage.getCatImage()
     }
 
     fun attachView(catsView: ICatsView) {
@@ -56,12 +50,9 @@ class CatsPresenter(
 }
 
 class PresenterScope(
-    private val job: Job,
     private val dispatchers: CoroutineDispatcher,
     private val coroutineName: CoroutineName
 ) : CoroutineScope {
     override val coroutineContext: CoroutineContext
-        get() = job + dispatchers + coroutineName
-
-
+        get() = dispatchers + coroutineName
 }

@@ -6,6 +6,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.squareup.picasso.Picasso
 
@@ -25,7 +26,8 @@ class MainActivity : AppCompatActivity() {
         /*
             ### Реализовать решение ViewModel
          */
-        viewModel = CatsViewModel(diContainer.serviceFact, diContainer.serviceImage)
+        val viewModelFactory = CatsViewModelFactory(diContainer.service)
+        viewModel = ViewModelProvider(this, viewModelFactory).get(CatsViewModel::class.java)
 
         viewModel.getCatFactImage()
 
@@ -48,7 +50,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        //++++++++++++++++++++++++++++
         /*
             ### Перейти с коллбеков на саспенд функции и корутины
             ### Добавить к запросу фактов запрос рандомных картинок с [https://aws.random.cat/meow](https://aws.random.cat/meow)
