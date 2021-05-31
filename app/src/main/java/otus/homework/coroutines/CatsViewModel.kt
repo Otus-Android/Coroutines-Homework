@@ -5,10 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
@@ -22,38 +19,40 @@ class CatsViewModel(
         viewModelScope.launch(CoroutineExceptionHandler { coroutineContext, throwable ->
             CrashMonitor.trackWarning()
         }) {
-            try {
-                val factResponseDeferred = async {catsService.getCatFact()}
-                val imageResponseDeferred = async {catsService.getCatImage()}
+            withContext(Dispatchers.IO) {
+                try {
+                    val factResponseDeferred = async { catsService.getCatFact() }
+                    val imageResponseDeferred = async { catsService.getCatImage() }
 
-                val factResponse = factResponseDeferred.await()
-                val imageResponse = imageResponseDeferred.await()
+                    val factResponse = factResponseDeferred.await()
+                    val imageResponse = imageResponseDeferred.await()
 
-                /**
-                 * antonkazakov: ... Используй async чтобы распараллелить
-                 * Вопрос: изначально я сделал без async чтобы они выполнялись полседовательно
-                 * чтобы два результата использовать при создании объекта
-                 * FactImage(factResponse, imageResponse)
-                 * теперь при использовании async как это будет работать?
-                 * допустим получаем результат factResponse, imageResponse - неодновременно
-                 * FactImage(factResponse, imageResponse) будет создан из того что пришло первым,
-                 * а второй параметр "уйдет" пустым
-                 * или
-                 * родительская корутину (которая запускает launch)
-                 * "дождется" всех и только потом создаст FactImage(factResponse, imageResponse) ?
-                 */
-                val factImage = FactImage(factResponse, imageResponse)
-                _catsResponse.value = Result.Success(factImage)
+                    /**
+                     * antonkazakov: ... Используй async чтобы распараллелить
+                     * Вопрос: изначально я сделал без async чтобы они выполнялись полседовательно
+                     * чтобы два результата использовать при создании объекта
+                     * FactImage(factResponse, imageResponse)
+                     * теперь при использовании async как это будет работать?
+                     * допустим получаем результат factResponse, imageResponse - неодновременно
+                     * FactImage(factResponse, imageResponse) будет создан из того что пришло первым,
+                     * а второй параметр "уйдет" пустым
+                     * или
+                     * родительская корутину (которая запускает launch)
+                     * "дождется" всех и только потом создаст FactImage(factResponse, imageResponse) ?
+                     */
+                    val factImage = FactImage(factResponse, imageResponse)
+                    _catsResponse.value = Result.Success(factImage)
 
-            } catch (e: Exception) {
-                when (e) {
-                    is SocketTimeoutException -> {
-                        _catsResponse.value =
-                            Result.Error("Не удалось получить ответ от сервером", e)
-                    }
-                    else -> {
-                        _catsResponse.value = Result.Error(e.message.toString(), e)
-                        e.printStackTrace()
+                } catch (e: Exception) {
+                    when (e) {
+                        is SocketTimeoutException -> {
+                            _catsResponse.value =
+                                Result.Error("Не удалось получить ответ от сервером", e)
+                        }
+                        else -> {
+                            _catsResponse.value = Result.Error(e.message.toString(), e)
+                            e.printStackTrace()
+                        }
                     }
                 }
             }
