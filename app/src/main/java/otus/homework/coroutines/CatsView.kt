@@ -35,7 +35,7 @@ class CatsView @JvmOverloads constructor(
     override fun populate(factImage: FactImage) {
         refreshLayout?.isRefreshing = false
         findViewById<TextView>(R.id.fact_textView).text = factImage.fact.text
-        Picasso.get().load(factImage.image.file).into(findViewById<ImageView>(R.id.iv_image))
+        Picasso.get().load(factImage.image?.file).into(findViewById<ImageView>(R.id.iv_image))
     }
 
     override fun showToast(message: String) {

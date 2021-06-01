@@ -17,22 +17,20 @@ class CatsPresenter(
 
     fun onInitComplete() {
         presenterScope.launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    val factResponse = catsServiceFact.getCatFact()
-                    val imageResponse = catsServiceImage.getCatImage()
-                    val factImage = FactImage(factResponse, imageResponse)
-                    _catsView?.populate(factImage)
-                } catch (e: Exception) {
-                    when (e) {
-                        is SocketTimeoutException -> {
-                            _catsView?.showToast("Не удалось получить ответ от сервером")
-                        }
-                        else -> {
-                            _catsView?.showToast(e.message.toString())
-                            CrashMonitor.trackWarning()
-                            e.printStackTrace()
-                        }
+            try {
+                val factResponse = withContext(Dispatchers.IO) { catsServiceFact.getCatFact() }
+                val imageResponse = withContext(Dispatchers.IO) { catsServiceImage.getCatImage() }
+                val factImage = FactImage(factResponse, imageResponse)
+                _catsView?.populate(factImage)
+            } catch (e: Exception) {
+                when (e) {
+                    is SocketTimeoutException -> {
+                        _catsView?.showToast("Не удалось получить ответ от сервером")
+                    }
+                    else -> {
+                        _catsView?.showToast(e.message.toString())
+                        CrashMonitor.trackWarning()
+                        e.printStackTrace()
                     }
                 }
             }

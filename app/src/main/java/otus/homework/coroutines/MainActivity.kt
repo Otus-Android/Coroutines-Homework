@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
         /*
             ### Реализовать решение ViewModel
          */
-        val viewModelFactory = CatsViewModelFactory(diContainer.service)
+        val viewModelFactory = CatsViewModelFactory(diContainer.service, diContainer.serviceImage)
         viewModel = ViewModelProvider(this, viewModelFactory).get(CatsViewModel::class.java)
 
         viewModel.getCatFactImage()

@@ -4,5 +4,5 @@ import com.google.gson.annotations.SerializedName
 
 data class FactImage(
 	val fact: Fact,
-	val image: Image
+	val image: Image?
 )

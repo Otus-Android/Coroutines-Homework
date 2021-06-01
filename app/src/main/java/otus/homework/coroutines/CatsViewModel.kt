@@ -9,7 +9,8 @@ import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catsServiceImage: CatsService
 ) : ViewModel() {
     private var _catsResponse = MutableLiveData<Result<FactImage>>()
     val catsResponse: LiveData<Result<FactImage>>
@@ -19,10 +20,10 @@ class CatsViewModel(
         viewModelScope.launch(CoroutineExceptionHandler { coroutineContext, throwable ->
             CrashMonitor.trackWarning()
         }) {
-            withContext(Dispatchers.IO) {
+
                 try {
-                    val factResponseDeferred = async { catsService.getCatFact() }
-                    val imageResponseDeferred = async { catsService.getCatImage() }
+                    val factResponseDeferred = async { withContext(Dispatchers.IO) {catsService.getCatFact() }}
+                    val imageResponseDeferred = async { withContext(Dispatchers.IO) {catsServiceImage.getCatImage() }}
 
                     val factResponse = factResponseDeferred.await()
                     val imageResponse = imageResponseDeferred.await()
@@ -55,7 +56,6 @@ class CatsViewModel(
                         }
                     }
                 }
-            }
         }
     }
 }
