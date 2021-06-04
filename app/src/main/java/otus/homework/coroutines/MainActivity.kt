@@ -6,9 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var catsPresenter: CatsPresenter
-
-
     private val diContainer = DiContainer()
     private val diContainerImage = DiContainerImage()
 
@@ -18,9 +15,10 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        val viewModel = ViewModelProvider(this).get(CatsViewModel::class.java)
-        viewModel.catsService = diContainer.service
-        viewModel.imageService = diContainerImage.imageService
+        val viewModel = ViewModelProvider(
+            this, ViewModelFactory(diContainer.service, diContainerImage.imageService)
+        ).get(CatsViewModel::class.java)
+
         view.viewModel = viewModel
         viewModel.observableCat().observe(this) {
             it?.let {
@@ -35,16 +33,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-//        catsPresenter = CatsPresenter(diContainer.service, diContainerImage.imageService)
-//        view.viewModel = catsPresenter
-//        catsPresenter.attachView(view)
-//        catsPresenter.onInitComplete()
     }
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
-        }
-        super.onStop()
-    }
 }

@@ -3,16 +3,19 @@ package otus.homework.coroutines
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
-class CatsViewModel : ViewModel() {
+class CatsViewModel(
+    private val catsService: CatsService,
+    private val imageService: ImageService
+) : ViewModel() {
 
-    lateinit var catsService: CatsService
-    lateinit var imageService: ImageService
+
 
     private val _catData = MutableLiveData<Result>()
     fun observableCat(): LiveData<Result> = _catData
@@ -22,7 +25,7 @@ class CatsViewModel : ViewModel() {
             println("Caught $exception")
         }
 
-        PresenterScope().launch(handler) {
+        viewModelScope.launch(handler) {
             val fact = async(Dispatchers.IO) { catsService.getCatFact() }
             val image = async(Dispatchers.IO) { imageService.getImage() }
 

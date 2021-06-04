@@ -10,10 +10,10 @@ class CatsPresenter(
 ) {
 
     private var _catsView: ICatsView? = null
-    private lateinit var job: Job
+    private val scope = PresenterScope()
 
     fun onInitComplete() {
-        job = PresenterScope().launch {
+        scope.launch {
             try {
                 val fact = async(Dispatchers.IO + SupervisorJob()) {
                     catsService.getCatFact()
@@ -25,11 +25,14 @@ class CatsPresenter(
                     it.populate(fact.await())
                     it.populateImage(image.await())
                 }
-            } catch (t: SocketTimeoutException) {
-                _catsView?.showError("Не удалось получить ответ от сервера")
             } catch (t: Throwable) {
-                t.message?.let { _catsView?.showError(it) }
-                CrashMonitor.trackWarning()
+                when (t) {
+                    is SocketTimeoutException -> _catsView?.showError("Не удалось получить ответ от сервера")
+                    else -> {
+                        t.message?.let { _catsView?.showError(it) }
+                        CrashMonitor.trackWarning()
+                    }
+                }
             }
         }
     }
@@ -39,7 +42,7 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        job.cancel()
+        scope.cancel()
         _catsView = null
     }
 

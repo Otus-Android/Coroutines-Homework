@@ -16,29 +16,31 @@ class CatsView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
     var viewModel: CatsViewModel? = null
+    private lateinit var imageView: ImageView
+    private lateinit var textView: TextView
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
             viewModel?.onInitComplete()
         }
+        imageView = findViewById(R.id.cats_image)
+        textView = findViewById(R.id.fact_textView)
     }
 
     override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+        textView.text = fact.text
     }
 
     override fun populateImage(image: CatImage) {
         Picasso.get()
             .load(image.file)
-            .into(findViewById<ImageView>(R.id.cats_image))
+            .into(imageView)
     }
 
     override fun showError(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
-
-
 }
 
 interface ICatsView {
