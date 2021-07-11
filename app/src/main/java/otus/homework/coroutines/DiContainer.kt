@@ -7,10 +7,12 @@ class DiContainer {
 
     private val retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://cat-fact.herokuapp.com/facts/")
+            .baseUrl("https://dog-facts-api.herokuapp.com/api/v1/resources/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
     val service by lazy { retrofit.create(CatsService::class.java) }
+
+    val viewModel by lazy { MainActivityViewModel(service) }
 }
