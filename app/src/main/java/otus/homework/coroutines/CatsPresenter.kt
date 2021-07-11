@@ -1,28 +1,45 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsFactService: CatsService,
+    private val catsImageService: CatsImageService
 ) {
+
+    private val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
 
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+        presenterScope.launch {
+            try {
+                coroutineScope {
+                    val factImageDeferred = async { catsImageService.getCatImage() }
+                    val factsDeferred = async { catsFactService.getCatFact() }
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+                    val factImage = factImageDeferred.await().file
+                    val fact = factsDeferred.await()[0].fact
+
+                    _catsView?.populate(Result.Success(PresentationFact(fact, factImage)))
+                }
+            } catch (e: Exception) {
+                when (e) {
+                    is SocketTimeoutException -> _catsView?.showError(Result.Error(null))
+                    else -> {
+                        CrashMonitor.trackWarning()
+                        _catsView?.showError(Result.Error(e.message))
+                    }
                 }
             }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -30,6 +47,7 @@ class CatsPresenter(
     }
 
     fun detachView() {
+        presenterScope.cancel()
         _catsView = null
     }
 }
