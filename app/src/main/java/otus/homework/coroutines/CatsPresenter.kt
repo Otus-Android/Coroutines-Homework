@@ -11,15 +11,16 @@ class CatsPresenter(
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+        catsService.getCatFact().enqueue(object : Callback<List<Fact>> {
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
+            override fun onResponse(call: Call<List<Fact>>, response: Response<List<Fact>>) {
                 if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+                    val listOfFacts = response.body()!!
+                    _catsView?.populate(listOfFacts[0])
                 }
             }
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
+            override fun onFailure(call: Call<List<Fact>>, t: Throwable) {
                 CrashMonitor.trackWarning()
             }
         })
