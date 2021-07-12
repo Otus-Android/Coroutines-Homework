@@ -1,30 +1,47 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
-
-    private val diContainer = DiContainer()
+    private val mainVM by viewModels<MainVM> { ViewModelFactory() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
-
-        catsPresenter = CatsPresenter(diContainer.service)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+        view.setOnButtonClick {
+            mainVM.getMeme()
+        }
+        observeMemes(view)
     }
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
-        }
-        super.onStop()
+    private fun observeMemes(catsView: CatsView) {
+        mainVM.memeLiveData.observe(this, { result ->
+            when (result) {
+                is Result.Loading -> {
+                }
+                is Result.Error -> {
+                    when (result.err) {
+                        is SocketTimeoutException -> {
+                            catsView.socketExceptionMessage()
+                        }
+                        else -> {
+                            catsView.baseExceptionMessage(result.err?.message.toString())
+                            CrashMonitor.trackWarning()
+                        }
+                    }
+                }
+                is Result.Success -> {
+                    result.data?.let { meme ->
+                        catsView.populate(meme)
+                    }
+                }
+            }
+        })
     }
 }

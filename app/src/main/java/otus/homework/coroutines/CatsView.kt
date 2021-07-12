@@ -15,12 +15,16 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
+    private var onButtonClick: (() -> Unit)? = null
+
+    fun setOnButtonClick(listener: () -> Unit) {
+        onButtonClick = listener
+    }
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            onButtonClick?.invoke()
         }
     }
 
@@ -31,7 +35,8 @@ class CatsView @JvmOverloads constructor(
     }
 
     override fun socketExceptionMessage() {
-        Toast.makeText(context, context.getString(R.string.no_server_response), Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.no_server_response), Toast.LENGTH_SHORT)
+            .show()
     }
 
     override fun baseExceptionMessage(msg: String) {
@@ -45,5 +50,5 @@ interface ICatsView {
 
     fun socketExceptionMessage()
 
-    fun baseExceptionMessage(msg:String)
+    fun baseExceptionMessage(msg: String)
 }
