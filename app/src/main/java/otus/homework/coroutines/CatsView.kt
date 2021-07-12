@@ -3,8 +3,11 @@ package otus.homework.coroutines
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.squareup.picasso.Picasso
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -12,7 +15,7 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var presenter: CatsPresenter? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -21,12 +24,26 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+    override fun populate(meme: Meme) {
+        findViewById<TextView>(R.id.tv_meme_caption).text = meme.caption
+        val imgView = findViewById<ImageView>(R.id.img_meme)
+        Picasso.get().load(meme.image).into(imgView)
+    }
+
+    override fun socketExceptionMessage() {
+        Toast.makeText(context, context.getString(R.string.no_server_response), Toast.LENGTH_SHORT).show()
+    }
+
+    override fun baseExceptionMessage(msg: String) {
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
     }
 }
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(meme: Meme)
+
+    fun socketExceptionMessage()
+
+    fun baseExceptionMessage(msg:String)
 }
