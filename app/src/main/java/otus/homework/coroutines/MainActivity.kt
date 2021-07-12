@@ -3,27 +3,29 @@ package otus.homework.coroutines
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.lifecycle.Observer
 import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
-
     private val diContainer = DiContainer()
+
+    private val viewModel: CatsViewModel by viewModels { ViewModelFactory(diContainer.catsService, diContainer.imagesService) }
+
+    private lateinit var catsView: CatsView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
+        catsView = view
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.catsService, diContainer.imagesService)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+        view.viewModel = viewModel
+        viewModel.onInitComplete()
 
-        catsPresenter.getFactState.observe(this, catsFactObserver)
+        viewModel.getFactState.observe(this, catsFactObserver)
     }
 
     private val catsFactObserver = Observer<Result?>{
@@ -34,9 +36,11 @@ class MainActivity : AppCompatActivity() {
                     is SocketTimeoutException -> showToast("Не удалось получить ответ от сервера")
                     else -> showToast(it.t?.message.toString())
                 }
-                catsPresenter.onMessageShown()
+                viewModel.onMessageShown()
             }
-            is Success -> {}
+            is Success -> {
+                catsView.populate(it.data)
+            }
         }
     }
 
@@ -46,10 +50,4 @@ class MainActivity : AppCompatActivity() {
             Toast.LENGTH_LONG
         ).show()
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
-        }
-        super.onStop()
-    }
 }
