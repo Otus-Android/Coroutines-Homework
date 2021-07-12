@@ -2,6 +2,9 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
+import androidx.lifecycle.Observer
+import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,7 +22,29 @@ class MainActivity : AppCompatActivity() {
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
+
+        catsPresenter.getFactState.observe(this, catsFactObserver)
     }
+
+    private val catsFactObserver = Observer<Result?>{
+        when(it) {
+            Empty -> {}
+            is Error -> {
+                when(it.t) {
+                    is SocketTimeoutException -> showToast("Не удалось получить ответ от сервера")
+                    else -> showToast(it.t?.message.toString())
+                }
+                catsPresenter.onMessageShown()
+            }
+            is Success -> {}
+        }
+    }
+
+    private fun showToast(msg: String) =
+        Toast.makeText(
+            this, msg,
+            Toast.LENGTH_LONG
+        ).show()
 
     override fun onStop() {
         if (isFinishing) {

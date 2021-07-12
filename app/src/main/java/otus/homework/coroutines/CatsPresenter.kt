@@ -1,8 +1,8 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.*
 
 class CatsPresenter(
     private val catsService: CatsService
@@ -10,19 +10,32 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
 
+    private val job = SupervisorJob()
+    private val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
+
+    private val _getFactState = MutableLiveData<Result?>()
+    val getFactState: LiveData<Result?>
+        get() = _getFactState
+
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
+        presenterScope.launch {
+            try {
+                val response = catsService.getCatFact()
                 if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+                    _catsView?.populate(response.body()!!.first())
+                } else {
+                    CrashMonitor.trackWarning(response.errorBody()?.string())
                 }
+            } catch (ex: Exception) {
+                _getFactState.value = Error(ex)
+                CrashMonitor.trackWarning(ex.message.toString())
             }
+        }
+    }
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+    fun onMessageShown() {
+        _getFactState.value = null
     }
 
     fun attachView(catsView: ICatsView) {
@@ -31,5 +44,11 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+        job.cancel()
     }
 }
+
+sealed class Result
+data class Error(val t: Throwable?) : Result()
+object Empty : Result()
+data class Success(val data: Fact) : Result()
