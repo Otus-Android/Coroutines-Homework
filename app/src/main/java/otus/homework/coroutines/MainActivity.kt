@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,6 +20,13 @@ class MainActivity : AppCompatActivity() {
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
+
+        catsPresenter.error.observe(this) {
+            when (it) {
+                is ErrorState.SocketError -> showToast(getString(R.string.error_socket_text))
+                is ErrorState.OtherError -> showToast(it.message)
+            }
+        }
     }
 
     override fun onStop() {
@@ -27,4 +35,8 @@ class MainActivity : AppCompatActivity() {
         }
         super.onStop()
     }
+
+    private fun showToast(message: String?) =
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+
 }
