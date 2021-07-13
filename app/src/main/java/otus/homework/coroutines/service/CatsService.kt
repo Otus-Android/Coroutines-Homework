@@ -1,5 +1,6 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.service
 
+import otus.homework.coroutines.entity.Fact
 import retrofit2.http.GET
 
 interface CatsService {

@@ -3,13 +3,18 @@ package otus.homework.coroutines
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
+import otus.homework.coroutines.entity.Animal
+import otus.homework.coroutines.service.CatsService
+import otus.homework.coroutines.service.ImageService
 import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
-        private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imageService: ImageService
 ) {
-    private val coroutineContext: CoroutineContext = Dispatchers.Main + CoroutineName(CATS_COROUTINE)
+    private val coroutineContext: CoroutineContext =
+        Dispatchers.Main + CoroutineName(CATS_COROUTINE)
     private val presenterScope = CoroutineScope(coroutineContext)
 
     private val _error = MutableLiveData<ErrorState>()
@@ -20,8 +25,10 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                val catsFact = catsService.getCatFact()
-                _catsView?.populate(catsFact)
+                val fact = catsService.getCatFact()
+                val picture = imageService.getCatImage()
+
+                _catsView?.populate(Animal(text = fact.text, images = picture.file))
             } catch (e: Exception) {
                 when (e) {
                     is SocketTimeoutException -> {
