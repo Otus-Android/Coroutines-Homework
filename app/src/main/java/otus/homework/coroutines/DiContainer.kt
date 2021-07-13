@@ -27,5 +27,11 @@ class DiContainer {
         imageServiceRetrofit.create(ImageService::class.java)
     }
 
+    val viewModel by lazy {
+        MainViewModel(
+            catsService = service,
+            imageService = imageService
+        )
+    }
 
 }
