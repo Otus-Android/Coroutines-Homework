@@ -1,31 +1,32 @@
 package otus.homework.coroutines
 
-import kotlinx.coroutines.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
-import kotlin.coroutines.CoroutineContext
 
-class CatsPresenter(
+class CatsViewModel(
     private val catsService: CatsService,
     private val imageService: ImageService
-) {
-
+) : ViewModel() {
     private var _catsView: ICatsView? = null
-    private val scope = PresenterScope()
 
     private val exceptionHandler = CoroutineExceptionHandler { context, ex ->
         when (ex) {
             is SocketTimeoutException -> {
-                _catsView?.showToastByException(ex)
+                _catsView?.handleResponse(Error(ex))
             }
             else -> {
                 CrashMonitor.trackWarning(ex)
-                _catsView?.showToastByException(ex as Exception)
+                _catsView?.handleResponse(Error(ex))
             }
         }
     }
 
     fun onInitComplete() {
-        scope.launch(exceptionHandler) {
+        viewModelScope.launch(exceptionHandler) {
             val imageDeferred = async { imageService.getCatImage() }
             val factDeferred = async { catsService.getCatFact() }
 
@@ -33,7 +34,7 @@ class CatsPresenter(
             val factResponse = factDeferred.await()
             val cat = CatInfo(url = imageResponse.url, text = factResponse.text)
 
-            _catsView?.populate(cat)
+            _catsView?.handleResponse(Success(cat))
         }
     }
 
@@ -42,12 +43,6 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        scope.cancel()
         _catsView = null
-    }
-
-    class PresenterScope : CoroutineScope {
-        override val coroutineContext: CoroutineContext
-            get() = Dispatchers.Main + CoroutineName("CatsCoroutine")
     }
 }

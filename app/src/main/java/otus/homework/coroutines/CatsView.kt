@@ -17,11 +17,24 @@ class CatsView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
     var presenter: CatsPresenter? = null
+    var catsViewModel: CatsViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            //presenter?.onInitComplete()
+            catsViewModel?.onInitComplete()
+        }
+    }
+
+    override fun handleResponse(result: Result) {
+        when (result) {
+            is Success -> {
+                populate(result.catInfo)
+            }
+            is Error -> {
+                showToastByException(result.ex)
+            }
         }
     }
 
@@ -31,7 +44,7 @@ class CatsView @JvmOverloads constructor(
             .into(findViewById<ImageView>(R.id.iv_cat))
     }
 
-    override fun showToastByException(ex: Exception) {
+    override fun showToastByException(ex: Throwable) {
         when (ex) {
             is SocketTimeoutException -> {
                 showToast(context.getString(R.string.exeption_socket_timeout))
@@ -48,8 +61,8 @@ class CatsView @JvmOverloads constructor(
 }
 
 interface ICatsView {
-
+    fun handleResponse(result: Result)
     fun populate(catInfo: CatInfo)
-    fun showToastByException(ex: Exception)
+    fun showToastByException(ex: Throwable)
     fun showToast(message: String)
 }
