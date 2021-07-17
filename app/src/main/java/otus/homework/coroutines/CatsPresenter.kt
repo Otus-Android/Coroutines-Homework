@@ -11,19 +11,29 @@ class CatsPresenter(
     private val _scope = PresenterScope("CatsCoroutine")
 
     fun onInitComplete() {
-        fetchCatFact()
+        fetchCatsModel()
     }
 
-    private fun fetchCatFact() = _scope.launch {
+    private fun fetchCatsModel() = _scope.launch {
         try {
-            _catsView?.populate(getCatFact())
+            _catsView?.populate(getCatFactWithImage())
         } catch (e: Exception) {
             handleException(e)
         }
     }
 
+    private suspend fun getCatFactWithImage() = coroutineScope {
+        val fact = async { getCatFact() }
+        val img = async { getCatRandomImage() }
+        return@coroutineScope CatsModel(fact.await().fact, img.await().file)
+    }
+
     private suspend fun getCatFact() = withContext(Dispatchers.IO) {
         return@withContext catsService.getCatFact()
+    }
+
+    private suspend fun getCatRandomImage() = withContext(Dispatchers.IO) {
+        return@withContext catsService.getCatRandomImage()
     }
 
     private fun handleException(e: Exception) = when (e) {
