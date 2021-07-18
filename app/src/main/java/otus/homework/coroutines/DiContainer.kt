@@ -14,5 +14,7 @@ class DiContainer {
 
     val service by lazy { retrofit.create(CatsService::class.java) }
 
-    val viewModel by lazy { MainActivityViewModel(service) }
+    val viewModel by lazy {
+        MainActivityViewModelFactory(service).create(MainActivityViewModel::class.java)
+    }
 }

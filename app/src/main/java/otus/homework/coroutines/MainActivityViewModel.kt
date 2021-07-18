@@ -1,12 +1,11 @@
 package otus.homework.coroutines
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.lang.NullPointerException
 import java.net.SocketTimeoutException
 import kotlin.coroutines.coroutineContext
 
@@ -19,7 +18,10 @@ class MainActivityViewModel(private val catsService: CatsService) : ViewModel() 
 
     private val exceptionHandler = CoroutineExceptionHandler { _, e ->
         if (e is SocketTimeoutException) _catsData.postValue(Result.Error(e))
-        else CrashMonitor.trackWarning(e.message)
+        else {
+            CrashMonitor.trackWarning(e.message)
+            _catsData.postValue(Result.Error(e))
+        }
     }
 
     fun onInitComplete() {
@@ -29,17 +31,30 @@ class MainActivityViewModel(private val catsService: CatsService) : ViewModel() 
     }
 
     private suspend fun getData() {
-        val fact = withContext(coroutineContext + exceptionHandler) {
+        val fact = withContext(Dispatchers.IO) {
             catsService.getCatFact()
         }
-        val image = withContext(coroutineContext + exceptionHandler) {
+        val image = withContext(Dispatchers.IO) {
             catsService.getCatImage()
         }
 
-        val data = CustomCatPresentationModel(
-            checkNotNull(fact.body())[0].fact,
-            checkNotNull(image.body()).file
-        )
-        _catsData.postValue(Result.Success(data))
+        if (!fact.body()?.get(0)?.fact.isNullOrEmpty()
+            && !image.body()?.file.isNullOrEmpty()) {
+            val data = CustomCatPresentationModel(
+                fact.body()!![0].fact,
+                image.body()!!.file
+            )
+            _catsData.postValue(Result.Success(data))
+        } else {
+            _catsData.postValue(Result.Error(
+                NullPointerException("data from server was null or empty")
+            ))
+        }
     }
+}
+
+class MainActivityViewModelFactory(private val service: CatsService) :
+    ViewModelProvider.NewInstanceFactory() {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T =
+        MainActivityViewModel(service) as T
 }

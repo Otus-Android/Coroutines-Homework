@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,7 +31,13 @@ class MainActivity : AppCompatActivity() {
         viewModel.catsData.observe(this, {
             when (it) {
                 is Result.Success -> view.populate(it.data)
-                is Result.Error -> view.showErrorToast("SocketTimeoutException")
+                is Result.Error -> {
+                    if (it.exception is SocketTimeoutException) {
+                        view.showErrorToast("Не удалось получить ответ от сервера")
+                    } else {
+                        view.showErrorToast(it.exception.message.toString())
+                    }
+                }
             }
         })
 //        ----------------------------------------

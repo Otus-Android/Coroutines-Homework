@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import android.widget.Toast
 import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
@@ -9,7 +10,7 @@ class CatsPresenter(
 ) {
 
     private var _catsView: ICatsView? = null
-    private val job = Job()
+    private val job = SupervisorJob()
     private val coroutineContext: CoroutineContext =
         Dispatchers.Main + job + CoroutineName("CatsCoroutine")
     private val customPresenterScope = CoroutineScope(coroutineContext)
@@ -22,10 +23,12 @@ class CatsPresenter(
 
     private suspend fun getData() {
         try {
-            val fact = withContext(customPresenterScope.coroutineContext) {
-               catsService.getCatFact()
-            }
-            val image = withContext(customPresenterScope.coroutineContext) {
+            val fact =
+                withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
+                    catsService.getCatFact()
+                }
+
+            val image = withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
                 catsService.getCatImage()
             }
             if (
@@ -39,13 +42,17 @@ class CatsPresenter(
                     checkNotNull(image.body()).file
                 )
                 _catsView?.populate(data)
-            } else CrashMonitor.trackWarning(fact.message())
+            } else {
+                CrashMonitor.trackWarning(fact.message())
+                _catsView?.showErrorToast("Error occurred: ${fact.message()}")
+            }
 
 
         } catch (exception: SocketTimeoutException) {
             _catsView?.showErrorToast("timeout exception")
         } catch (exception: Exception) {
             CrashMonitor.trackWarning(exception.message)
+            _catsView?.showErrorToast("Error occurred: ${exception.message}")
         }
     }
 
@@ -58,7 +65,7 @@ class CatsPresenter(
     }
 
     fun stopJob(){
-        job.complete()
+        customPresenterScope.cancel()
     }
 
 
