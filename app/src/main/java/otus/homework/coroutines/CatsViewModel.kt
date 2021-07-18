@@ -3,8 +3,8 @@ package otus.homework.coroutines
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
@@ -29,15 +29,13 @@ class CatsViewModel(
 
     fun onInitComplete() {
         viewModelScope.launch(exceptionHandler) {
-            coroutineScope {
-                val factImageDeferred = async { catsImageService.getCatImage() }
-                val factsDeferred = async { catsFactService.getCatFact() }
+            val factImageDeferred = async(Dispatchers.IO) { catsImageService.getCatImage() }
+            val factsDeferred = async(Dispatchers.IO) { catsFactService.getCatFact() }
+            val factImage = factImageDeferred.await().file
+            val facts = factsDeferred.await()
+            val fact = if (facts.isEmpty()) throw IllegalArgumentException("empty fact") else facts[0].fact
 
-                val factImage = factImageDeferred.await().file
-                val fact = factsDeferred.await()[0].fact
-
-                _catsView?.populate(Result.Success(PresentationFact(fact, factImage)))
-            }
+            _catsView?.populate(Result.Success(PresentationFact(fact, factImage)))
         }
     }
 
