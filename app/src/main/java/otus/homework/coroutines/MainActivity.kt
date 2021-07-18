@@ -1,32 +1,35 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import kotlinx.coroutines.cancelChildren
+import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
-
-    lateinit var catsPresenter: CatsPresenter
 
     private val diContainer = DiContainer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val viewModel: CatsViewModel by viewModels()
+        viewModel.diContainer = diContainer
+        viewModel.onInitComplete()
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.factsService, diContainer.pictureService, diContainer.presenterScope)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-    }
+        viewModel.getResult().observe(this, {
+            when(it){
+                is Result.Error -> {
+                    val message = it.message ?: it.messageRes?.let { str -> getString(str) }
+                    Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                }
+                is Result.Success -> view.populate(it.factWithPicture)
+            }
+        })
 
-    override fun onStop() {
-        if (isFinishing) {
-            diContainer.presenterScope.coroutineContext.cancelChildren()
-            catsPresenter.detachView()
+        view.setOnClickListener {
+            viewModel.onInitComplete()
         }
-        super.onStop()
     }
 }
