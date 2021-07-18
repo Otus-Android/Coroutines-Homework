@@ -16,7 +16,7 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service, diContainer.presenterScope)
+        catsPresenter = CatsPresenter(diContainer.factsService, diContainer.pictureService, diContainer.presenterScope)
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()

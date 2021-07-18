@@ -3,6 +3,7 @@ package otus.homework.coroutines
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -18,7 +19,7 @@ class DiContainer {
         .writeTimeout(TIMEOUT_IN_SEC, TimeUnit.SECONDS)
         .build()
 
-    private val retrofit by lazy {
+    private val factRetrofit by lazy {
         Retrofit.Builder()
             .baseUrl("https://dog-facts-api.herokuapp.com/")
             .client(client)
@@ -26,7 +27,16 @@ class DiContainer {
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+    private val pictureRetrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://aws.random.cat/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
 
-    val presenterScope = CoroutineScope(Dispatchers.Default + CoroutineName("CatsCoroutine"))
+    val factsService: CatsService by lazy { factRetrofit.create(CatsService::class.java) }
+    val pictureService: PictureService by lazy { pictureRetrofit.create(PictureService::class.java) }
+
+    val presenterScope = CoroutineScope(Dispatchers.Default + CoroutineName("CatsCoroutine") + SupervisorJob())
 }

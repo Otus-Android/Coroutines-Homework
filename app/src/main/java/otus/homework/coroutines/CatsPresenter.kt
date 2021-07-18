@@ -1,38 +1,57 @@
 package otus.homework.coroutines
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.lang.ArithmeticException
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService,
+    private val factsService: CatsService,
+    private val pictureService: PictureService,
     private val presenterScope: CoroutineScope,
 ) {
 
     private var _catsView: ICatsView? = null
 
     private val handler = CoroutineExceptionHandler { _, exception ->
-        Log.e("myTag", exception.toString())
+        presenterScope.coroutineContext.cancelChildren()
+        when (exception) {
+            is SocketTimeoutException -> _catsView?.showToast(R.string.timeout_message)
+            else -> {
+                presenterScope.launch(Dispatchers.Main){
+                    _catsView?.showToast(exception.message)
+                }
+                CrashMonitor.trackWarning()
+            }
+        }
     }
 
     fun onInitComplete() {
         presenterScope.launch(handler) {
-            try {
-                val response = catsService.getCatFact()
+            val factDef = async {
+                val response = factsService.getCatFact()
                 if (response.isSuccessful && response.body() != null) {
-                    val listOfFacts = response.body()!!
-                    _catsView?.populate(listOfFacts[0])
+                    response.body()!![0]
+                } else {
+                    throw Exception(response.errorBody().toString())
                 }
-            } catch (e: Exception) {
-                when (e) {
-                    is SocketTimeoutException -> _catsView?.showToast(R.string.timeout_message)
-                    else -> {
-                        _catsView?.showToast(e.message)
-                        CrashMonitor.trackWarning()
-                    }
+            }
+            val pictureDef = async {
+                val response = pictureService.getCatPicture()
+                if (response.isSuccessful && response.body() != null) {
+                    response.body()!!
+                } else {
+                    throw Exception(response.errorBody().toString())
                 }
+            }
+            launch(Dispatchers.Main) {
+                val factWithPicture = FactWithPicture(factDef.await().text, pictureDef.await().pictureUrl)
+                _catsView?.populate(factWithPicture)
             }
         }
     }
