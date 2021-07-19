@@ -9,12 +9,11 @@ import android.widget.Toast
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.entity.Animal
 import otus.homework.coroutines.entity.Result
+import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
     private val diContainer = DiContainer()
-    private var _catsView: ICatsView? = null
     private val viewModel: MainViewModel = diContainer.viewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,28 +22,12 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        // old logic
-//        catsPresenter = CatsPresenter(
-//            catsService = diContainer.service,
-//            imageService = diContainer.imageService
-//        )
-//        view.presenter = catsPresenter
-//        catsPresenter.attachView(view)
-//        catsPresenter.onInitComplete()
-//        catsPresenter.error.observe(this) {
-//            when (it) {
-//                is ErrorState.SocketError -> showToast(getString(R.string.error_socket_text))
-//                is ErrorState.OtherError -> showToast(it.message)
-//            }
-//        }
-
-        findViewById<Button>(R.id.button).setOnClickListener { viewModel.getContent() }
+        findViewById<Button>(R.id.button).setOnClickListener { viewModel.initState() }
 
         viewModel.result.observe(this) {
             when (it) {
-                is Result.Success -> {
-                    applyContent(it.animal)
-                }
+                is Result.Success -> applyContent(it.animal)
+                is Result.Error -> showErrorMessage(it.throwable)
             }
         }
     }
@@ -60,11 +43,15 @@ class MainActivity : AppCompatActivity() {
             .into(imageView)
     }
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+    private fun showErrorMessage(throwable: Throwable) {
+        when (throwable) {
+            is SocketTimeoutException -> {
+                showToast(getString(R.string.error_socket_text))
+            }
+            else -> {
+                showToast(throwable.message)
+            }
         }
-        super.onStop()
     }
 
     private fun showToast(message: String?) =

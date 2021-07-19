@@ -1,7 +1,5 @@
 package otus.homework.coroutines.entity
 
-import otus.homework.coroutines.ErrorState
-
 sealed class Result {
 
     data class Success(
@@ -9,6 +7,6 @@ sealed class Result {
     ) : Result()
 
     class Error(
-        val errorState: ErrorState
+        val throwable: Throwable
     ) : Result()
 }
