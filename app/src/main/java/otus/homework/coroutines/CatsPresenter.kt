@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
 import otus.homework.coroutines.domain.AnimalCard
+import otus.homework.coroutines.network.AnimalImage
 import otus.homework.coroutines.network.Fact
 
 class CatsPresenter(
@@ -14,40 +15,36 @@ class CatsPresenter(
     private var _catsView: ICatsView? = null
 
     private val job = SupervisorJob()
-    private val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
-
-    private val _getFactState = MutableLiveData<Result?>()
-    val getFactState: LiveData<Result?>
-        get() = _getFactState
+    private val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine") + job)
 
     fun onInitComplete() {
 
         presenterScope.launch {
             try {
-                val factResponseDeferred = async { catsService.getCatFact() }
-                val imageResponseDeferred = async { imagesService.getRandomImage() }
+                val factResponseDeferred = async(Dispatchers.IO) { catsService.getCatFact() }
+                val imageResponseDeferred = async(Dispatchers.IO) { imagesService.getRandomImage() }
 
                 val factResponse = factResponseDeferred.await()
                 val imageResponse = imageResponseDeferred.await()
 
-                if (factResponse.isSuccessful && factResponse.body() != null) {
-                    val animalCard = AnimalCard(factResponse.body()!!.first().fact)
-                    if (imageResponse.isSuccessful && imageResponse.body() != null) {
-                        animalCard.imageUrl = imageResponse.body()!!.file
-                    }
-                    _catsView?.populate(animalCard)
+                if (factResponse.isSuccessful && !factResponse.body().isNullOrEmpty()) {
+                    notifyView(factResponse.body()!!, imageResponse.body())
                 } else {
                     CrashMonitor.trackWarning(factResponse.errorBody()?.string())
                 }
             } catch (ex: Exception) {
-                _getFactState.value = Error(ex)
+                _catsView?.showError(ex.message.toString())
                 CrashMonitor.trackWarning(ex.message.toString())
             }
         }
     }
 
-    fun onMessageShown() {
-        _getFactState.value = null
+    private fun notifyView(facts: List<Fact>, animalImage: AnimalImage?) {
+        val animalCard = AnimalCard(facts.first().fact)
+        animalImage?.let {
+            animalCard.imageUrl = it.file
+        }
+        _catsView?.populate(animalCard)
     }
 
     fun attachView(catsView: ICatsView) {

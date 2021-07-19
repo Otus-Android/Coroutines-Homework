@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.domain.AnimalCard
@@ -31,9 +32,14 @@ class CatsView @JvmOverloads constructor(
         val imageView = findViewById<ImageView>(R.id.image)
         Picasso.get().load(animalCard.imageUrl).into(imageView)
     }
+
+    override fun showError(msg: String) {
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+    }
 }
 
 interface ICatsView {
 
     fun populate(animalCard: AnimalCard)
+    fun showError(msg: String)
 }
