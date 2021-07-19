@@ -7,7 +7,7 @@ import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {
 
-    private val mainVM by viewModels<MainVM> { ViewModelFactory() }
+    private val mainVM by viewModels<MainVM> { ViewModelFactory(DiContainer().service) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,15 +31,13 @@ class MainActivity : AppCompatActivity() {
                             catsView.socketExceptionMessage()
                         }
                         else -> {
-                            catsView.baseExceptionMessage(result.err?.message.toString())
+                            catsView.baseExceptionMessage(result.err.message.toString())
                             CrashMonitor.trackWarning()
                         }
                     }
                 }
                 is Result.Success -> {
-                    result.data?.let { meme ->
-                        catsView.populate(meme)
-                    }
+                    catsView.populate(result.data)
                 }
             }
         })

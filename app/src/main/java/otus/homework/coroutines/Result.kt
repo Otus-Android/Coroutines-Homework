@@ -1,12 +1,9 @@
 package otus.homework.coroutines
 
-sealed class Result<T>(
-    val data: T? = null,
-    val err: Throwable? = null
-) {
+sealed class Result<T> {
     class Loading<T> : Result<T>()
-    class Success<T>(res: T) : Result<T>(data = res)
-    class Error<T>(msg: Throwable) : Result<T>(err = msg)
+    class Success<T>(val data: T) : Result<T>()
+    class Error<T>(val err: Throwable) : Result<T>()
 }
 
 
