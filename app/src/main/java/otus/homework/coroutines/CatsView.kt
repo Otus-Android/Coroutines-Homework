@@ -15,7 +15,7 @@ class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr) {
+) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
     private lateinit var viewModel: CatsViewModel
 
@@ -50,14 +50,23 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    private fun populate(catsModel: CatsModel) {
+    override fun populate(catsModel: CatsModel) {
         Picasso.get().load(catsModel.randomImageUrl).into(randomImageView)
         factTextView.text = catsModel.fact
     }
 
-    private fun showError(msg: String) =
+    override fun showError(msg: String) =
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
 
-    private fun showNetworkError() =
+    override fun showNetworkError() =
         showError(context.getString(R.string.network_connection_error))
+}
+
+interface ICatsView {
+
+    fun populate(catsModel: CatsModel)
+
+    fun showError(msg: String)
+
+    fun showNetworkError()
 }

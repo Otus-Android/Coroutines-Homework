@@ -19,22 +19,9 @@ class CatsViewModel(
     }
 
     fun fetchCatsModel() = viewModelScope.launch(exceptionHandler) {
-        _state.value = getCatFactWithImage()
-    }
-
-    private suspend fun getCatFactWithImage() = coroutineScope {
-        val fact = async { getCatFact() }
-        val img = async { getCatRandomImage() }
+        val fact = async(dispatcher) { catsService.getCatFact() }
+        val img = async(dispatcher) { catsService.getCatRandomImage() }
         val catsModel = CatsModel(fact.await().fact, img.await().file)
-        return@coroutineScope Result.Success(catsModel)
+        _state.value = Result.Success(catsModel)
     }
-
-    private suspend fun getCatFact() = withContext(dispatcher) {
-        return@withContext catsService.getCatFact()
-    }
-
-    private suspend fun getCatRandomImage() = withContext(dispatcher) {
-        return@withContext catsService.getCatRandomImage()
-    }
-
 }
