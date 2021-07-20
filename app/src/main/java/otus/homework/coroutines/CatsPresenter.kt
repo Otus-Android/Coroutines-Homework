@@ -11,48 +11,39 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
     private val job = SupervisorJob()
-    private val coroutineContext: CoroutineContext =
-        Dispatchers.Main + job + CoroutineName("CatsCoroutine")
-    private val customPresenterScope = CoroutineScope(coroutineContext)
-
-    fun onInitComplete() {
-        customPresenterScope.launch {
-            getData()
+    private val exceptionHandler = CoroutineExceptionHandler { _, e ->
+        if (e is SocketTimeoutException) {
+            _catsView?.showErrorToast("timeout exception")
+        } else {
+            CrashMonitor.trackWarning(e.message)
+            _catsView?.showErrorToast("Error occurred: ${e.message}")
         }
     }
+    private val coroutineContext: CoroutineContext =
+        Dispatchers.Main + job + CoroutineName("CatsCoroutine") + exceptionHandler
+    private val customPresenterScope = CoroutineScope(coroutineContext)
+
+//    fun onInitComplete() {
+//        customPresenterScope.launch {
+//            getData()
+//        }
+//    }
 
     private suspend fun getData() {
-        try {
-            val fact =
-                withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
+        customPresenterScope.launch {
+            val fact = withContext(Dispatchers.IO) {
                     catsService.getCatFact()
-                }
+            }
 
-            val image = withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
+            val image = withContext(Dispatchers.IO) {
                 catsService.getCatImage()
             }
-            if (
-                fact.isSuccessful
-                && image.isSuccessful
-                && fact.body() != null
-                && image.body() != null
-            ) {
-                val data = CustomCatPresentationModel(
-                    checkNotNull(fact.body())[0].fact,
-                    checkNotNull(image.body()).file
-                )
-                _catsView?.populate(data)
-            } else {
-                CrashMonitor.trackWarning(fact.message())
-                _catsView?.showErrorToast("Error occurred: ${fact.message()}")
-            }
 
-
-        } catch (exception: SocketTimeoutException) {
-            _catsView?.showErrorToast("timeout exception")
-        } catch (exception: Exception) {
-            CrashMonitor.trackWarning(exception.message)
-            _catsView?.showErrorToast("Error occurred: ${exception.message}")
+            val data = CustomCatPresentationModel(
+                fact[0].fact,
+                image.file
+            )
+            _catsView?.populate(data)
         }
     }
 
@@ -64,7 +55,7 @@ class CatsPresenter(
         _catsView = null
     }
 
-    fun stopJob(){
+    fun stopJob() {
         customPresenterScope.cancel()
     }
 

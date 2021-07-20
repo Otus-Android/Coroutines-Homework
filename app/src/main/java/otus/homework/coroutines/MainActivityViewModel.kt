@@ -5,9 +5,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.lang.NullPointerException
 import java.net.SocketTimeoutException
-import kotlin.coroutines.coroutineContext
 
 
 class MainActivityViewModel(private val catsService: CatsService) : ViewModel() {
@@ -26,29 +24,29 @@ class MainActivityViewModel(private val catsService: CatsService) : ViewModel() 
 
     fun onInitComplete() {
         viewModelScope.launch(exceptionHandler) {
-            getData()
-        }
-    }
+            val factResponse = withContext(Dispatchers.IO) {
+                catsService.getCatFact()
+            }
+            val imageResponse = withContext(Dispatchers.IO) {
+                catsService.getCatImage()
+            }
 
-    private suspend fun getData() {
-        val fact = withContext(Dispatchers.IO) {
-            catsService.getCatFact()
-        }
-        val image = withContext(Dispatchers.IO) {
-            catsService.getCatImage()
-        }
+            val fact = factResponse[0].fact
+            val image = imageResponse.file
 
-        if (!fact.body()?.get(0)?.fact.isNullOrEmpty()
-            && !image.body()?.file.isNullOrEmpty()) {
-            val data = CustomCatPresentationModel(
-                fact.body()!![0].fact,
-                image.body()!!.file
-            )
-            _catsData.postValue(Result.Success(data))
-        } else {
-            _catsData.postValue(Result.Error(
-                NullPointerException("data from server was null or empty")
-            ))
+            if (!(fact.isEmpty() && image.isEmpty())) {
+                val data = CustomCatPresentationModel(
+                    factResponse[0].fact,
+                    imageResponse.file
+                )
+                _catsData.postValue(Result.Success(data))
+            } else {
+                _catsData.postValue(
+                    Result.Error(
+                        RuntimeException("data from server was null or empty")
+                    )
+                )
+            }
         }
     }
 }
