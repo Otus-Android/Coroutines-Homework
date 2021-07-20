@@ -5,7 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import otus.homework.coroutines.entity.Animal
 import otus.homework.coroutines.entity.Result
 import otus.homework.coroutines.service.CatsService
@@ -27,14 +29,16 @@ class MainViewModel(
 
     fun initState() {
         viewModelScope.launch(exceptionHandler) {
-            val picture = imageService.getCatImage()
-            val fact = catsService.getCatFact()
-            _result.value = Result.Success(
-                Animal(
-                    text = fact.text,
-                    images = picture.file
+            withContext(Dispatchers.IO) {
+                val picture = imageService.getCatImage()
+                val fact = catsService.getCatFact()
+                _result.value = Result.Success(
+                    Animal(
+                        text = fact.text,
+                        images = picture.file
+                    )
                 )
-            )
+            }
         }
     }
 }
