@@ -19,21 +19,23 @@ class CatsPresenter(
             }
             else -> {
                 CrashMonitor.trackWarning(ex)
-                _catsView?.showToastByException(ex as Exception)
+                _catsView?.showToastByException(ex)
             }
         }
     }
 
     fun onInitComplete() {
         scope.launch(exceptionHandler) {
-            val imageDeferred = async { imageService.getCatImage() }
-            val factDeferred = async { catsService.getCatFact() }
+            withContext(Dispatchers.IO) {
+                val imageDeferred = async { imageService.getCatImage() }
+                val factDeferred = async { catsService.getCatFact() }
 
-            val imageResponse = imageDeferred.await()
-            val factResponse = factDeferred.await()
-            val cat = CatInfo(url = imageResponse.url, text = factResponse.text)
+                val imageResponse = imageDeferred.await()
+                val factResponse = factDeferred.await()
+                val cat = CatInfo(url = imageResponse.url, text = factResponse.text)
 
-            _catsView?.populate(cat)
+                _catsView?.populate(cat)
+            }
         }
     }
 

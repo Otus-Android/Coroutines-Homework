@@ -24,13 +24,12 @@ class MainActivity : AppCompatActivity() {
         catsViewModel = CatsViewModel(diContainer.service, diContainer.imageService)
         view.catsViewModel = catsViewModel
         catsViewModel.attachView(view)
-        catsViewModel.onInitComplete()
+        catsViewModel.onViewInitializationComplete()
     }
 
     override fun onStop() {
         if (isFinishing) {
             //catsPresenter.detachView()
-            catsViewModel.detachView()
         }
         super.onStop()
     }

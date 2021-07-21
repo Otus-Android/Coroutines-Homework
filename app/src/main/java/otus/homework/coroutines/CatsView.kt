@@ -23,7 +23,7 @@ class CatsView @JvmOverloads constructor(
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
             //presenter?.onInitComplete()
-            catsViewModel?.onInitComplete()
+            catsViewModel?.onViewInitializationComplete()
         }
     }
 
@@ -45,13 +45,10 @@ class CatsView @JvmOverloads constructor(
     }
 
     override fun showToastByException(ex: Throwable) {
-        when (ex) {
-            is SocketTimeoutException -> {
-                showToast(context.getString(R.string.exeption_socket_timeout))
-            }
-            else -> {
-                showToast(ex.message ?: context.getString(R.string.generic_error))
-            }
+        if (ex is SocketTimeoutException) {
+            showToast(context.getString(R.string.exeption_socket_timeout))
+        } else {
+            showToast(ex.message ?: context.getString(R.string.generic_error))
         }
     }
 

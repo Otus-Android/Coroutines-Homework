@@ -2,9 +2,7 @@ package otus.homework.coroutines
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
@@ -25,16 +23,18 @@ class CatsViewModel(
         }
     }
 
-    fun onInitComplete() {
+    fun onViewInitializationComplete() {
         viewModelScope.launch(exceptionHandler) {
-            val imageDeferred = async { imageService.getCatImage() }
-            val factDeferred = async { catsService.getCatFact() }
+            withContext(Dispatchers.IO) {
+                val imageDeferred = async { imageService.getCatImage() }
+                val factDeferred = async { catsService.getCatFact() }
 
-            val imageResponse = imageDeferred.await()
-            val factResponse = factDeferred.await()
-            val cat = CatInfo(url = imageResponse.url, text = factResponse.text)
+                val imageResponse = imageDeferred.await()
+                val factResponse = factDeferred.await()
+                val cat = CatInfo(url = imageResponse.url, text = factResponse.text)
 
-            _catsView?.handleResponse(Success(cat))
+                _catsView?.handleResponse(Success(cat))
+            }
         }
     }
 
@@ -42,7 +42,8 @@ class CatsViewModel(
         _catsView = catsView
     }
 
-    fun detachView() {
+    override fun onCleared() {
+        super.onCleared()
         _catsView = null
     }
 }
