@@ -1,6 +1,5 @@
 package otus.homework.coroutines
 
-import android.util.Log
 import kotlinx.coroutines.*
 import otus.homework.coroutines.model.CatData
 import java.net.SocketTimeoutException
@@ -33,7 +32,7 @@ class CatsPresenter(
                 } else {
                     CrashMonitor.trackWarning()
                     _catsView?.showToast(e.stackTraceToString())
-                    Log.e("!!!", "onInitComplete: ${e.stackTraceToString()}")
+                    e.stackTraceToString()
                 }
             }
         }
