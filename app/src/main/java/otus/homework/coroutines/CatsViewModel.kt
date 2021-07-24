@@ -11,23 +11,20 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
-class CatsViewModel : ViewModel() {
+class CatsViewModel(private val factsService: CatsService,
+                    private val pictureService: PictureService) : ViewModel() {
 
     private val result = MutableLiveData<Result>()
     fun getResult(): LiveData<Result> = result
 
-    lateinit var diContainer: DiContainer
-    private val factsService: CatsService by lazy { diContainer.factsService }
-    private val pictureService: PictureService by lazy { diContainer.pictureService }
-
     private val handler = CoroutineExceptionHandler { _, exception ->
         viewModelScope.coroutineContext.cancelChildren()
-        viewModelScope.launch(Dispatchers.Main) {
-            when (exception) {
-                is SocketTimeoutException -> result.value = Result.Error(messageRes = R.string.timeout_message)
+        viewModelScope.launch {
+            result.value = when (exception) {
+                is SocketTimeoutException -> Result.Error(messageRes = R.string.timeout_message)
                 else -> {
-                    Result.Error(exception.message)
                     CrashMonitor.trackWarning()
+                    Result.Error(exception.message)
                 }
             }
         }
@@ -36,22 +33,12 @@ class CatsViewModel : ViewModel() {
     fun onInitComplete() {
         viewModelScope.launch(handler) {
             val factDef = async(Dispatchers.IO) {
-                val response = factsService.getCatFact()
-                if (response.isSuccessful && response.body() != null) {
-                    response.body()!![0]
-                } else {
-                    throw Exception(response.errorBody().toString())
-                }
+                factsService.getCatFact()
             }
             val pictureDef = async(Dispatchers.IO) {
-                val response = pictureService.getCatPicture()
-                if (response.isSuccessful && response.body() != null) {
-                    response.body()!!
-                } else {
-                    throw Exception(response.errorBody().toString())
-                }
+                pictureService.getCatPicture()
             }
-            val factWithPicture = FactWithPicture(factDef.await().text, pictureDef.await().pictureUrl)
+            val factWithPicture = FactWithPicture(factDef.await()[0].text, pictureDef.await().pictureUrl)
             result.value = Result.Success(factWithPicture)
         }
     }

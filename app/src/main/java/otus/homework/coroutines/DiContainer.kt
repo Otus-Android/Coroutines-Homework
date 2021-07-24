@@ -9,7 +9,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-private const val TIMEOUT_IN_SEC = 2L
+private const val TIMEOUT_IN_SEC = 20L
 
 class DiContainer {
 

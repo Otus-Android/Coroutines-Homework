@@ -7,19 +7,21 @@ import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
-    private val diContainer = DiContainer()
+    private lateinit var viewModel: CatsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val viewModel: CatsViewModel by viewModels()
-        viewModel.diContainer = diContainer
+        initViewModel()
         viewModel.onInitComplete()
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
+        setListeners(view)
+    }
 
+    private fun setListeners(view: CatsView) {
         viewModel.getResult().observe(this, {
-            when(it){
+            when (it) {
                 is Result.Error -> {
                     val message = it.message ?: it.messageRes?.let { str -> getString(str) }
                     Toast.makeText(this, message, Toast.LENGTH_LONG).show()
@@ -31,5 +33,10 @@ class MainActivity : AppCompatActivity() {
         view.setOnClickListener {
             viewModel.onInitComplete()
         }
+    }
+
+    private fun initViewModel() {
+        val viewModel: CatsViewModel by viewModels { ViewModelFactory(DiContainer()) }
+        this.viewModel = viewModel
     }
 }
