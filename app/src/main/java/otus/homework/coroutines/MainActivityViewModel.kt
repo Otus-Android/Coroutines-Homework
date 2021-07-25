@@ -1,10 +1,7 @@
 package otus.homework.coroutines
 
 import androidx.lifecycle.*
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
 
@@ -24,26 +21,31 @@ class MainActivityViewModel(private val catsService: CatsService) : ViewModel() 
 
     fun onInitComplete() {
         viewModelScope.launch(exceptionHandler) {
-            val factResponse = withContext(Dispatchers.IO) {
+            val factResponse: Deferred<List<Fact>> = async (Dispatchers.IO) {
+                println("debugMyApp: fact api start")
                 catsService.getCatFact()
             }
-            val imageResponse = withContext(Dispatchers.IO) {
+
+            val imageResponse: Deferred<CatPicture> = async (Dispatchers.IO) {
+                println("debugMyApp: image api start")
                 catsService.getCatImage()
             }
 
-            val fact = factResponse[0].fact
-            val image = imageResponse.file
+            val fact = factResponse.await()
+            println("debugMyApp: fact results awaited, result = ${fact[0].fact}")
+            val image = imageResponse.await().file
+            println("debugMyApp: image results awaited, result = $image")
 
-            if (!(fact.isEmpty() && image.isEmpty())) {
+            if (fact.isNotEmpty() && image.isNotEmpty()) {
                 val data = CustomCatPresentationModel(
-                    factResponse[0].fact,
-                    imageResponse.file
+                    fact[0].fact,
+                    image
                 )
                 _catsData.postValue(Result.Success(data))
             } else {
                 _catsData.postValue(
                     Result.Error(
-                        RuntimeException("data from server was null or empty")
+                        RuntimeException("received data from server was empty")
                     )
                 )
             }

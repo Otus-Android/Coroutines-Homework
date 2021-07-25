@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.ViewModelProvider
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -14,7 +15,4 @@ class DiContainer {
 
     val service by lazy { retrofit.create(CatsService::class.java) }
 
-    val viewModel by lazy {
-        MainActivityViewModelFactory(service).create(MainActivityViewModel::class.java)
-    }
 }

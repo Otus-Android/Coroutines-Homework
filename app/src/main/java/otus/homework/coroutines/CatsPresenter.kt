@@ -31,17 +31,18 @@ class CatsPresenter(
 
     private suspend fun getData() {
         customPresenterScope.launch {
-            val fact = withContext(Dispatchers.IO) {
+
+            val fact = async(Dispatchers.IO) {
                     catsService.getCatFact()
             }
 
-            val image = withContext(Dispatchers.IO) {
+            val image = async(Dispatchers.IO) {
                 catsService.getCatImage()
             }
 
             val data = CustomCatPresentationModel(
-                fact[0].fact,
-                image.file
+                fact.await()[0].fact,
+                image.await().file
             )
             _catsView?.populate(data)
         }

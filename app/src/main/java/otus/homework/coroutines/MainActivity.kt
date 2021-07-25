@@ -2,14 +2,16 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.lifecycle.ViewModelProvider
 import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var catsPresenter: CatsPresenter
-    private lateinit var viewModel: MainActivityViewModel
-
     private val diContainer = DiContainer()
+    private val viewModel: MainActivityViewModel =
+    ViewModelProvider(this, MainActivityViewModelFactory(diContainer.service)
+    ).get(MainActivityViewModel::class.java)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,7 +27,6 @@ class MainActivity : AppCompatActivity() {
 //        -----------------------------------------
 
 //        Реализация ViewModel---------------------
-        viewModel = diContainer.viewModel
         view.viewModel = viewModel
         viewModel.onInitComplete()
         viewModel.catsData.observe(this, {
