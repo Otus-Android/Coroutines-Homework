@@ -7,7 +7,7 @@ class DiContainer {
 
     private val catRetrofitUrl by lazy {
         Retrofit.Builder()
-            .baseUrl("https://cat-fact.herokuapp.com/facts/")
+            .baseUrl("https://dog-facts-api.herokuapp.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
