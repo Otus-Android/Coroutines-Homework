@@ -8,6 +8,6 @@ object CrashMonitor {
      * Pretend this is Crashlytics/AppCenter
      */
     fun trackWarning() {
-        Log.e("!!!", "trackWarning", )
+        Log.e("!!!", "trackWarning")
     }
 }
