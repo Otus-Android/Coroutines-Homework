@@ -1,6 +1,8 @@
 package otus.homework.coroutines.model
 
+import kotlinx.coroutines.Deferred
+
 data class CatData(
-    val fact: List<Fact>,
-    val image: CatImage
+    val fact: Deferred<List<Fact>>,
+    val image: Deferred<CatImage>
 )

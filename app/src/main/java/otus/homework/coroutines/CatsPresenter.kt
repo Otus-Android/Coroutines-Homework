@@ -17,11 +17,11 @@ class CatsPresenter(
     fun onInitComplete() {
 
         presenterScope.launch {
-
             try {
-
-                val catFactResponse = catFactService.getCatFact()
-                val catImageResponse = catImageService.getCatImage()
+                val catFactResponse =
+                    async { withContext(Dispatchers.IO) { catFactService.getCatFact() } }
+                val catImageResponse =
+                    async { withContext(Dispatchers.IO) { catImageService.getCatImage() } }
                 val catData = CatData(catFactResponse, catImageResponse)
 
                 _catsView?.populate(catData)
@@ -32,7 +32,7 @@ class CatsPresenter(
                 } else {
                     CrashMonitor.trackWarning()
                     _catsView?.showToast(e.stackTraceToString())
-                    e.stackTraceToString()
+                    e.printStackTrace()
                 }
             }
         }
@@ -48,11 +48,11 @@ class CatsPresenter(
     }
 
     class PresenterScope(
-        dispatcher: MainCoroutineDispatcher,
+        dispatchers: CoroutineDispatcher,
         coroutineName: CoroutineName,
     ) : CoroutineScope {
 
         override val coroutineContext: CoroutineContext =
-            dispatcher + coroutineName
+            dispatchers + coroutineName
     }
 }

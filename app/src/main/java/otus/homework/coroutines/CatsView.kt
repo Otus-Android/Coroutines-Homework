@@ -27,9 +27,9 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(catData: CatData) {
-        findViewById<TextView>(R.id.fact_textView).text = catData.fact.firstOrNull()?.fact
-        Picasso.get().load(catData.image.fileUrl).into(findViewById<ImageView>(R.id.image_imageView))
+    override suspend fun populate(catData: CatData) {
+        Picasso.get().load(catData.image.await().fileUrl).into(findViewById<ImageView>(R.id.image_imageView))
+        findViewById<TextView>(R.id.fact_textView).text = catData.fact.await().firstOrNull()?.fact
     }
 
     override fun showToast(s: String) {
@@ -39,6 +39,6 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(catData: CatData)
+    suspend fun populate(catData: CatData)
     fun showToast(s: String)
 }
