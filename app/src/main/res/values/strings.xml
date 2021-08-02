@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Cat Facts </string>
     <string name="more_facts">More Facts</string>
+    <string name="imageView">Cat view</string>
+
+    <!--Exceptions-->
+    <string name="socket_timeout_exception">Не удалось получить ответ от сервера</string>
+    <string name="some_exception">Какая-то ошибка от сервера</string>
+
 </resources>
