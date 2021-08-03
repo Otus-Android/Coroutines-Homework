@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.view
 
 import android.content.Context
 import android.util.AttributeSet
@@ -8,6 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import otus.homework.coroutines.R
 import otus.homework.coroutines.model.CatData
 import otus.homework.coroutines.presenter.CatsPresenter
 
@@ -17,7 +18,7 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter : CatsPresenter? = null
+    var presenter: CatsPresenter? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -27,8 +28,9 @@ class CatsView @JvmOverloads constructor(
     }
 
     override suspend fun populate(catData: CatData) {
-        Picasso.get().load(catData.image.await().fileUrl).into(findViewById<ImageView>(R.id.image_imageView))
-        findViewById<TextView>(R.id.fact_textView).text = catData.fact.await().firstOrNull()?.fact
+//        Picasso.get().load(catData.image.fileUrl)
+//            .into(findViewById<ImageView>(R.id.image_imageView))
+//        findViewById<TextView>(R.id.fact_textView).text = catData.fact.firstOrNull()?.fact
     }
 
     override fun showToast(s: String) {
@@ -37,7 +39,6 @@ class CatsView @JvmOverloads constructor(
 }
 
 interface ICatsView {
-
     suspend fun populate(catData: CatData)
     fun showToast(s: String)
 }

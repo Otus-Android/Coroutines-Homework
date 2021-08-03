@@ -3,7 +3,7 @@ package otus.homework.coroutines.presenter
 import kotlinx.coroutines.*
 import otus.homework.coroutines.utils.CatsService
 import otus.homework.coroutines.CrashMonitor
-import otus.homework.coroutines.ICatsView
+import otus.homework.coroutines.view.ICatsView
 import otus.homework.coroutines.model.CatData
 import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
@@ -17,6 +17,8 @@ class CatsPresenter(
     private val presenterScope =
         PresenterScope(Dispatchers.Main, CoroutineName("CatsCoroutine"))
 
+    /* MVP */
+
     fun onInitComplete() {
 
         presenterScope.launch {
@@ -25,9 +27,9 @@ class CatsPresenter(
                     async { withContext(Dispatchers.IO) { catFactService.getCatFact() } }
                 val catImageResponse =
                     async { withContext(Dispatchers.IO) { catImageService.getCatImage() } }
-                val catData = CatData(catFactResponse, catImageResponse)
+//                val catData = CatData(catFactResponse, catImageResponse)
 
-                _catsView?.populate(catData)
+//                _catsView?.populate(catData)
 
             } catch (e: Exception) {
                 if (e is SocketTimeoutException) {
