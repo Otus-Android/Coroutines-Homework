@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
@@ -18,7 +17,6 @@ class CatsViewModel(private val factsService: CatsService,
     fun getResult(): LiveData<Result> = result
 
     private val handler = CoroutineExceptionHandler { _, exception ->
-        viewModelScope.coroutineContext.cancelChildren()
         viewModelScope.launch {
             result.value = when (exception) {
                 is SocketTimeoutException -> Result.Error(messageRes = R.string.timeout_message)
