@@ -4,12 +4,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.model.CatData
-import otus.homework.coroutines.utils.CatsService
 import otus.homework.coroutines.utils.DiContainer
-import java.net.SocketTimeoutException
 
 class CatsViewModel(
     private val diContainer: DiContainer,
@@ -27,29 +28,17 @@ class CatsViewModel(
         viewModelScope.launch(CoroutineExceptionHandler { _, _ ->
             CrashMonitor.trackWarning()
         }) {
-            try {
-                val catFactResponseDef =
-                    async { withContext(Dispatchers.IO) { diContainer.catFactService.getCatFact() } }
-                val catImageResponseDef =
-                    async { withContext(Dispatchers.IO) { diContainer.catImageService.getCatImage() } }
+            val catFactResponseDef =
+                async(Dispatchers.IO) { diContainer.catFactService.getCatFact() }
+            val catImageResponseDef =
+                async(Dispatchers.IO) { diContainer.catImageService.getCatImage() }
 
-                val catFactResponse = catFactResponseDef.await()
-                val catImageResponse = catImageResponseDef.await()
+            val catFactResponse = catFactResponseDef.await()
+            val catImageResponse = catImageResponseDef.await()
 
-                val factImage = CatData(catFactResponse, catImageResponse)
+            val factImage = CatData(catFactResponse, catImageResponse)
 
-                _catDataResponse.value = Result.Success(factImage)
-
-            } catch (e: Exception) {
-                if (e is SocketTimeoutException) {
-                    _catDataResponse.value =
-                        Result.Error(e, "Не удалось получить ответ от сервером")
-                } else {
-                    CrashMonitor.trackWarning()
-                    Result.Error(e, "Не удалось получить ответ от сервером")
-                    e.printStackTrace()
-                }
-            }
+            _catDataResponse.value = Result.Success(factImage)
         }
     }
 
