@@ -37,8 +37,7 @@ class MainActivity : AppCompatActivity() {
             this,
             CatsViewModelFactory(
                 application,
-                diContainer.catFactService,
-                diContainer.catImageService
+                diContainer,
             )
         ).get(CatsViewModel::class.java)
 
@@ -64,12 +63,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     class CatsViewModelFactory(
-        private val application: Application,
-        private val catsServiceFact: CatsService,
-        private val catsServiceImage: CatsService
+        application: Application,
+        private val diContainer: DiContainer,
     ) : ViewModelProvider.AndroidViewModelFactory(application) {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return CatsViewModel(catsServiceFact, catsServiceImage) as T
+            return CatsViewModel(diContainer) as T
         }
     }
 }

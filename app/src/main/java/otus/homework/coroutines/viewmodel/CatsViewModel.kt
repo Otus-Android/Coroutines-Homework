@@ -8,11 +8,11 @@ import kotlinx.coroutines.*
 import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.model.CatData
 import otus.homework.coroutines.utils.CatsService
+import otus.homework.coroutines.utils.DiContainer
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
-    private val catFactService: CatsService,
-    private val catImageService: CatsService,
+    private val diContainer: DiContainer,
 ) : ViewModel() {
 
     init {
@@ -29,9 +29,9 @@ class CatsViewModel(
         }) {
             try {
                 val catFactResponseDef =
-                    async { withContext(Dispatchers.IO) { catFactService.getCatFact() } }
+                    async { withContext(Dispatchers.IO) { diContainer.catFactService.getCatFact() } }
                 val catImageResponseDef =
-                    async { withContext(Dispatchers.IO) { catImageService.getCatImage() } }
+                    async { withContext(Dispatchers.IO) { diContainer.catImageService.getCatImage() } }
 
                 val catFactResponse = catFactResponseDef.await()
                 val catImageResponse = catImageResponseDef.await()
