@@ -2,24 +2,48 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
+import otus.homework.coroutines.model.Result
+import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var catsPresenter: CatsPresenter
 
     private val diContainer = DiContainer()
+    private var catsViewModel: CatsViewModel = diContainer.viewModel
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
-
-        catsPresenter = CatsPresenter(diContainer.service)
+        catsPresenter = CatsPresenter(diContainer.service, diContainer.serviceImage)
         view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+
+        findViewById<Button>(R.id.button).setOnClickListener { catsViewModel.onInitComplete() }
+
+        catsViewModel.stateLiveData.observe(this, {
+            if (it is Result.Success) {
+                view.populate(it.cats)
+            } else if (it is Result.Error) {
+                showToastError(it.throwable, view)
+            }
+        })
+
+        catsViewModel.attachView(view)
+        catsViewModel.onInitComplete()
     }
+
+    private fun showToastError(throwable: Throwable, view: CatsView) {
+        if (throwable is SocketTimeoutException) {
+            view.showToastSomeException(throwable)
+        } else {
+            view.showToastTimeout(throwable)
+        }
+    }
+
 
     override fun onStop() {
         if (isFinishing) {
