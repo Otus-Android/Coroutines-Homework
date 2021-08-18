@@ -7,6 +7,7 @@ import otus.homework.coroutines.model.CatsData
 import otus.homework.coroutines.model.Fact
 import otus.homework.coroutines.retrofit.CatsImageService
 import otus.homework.coroutines.retrofit.CatsService
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
     private val catsService: CatsService,
@@ -19,51 +20,45 @@ class CatsPresenter(
 
     fun onInitComplete() {
         presenterScope.launch {
-            onMakeSomeAction(
-                catsService::getCatFact,
-                catsImageService::getCatImage,
-                false
-            )
+            try {
+                val fact: Fact
+                withContext(dispatcherIO){
+                    fact = catsService.getCatFact()
+                }
+                _catsView?.populate(CatsData(fact.text, ""))
+            }
+            catch (e: Exception){
+                when(e) {
+                    is SocketTimeoutException -> _catsView?.toastSocketTimeoutException(e)
+                    else -> {
+                        CrashMonitor.trackWarning(e)
+                        _catsView?.toastSomeException(e)
+                    }
+                }
+            }
         }
     }
 
     fun onRefreshComplete() {
         presenterScope.launch {
-            onMakeSomeAction(
-                catsService::getCatFact,
-                catsImageService::getCatImage,
-                true
-            )
-        }
-    }
-
-    private suspend fun onMakeSomeAction(
-        getCatFact: suspend () -> Fact?,
-        getCatImage: suspend () -> CatImage?,
-        flag: Boolean
-    ){
-        try {
-            val fact: Fact?
-            val catImage: CatImage?
-            if (flag) {
-                withContext(dispatcherIO){
-                    fact = getCatFact()
-                    catImage = getCatImage()
-                }
-                _catsView?.populate(CatsData(fact?.text ?: NOTHING, catImage?.file ?: ""))
-            } else {
+            try {
+                val fact: Fact
+                val catImage: CatImage
                 withContext(dispatcherIO){
                     fact = catsService.getCatFact()
+                    catImage = catsImageService.getCatImage()
                 }
-                _catsView?.populate(CatsData(fact?.text ?: NOTHING, ""))
+                _catsView?.populate(CatsData(fact.text, catImage.file))
             }
-        }
-        catch (e: java.net.SocketTimeoutException){
-            _catsView?.toastSocketTimeoutException(e)
-        }
-        catch (e: Exception){
-            CrashMonitor.trackWarning(e)
-            _catsView?.toastSomeException(e)
+            catch (e: Exception){
+                when(e) {
+                    is SocketTimeoutException -> _catsView?.toastSocketTimeoutException(e)
+                    else -> {
+                        CrashMonitor.trackWarning(e)
+                        _catsView?.toastSomeException(e)
+                    }
+                }
+            }
         }
     }
 
@@ -74,9 +69,5 @@ class CatsPresenter(
     fun detachView() {
         _catsView = null
         presenterScope.cancel()
-    }
-
-    companion object {
-        const val NOTHING = "empty text"
     }
 }

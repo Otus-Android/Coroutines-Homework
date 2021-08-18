@@ -13,6 +13,11 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
+private const val RETRO_FACTS = "RetroFacts"
+private const val RETRO_IMAGE = "RetroImage"
+private const val URL_FACTS = "https://cat-fact.herokuapp.com/facts/"
+private const val URL_IMAGE = "https://aws.random.cat/"
+
 val dataSourceModule = module{
 
     single {
