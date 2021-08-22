@@ -1,46 +1,45 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.view
 
 import android.app.Application
 import android.os.Bundle
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
-import otus.homework.coroutines.presenter.CatsPresenter
-import otus.homework.coroutines.utils.CatsService
+import otus.homework.coroutines.CrashMonitor
+import otus.homework.coroutines.R
 import otus.homework.coroutines.utils.DiContainer
-import otus.homework.coroutines.view.CatsView
 import otus.homework.coroutines.viewmodel.CatsViewModel
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
     private val diContainer = DiContainer()
     lateinit var catsViewModel: CatsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
+        val view = layoutInflater.inflate(R.layout.activity_main, null)
         setContentView(view)
-
-        /* MVP */
-
-//        catsPresenter = CatsPresenter(diContainer.catFactService, diContainer.catImageService)
-//        view.presenter = catsPresenter
-//        catsPresenter.attachView(view)
-//        catsPresenter.onInitComplete()
-
-        /* MVVM */
 
         catsViewModel = ViewModelProvider(
             this,
-            CatsViewModelFactory(
-                application,
-                diContainer,
-            )
+            CatsViewModelFactory(application, diContainer)
         ).get(CatsViewModel::class.java)
 
+        initObserver()
+        initListeners()
+
+    }
+
+    private fun initListeners() {
+        findViewById<Button>(R.id.button).setOnClickListener {
+            catsViewModel.onInitComplete()
+        }
+    }
+
+    private fun initObserver() {
         catsViewModel.catDataResponse.observe(this) {
             when (it) {
                 is CatsViewModel.Result.Success -> {
@@ -53,13 +52,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
-        }
-        super.onStop()
     }
 
     class CatsViewModelFactory(

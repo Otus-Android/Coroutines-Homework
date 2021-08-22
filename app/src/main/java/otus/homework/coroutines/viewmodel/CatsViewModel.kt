@@ -24,7 +24,7 @@ class CatsViewModel(
     val catDataResponse: LiveData<Result<CatData>>
         get() = _catDataResponse
 
-    private fun onInitComplete() {
+    fun onInitComplete() {
         viewModelScope.launch(CoroutineExceptionHandler { _, _ ->
             CrashMonitor.trackWarning()
         }) {
@@ -49,5 +49,4 @@ class CatsViewModel(
             val error: String
         ) : Result<Nothing>()
     }
-
 }
