@@ -10,7 +10,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
-class CatsViewModel(private val factsService: CatsService,
+class CatsViewModel(private val factsService: ActivitiesService,
                     private val pictureService: PictureService) : ViewModel() {
 
     private val result = MutableLiveData<Result>()
@@ -31,12 +31,12 @@ class CatsViewModel(private val factsService: CatsService,
     fun onInitComplete() {
         viewModelScope.launch(handler) {
             val factDef = async(Dispatchers.IO) {
-                factsService.getCatFact()
+                factsService.getActivity()
             }
             val pictureDef = async(Dispatchers.IO) {
                 pictureService.getCatPicture()
             }
-            val factWithPicture = FactWithPicture(factDef.await()[0].text, pictureDef.await().pictureUrl)
+            val factWithPicture = FactWithPicture(factDef.await().activity, pictureDef.await().pictureUrl)
             result.value = Result.Success(factWithPicture)
         }
     }

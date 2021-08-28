@@ -21,7 +21,7 @@ class DiContainer {
 
     private val factRetrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://dog-facts-api.herokuapp.com/")
+            .baseUrl("https://www.boredapi.com")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -29,13 +29,13 @@ class DiContainer {
 
     private val pictureRetrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://aws.random.cat/")
+            .baseUrl("https://dog.ceo/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
-    val factsService: CatsService by lazy { factRetrofit.create(CatsService::class.java) }
+    val factsService: ActivitiesService by lazy { factRetrofit.create(ActivitiesService::class.java) }
     val pictureService: PictureService by lazy { pictureRetrofit.create(PictureService::class.java) }
 
     val presenterScope = CoroutineScope(Dispatchers.Default + CoroutineName("CatsCoroutine") + SupervisorJob())
