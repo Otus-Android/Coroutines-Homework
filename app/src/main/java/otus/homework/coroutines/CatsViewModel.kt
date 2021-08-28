@@ -17,13 +17,11 @@ class CatsViewModel(private val factsService: ActivitiesService,
     fun getResult(): LiveData<Result> = result
 
     private val handler = CoroutineExceptionHandler { _, exception ->
-        viewModelScope.launch {
-            result.value = when (exception) {
-                is SocketTimeoutException -> Result.Error(messageRes = R.string.timeout_message)
-                else -> {
-                    CrashMonitor.trackWarning()
-                    Result.Error(exception.message)
-                }
+        result.value = when (exception) {
+            is SocketTimeoutException -> Result.Error(messageRes = R.string.timeout_message)
+            else -> {
+                CrashMonitor.trackWarning()
+                Result.Error(exception.message)
             }
         }
     }
