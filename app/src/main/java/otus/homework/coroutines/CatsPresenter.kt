@@ -19,7 +19,6 @@ class CatsPresenter(
     private var _catsView: ICatsView? = null
 
     private val handler = CoroutineExceptionHandler { _, exception ->
-        presenterScope.coroutineContext.cancelChildren()
         when (exception) {
             is SocketTimeoutException -> _catsView?.showToast(R.string.timeout_message)
             else -> {
@@ -39,10 +38,8 @@ class CatsPresenter(
             val pictureDef = async {
                 pictureService.getCatPicture()
             }
-            launch(Dispatchers.Main) {
-                val factWithPicture = FactWithPicture(factDef.await()[0].text, pictureDef.await().pictureUrl)
-                _catsView?.populate(factWithPicture)
-            }
+            val factWithPicture = FactWithPicture(factDef.await()[0].text, pictureDef.await().pictureUrl)
+            _catsView?.populate(factWithPicture)
         }
     }
 
