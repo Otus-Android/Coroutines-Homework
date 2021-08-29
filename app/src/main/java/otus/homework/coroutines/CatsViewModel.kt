@@ -1,29 +1,27 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
-import retrofit2.Response
 import java.net.SocketTimeoutException
 
-class CatsPresenter(
-    private val catsService: CatsService,
-    private val imagesService: ImagesService
-) {
+class CatsViewModel(private val catsService: CatsService,
+                    private val imagesService: ImagesService): ViewModel() {
+
 
     private var _catsView: ICatsView? = null
 
-    private val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
 
     fun onInitComplete() {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
-                val fact = presenterScope.async {getFact() }
-                val image = presenterScope.async {getImg() }
+                val fact =async {getFact() }
+                val image = async {getImg() }
                 _catsView?.populate(Fact(fact.await()), Img(image.await()))
-
             } catch (e: Exception) {
                 when (e) {
-                    is SocketTimeoutException -> {
-                       _catsView?.message("Не удалось получить ответ от сервером")
+                    is CoroutineExceptionHandler -> {
+                        _catsView?.message("Не удалось получить ответ от сервером")
                     }
                     else -> {
                         CrashMonitor.trackWarning()
@@ -37,9 +35,9 @@ class CatsPresenter(
 
     private suspend fun getFact(): String {
         var res = catsService.getCatFact()
-            if (res.isSuccessful && res.body() != null) {
-                return res.body()!!.text
-            }
+        if (res.isSuccessful && res.body() != null) {
+            return res.body()!!.text
+        }
 
         return ""
     }
@@ -55,9 +53,8 @@ class CatsPresenter(
         _catsView = catsView
     }
 
-    fun detachView() {
+    override fun onCleared() {
+        super.onCleared()
         _catsView = null
-        presenterScope.cancel()
     }
-
 }
