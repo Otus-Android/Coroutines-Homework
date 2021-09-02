@@ -22,4 +22,11 @@ class DiContainer {
     }
 
     val imageService by lazy { imageRetrofit.create(ImageService::class.java) }
+
+    val viewModel by lazy {
+        CatsViewModel(
+            catsService = service,
+            imageService = imageService
+        )
+    }
 }

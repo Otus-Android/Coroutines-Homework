@@ -8,7 +8,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
-import java.net.SocketTimeoutException
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -27,15 +26,8 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun handleResponse(result: Result) {
-        when (result) {
-            is Success -> {
-                populate(result.catInfo)
-            }
-            is Error -> {
-                showToastByException(result.ex)
-            }
-        }
+    override fun handleResponse(result: Success) {
+        populate(result.catInfo)
     }
 
     override fun populate(catInfo: CatInfo) {
@@ -44,22 +36,24 @@ class CatsView @JvmOverloads constructor(
             .into(findViewById<ImageView>(R.id.iv_cat))
     }
 
-    override fun showToastByException(ex: Throwable) {
-        if (ex is SocketTimeoutException) {
-            showToast(context.getString(R.string.exeption_socket_timeout))
-        } else {
-            showToast(ex.message ?: context.getString(R.string.generic_error))
-        }
-    }
-
     override fun showToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
+
+    override fun showGenericErrorMsg() {
+        Toast.makeText(context, context.getString(R.string.generic_error), Toast.LENGTH_LONG).show()
+
+    }
+
+    override fun showSocketExceptionMsg() {
+        Toast.makeText(context, context.getString(R.string.exeption_socket_timeout), Toast.LENGTH_LONG).show()
     }
 }
 
 interface ICatsView {
-    fun handleResponse(result: Result)
+    fun handleResponse(result: Success)
     fun populate(catInfo: CatInfo)
-    fun showToastByException(ex: Throwable)
     fun showToast(message: String)
+    fun showSocketExceptionMsg()
+    fun showGenericErrorMsg()
 }

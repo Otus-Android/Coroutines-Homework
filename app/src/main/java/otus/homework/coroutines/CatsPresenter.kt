@@ -15,17 +15,17 @@ class CatsPresenter(
     private val exceptionHandler = CoroutineExceptionHandler { context, ex ->
         when (ex) {
             is SocketTimeoutException -> {
-                _catsView?.showToastByException(ex)
+                _catsView?.showSocketExceptionMsg()
             }
             else -> {
                 CrashMonitor.trackWarning(ex)
-                _catsView?.showToastByException(ex)
+                _catsView?.showGenericErrorMsg()
             }
         }
     }
 
     fun onInitComplete() {
-        scope.launch(exceptionHandler) {
+        scope.launch(exceptionHandler + SupervisorJob()) {
             withContext(Dispatchers.IO) {
                 val imageDeferred = async { imageService.getCatImage() }
                 val factDeferred = async { catsService.getCatFact() }

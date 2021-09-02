@@ -14,27 +14,25 @@ class CatsViewModel(
     private val exceptionHandler = CoroutineExceptionHandler { context, ex ->
         when (ex) {
             is SocketTimeoutException -> {
-                _catsView?.handleResponse(Error(ex))
+                _catsView?.showSocketExceptionMsg()
             }
             else -> {
                 CrashMonitor.trackWarning(ex)
-                _catsView?.handleResponse(Error(ex))
+                _catsView?.showGenericErrorMsg()
             }
         }
     }
 
     fun onViewInitializationComplete() {
-        viewModelScope.launch(exceptionHandler) {
-            withContext(Dispatchers.IO) {
-                val imageDeferred = async { imageService.getCatImage() }
-                val factDeferred = async { catsService.getCatFact() }
+        viewModelScope.launch(exceptionHandler + SupervisorJob()) {
+            val imageDeferred = async(Dispatchers.IO) { imageService.getCatImage() }
+            val factDeferred = async(Dispatchers.IO) { catsService.getCatFact() }
 
-                val imageResponse = imageDeferred.await()
-                val factResponse = factDeferred.await()
-                val cat = CatInfo(url = imageResponse.url, text = factResponse.text)
+            val imageResponse = imageDeferred.await()
+            val factResponse = factDeferred.await()
+            val cat = CatInfo(url = imageResponse.url, text = factResponse.text)
 
-                _catsView?.handleResponse(Success(cat))
-            }
+            _catsView?.handleResponse(Success(cat))
         }
     }
 

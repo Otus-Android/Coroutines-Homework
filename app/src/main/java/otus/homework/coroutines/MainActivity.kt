@@ -6,9 +6,9 @@ import android.os.Bundle
 class MainActivity : AppCompatActivity() {
 
     lateinit var catsPresenter: CatsPresenter
-    lateinit var catsViewModel: CatsViewModel
 
     private val diContainer = DiContainer()
+    private val catsViewModel: CatsViewModel = diContainer.viewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,7 +21,6 @@ class MainActivity : AppCompatActivity() {
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()*/
 
-        catsViewModel = CatsViewModel(diContainer.service, diContainer.imageService)
         view.catsViewModel = catsViewModel
         catsViewModel.attachView(view)
         catsViewModel.onViewInitializationComplete()
