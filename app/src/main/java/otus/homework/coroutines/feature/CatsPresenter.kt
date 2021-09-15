@@ -2,9 +2,7 @@ package otus.homework.coroutines.feature
 
 import kotlinx.coroutines.*
 import otus.homework.coroutines.CrashMonitor
-import otus.homework.coroutines.model.CatImage
 import otus.homework.coroutines.model.CatsData
-import otus.homework.coroutines.model.Fact
 import otus.homework.coroutines.retrofit.CatsImageService
 import otus.homework.coroutines.retrofit.CatsService
 import java.net.SocketTimeoutException
@@ -21,11 +19,7 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                val fact: Fact
-                withContext(dispatcherIO){
-                    fact = catsService.getCatFact()
-                }
-                _catsView?.populate(CatsData(fact.text, ""))
+                _catsView?.populate(CatsData(withContext(dispatcherIO){ catsService.getCatFact().text }, ""))
             }
             catch (e: Exception){
                 when(e) {
@@ -42,13 +36,13 @@ class CatsPresenter(
     fun onRefreshComplete() {
         presenterScope.launch {
             try {
-                val fact: Fact
-                val catImage: CatImage
-                withContext(dispatcherIO){
-                    fact = catsService.getCatFact()
-                    catImage = catsImageService.getCatImage()
-                }
-                _catsView?.populate(CatsData(fact.text, catImage.file))
+                val fact = async { catsService.getCatFact() }
+                val catImage = async { catsImageService.getCatImage() }
+                _catsView?.populate(
+                    withContext(dispatcherIO){
+                        CatsData(fact.await().text, catImage.await().file)
+                    }
+                )
             }
             catch (e: Exception){
                 when(e) {

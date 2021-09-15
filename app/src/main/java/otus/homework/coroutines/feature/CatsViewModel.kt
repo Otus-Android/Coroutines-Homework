@@ -6,9 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import otus.homework.coroutines.CrashMonitor
-import otus.homework.coroutines.model.CatImage
 import otus.homework.coroutines.model.CatsData
-import otus.homework.coroutines.model.Fact
 import otus.homework.coroutines.model.Result
 import otus.homework.coroutines.model.Result.Error
 import otus.homework.coroutines.model.Result.Success
@@ -29,11 +27,7 @@ class CatsViewModel(
     fun onInitComplete() {
         catsViewModelScope.launch {
             try {
-                val fact: Fact
-                withContext(dispatcherIO){
-                    fact = catsService.getCatFact()
-                }
-                currentResult.value = Success(CatsData(fact.text, ""))
+                currentResult.value = Success(CatsData(withContext(dispatcherIO){ catsService.getCatFact().text }, ""))
             }
             catch (e: Exception){
                 currentResult.value = Error(e)
@@ -43,17 +37,15 @@ class CatsViewModel(
 
     fun onRefreshComplete() {
         catsViewModelScope.launch {
+            val catImage = async { catsImageService.getCatImage() }
+            val fact = async { catsService.getCatFact() }
             try {
-                val fact: Fact
-                val catImage: CatImage
-                withContext(dispatcherIO){
-                    catImage = catsImageService.getCatImage()
-//                    fact = catsService.getCatFact()
+                currentResult.value = withContext(dispatcherIO){
+                    Success(CatsData(fact.await().text, catImage.await().file))
                 }
-                currentResult.value = Success(CatsData(/*fact.text*/"", catImage.file))
             }
             catch (e: Exception){
-                currentResult.value = Error(e)
+                currentResult.value = Error(e.cause ?: e)
             }
         }
     }
