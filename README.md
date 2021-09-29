@@ -1,4 +1,4 @@
-# HomeWork_02 - Coroutines
+# Coroutines Homework
 
 ### Перейти с коллбеков на саспенд функции и корутины
 
