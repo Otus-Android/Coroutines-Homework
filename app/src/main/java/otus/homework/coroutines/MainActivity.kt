@@ -1,13 +1,13 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
-
     private val diContainer = DiContainer()
+    private val diContainerImage = DiContainerImage()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -15,16 +15,24 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+        val viewModel = ViewModelProvider(
+            this, ViewModelFactory(diContainer.service, diContainerImage.imageService)
+        ).get(CatsViewModel::class.java)
+
+        view.viewModel = viewModel
+        viewModel.observableCat().observe(this) {
+            it?.let {
+                when (it) {
+                    is Result.Success<*> -> {
+                        when (it.result) {
+                            is Fact -> view.populate(it.result)
+                            is CatImage -> view.populateImage(it.result)
+                        }
+                    }
+                    is Result.Error -> view.showError(it.errorMessage)
+                }
+            }
+        }
     }
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
-        }
-        super.onStop()
-    }
 }
