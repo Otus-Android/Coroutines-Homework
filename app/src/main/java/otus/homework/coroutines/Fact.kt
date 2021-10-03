@@ -9,8 +9,7 @@ data class Fact(
 //	val deleted: Boolean,
 //	@field:SerializedName("_id")
 //	val id: String,
-	@field:SerializedName("text")
-	val text: String,
+	@field:SerializedName("text") val text: Fact,
 
 //	@field:SerializedName("source")
 //	val source: String,

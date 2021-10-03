@@ -1,56 +1,40 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
-import retrofit2.Response
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService,
-    private val imagesService: ImagesService
+    private val catsService: CatsService, private val imagesService: ImagesService
 ) {
 
     private var _catsView: ICatsView? = null
 
     private val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
 
+    private val exceptionHandler = CoroutineExceptionHandler { context, ex ->
+        when (ex) {
+            is SocketTimeoutException -> {
+                _catsView?.message("Не удалось получить ответ от сервера")
+            }
+            else -> {
+                CrashMonitor.trackWarning()
+            }
+        }
+    }
+
     fun onInitComplete() {
-        presenterScope.launch {
-            try {
-                val fact = presenterScope.async {getFact() }
-                val image = presenterScope.async {getImg() }
-                _catsView?.populate(Fact(fact.await()), Img(image.await()))
-
-            } catch (e: Exception) {
-                when (e) {
-                    is SocketTimeoutException -> {
-                       _catsView?.message("Не удалось получить ответ от сервером")
-                    }
-                    else -> {
-                        CrashMonitor.trackWarning()
-                    }
-                }
-
+        presenterScope.launch(exceptionHandler) {
+            val fact = presenterScope.async {
+                catsService.getCatFact()
             }
-        }
-
-    }
-
-    private suspend fun getFact(): String {
-        var res = catsService.getCatFact()
-            if (res.isSuccessful && res.body() != null) {
-                return res.body()!!.text
+            val image = presenterScope.async {
+                imagesService.getCatImg()
             }
 
-        return ""
-    }
-    private suspend fun getImg(): String {
-        var res = imagesService.getCatImg()
-        if (res.isSuccessful && res.body() != null) {
-            return res.body()!!.img
+            _catsView?.populate(Fact(fact.await()), Img(image.await()))
         }
-
-        return ""
     }
+
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
