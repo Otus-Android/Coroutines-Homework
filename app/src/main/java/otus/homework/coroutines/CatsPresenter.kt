@@ -1,28 +1,42 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.*
+import java.net.SocketTimeoutException
+import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imageService: ImageService
 ) {
 
     private var _catsView: ICatsView? = null
+    private val scope = PresenterScope()
+
+    private val exceptionHandler = CoroutineExceptionHandler { context, ex ->
+        when (ex) {
+            is SocketTimeoutException -> {
+                _catsView?.showSocketExceptionMsg()
+            }
+            else -> {
+                CrashMonitor.trackWarning(ex)
+                _catsView?.showGenericErrorMsg()
+            }
+        }
+    }
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+        scope.launch(exceptionHandler + SupervisorJob()) {
+            withContext(Dispatchers.IO) {
+                val imageDeferred = async { imageService.getCatImage() }
+                val factDeferred = async { catsService.getCatFact() }
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
-            }
+                val imageResponse = imageDeferred.await()
+                val factResponse = factDeferred.await()
+                val cat = CatInfo(url = imageResponse.url, text = factResponse.text)
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
+                _catsView?.populate(cat)
             }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -30,6 +44,12 @@ class CatsPresenter(
     }
 
     fun detachView() {
+        scope.cancel()
         _catsView = null
+    }
+
+    class PresenterScope : CoroutineScope {
+        override val coroutineContext: CoroutineContext
+            get() = Dispatchers.Main + CoroutineName("CatsCoroutine")
     }
 }
