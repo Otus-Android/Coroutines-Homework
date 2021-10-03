@@ -18,6 +18,7 @@ class CatsViewModel(
                 _catsView?.message("Не удалось получить ответ от сервером")
             }
             else -> {
+
                 CrashMonitor.trackWarning()
             }
         }
