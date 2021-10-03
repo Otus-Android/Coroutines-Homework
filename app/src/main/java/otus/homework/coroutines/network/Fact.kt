@@ -1,24 +1,26 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.network
 
 import com.google.gson.annotations.SerializedName
 
 data class Fact(
 	@field:SerializedName("createdAt")
-	val createdAt: String,
+	val createdAt: String?,
 	@field:SerializedName("deleted")
-	val deleted: Boolean,
+	val deleted: Boolean?,
 	@field:SerializedName("_id")
-	val id: String,
+	val id: String?,
 	@field:SerializedName("text")
-	val text: String,
+	val text: String?,
 	@field:SerializedName("source")
-	val source: String,
+	val source: String?,
 	@field:SerializedName("used")
-	val used: Boolean,
+	val used: Boolean?,
 	@field:SerializedName("type")
-	val type: String,
+	val type: String?,
 	@field:SerializedName("user")
-	val user: String,
+	val user: String?,
 	@field:SerializedName("updatedAt")
-	val updatedAt: String
+	val updatedAt: String?,
+	@field:SerializedName("fact")
+	val fact: String
 )
