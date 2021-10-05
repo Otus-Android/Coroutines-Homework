@@ -5,5 +5,5 @@ import retrofit2.http.GET
 
 interface ImageCatsService {
     @GET("meow")
-    suspend fun getImageCat(): ImageCat?
+    suspend fun getImageCat(): ImageCat
 }

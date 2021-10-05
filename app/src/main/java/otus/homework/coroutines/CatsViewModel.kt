@@ -30,13 +30,9 @@ class CatsViewModel(
     fun onInitComplete() {
         viewModelScope.launch(exceptionHandler) {
             try {
-                val fact: Fact
-                val imageCat: ImageCat?
-                withContext(Dispatchers.IO){
-                    fact = catsService.getCatFact()
-                    imageCat =imageCatsService.getImageCat()
-                }
-                stateLiveData.value = Result.Success((Cats(fact.text,imageCat?.file ?: "")))
+                val fact = async(Dispatchers.IO) { catsService.getCatFact() }
+                val imageCat = async(Dispatchers.IO) { imageCatsService.getImageCat() }
+                stateLiveData.value = Result.Success((Cats(fact.await().text,imageCat.await().file ?: "")))
             } catch (e: SocketTimeoutException){
                 stateLiveData.value = Result.Error(e)
             } catch (e: Exception){
@@ -47,10 +43,5 @@ class CatsViewModel(
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
-    }
-
-    fun detachView() {
-        _catsView = null
-        viewModelScope.cancel()
     }
 }

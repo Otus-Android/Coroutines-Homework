@@ -21,18 +21,16 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                val fact: Fact
-                val imageCat: ImageCat?
-                withContext(Dispatchers.IO){
-                    fact = catsService.getCatFact()
-                    imageCat =imageCatsService.getImageCat()
+                val fact = async(Dispatchers.IO) { catsService.getCatFact() }
+                val imageCat = async(Dispatchers.IO) { imageCatsService.getImageCat() }
+                _catsView?.populate(Cats(fact.await().text, imageCat.await().file ?: ""))
+            } catch (e: Exception) {
+                if (e is SocketTimeoutException) {
+                    _catsView?.showToastTimeout(e)
+                } else {
+                    CrashMonitor.trackWarning(e)
+                    _catsView?.showToastSomeException(e)
                 }
-                _catsView?.populate(Cats(fact.text,imageCat?.file ?: ""))
-            } catch (e: SocketTimeoutException){
-                _catsView?.showToastTimeout(e)
-            } catch (e: Exception){
-                CrashMonitor.trackWarning(e)
-                _catsView?.showToastSomeException(e)
             }
         }
     }

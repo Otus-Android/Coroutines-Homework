@@ -26,7 +26,7 @@ class DiContainer {
     val serviceImage by lazy { retrofitImage.create(ImageCatsService::class.java) }
 
     val viewModel by lazy {
-        CatsViewModel(
+        CatsViewModelFactory(
             catsService = service,
             imageCatsService = serviceImage
         )
