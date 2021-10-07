@@ -7,8 +7,8 @@ import retrofit2.http.Url
 
 interface CatsService {
 
-    @GET("random?animal_type=cat")
-    suspend fun getCatFact(): Fact
+    @GET
+    suspend fun getCatFact(@Url baseUrl: String = "https://catfact.ninja/fact?max_length=140"): Fact
 
     @GET
     suspend fun getCatPicture(@Url picUrl: String = "https://aws.random.cat/meow"): CatPic
