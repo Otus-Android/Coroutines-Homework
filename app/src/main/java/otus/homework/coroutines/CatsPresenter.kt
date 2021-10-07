@@ -28,11 +28,13 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        Log.d(TAG, "detachView: is called")
         _catsView = null
-        presenterJob?.cancel()
     }
 
+    fun cancelCurrentJob() {
+        Log.d(TAG, "cancelCurrentJob: is called")
+        presenterJob?.cancel()
+    }
 
     private fun createExceptionHandler(): CoroutineExceptionHandler {
         return coroutineScope.createExceptionHandler {
