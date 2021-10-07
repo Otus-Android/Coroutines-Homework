@@ -1,15 +1,14 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.ui
 
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import otus.homework.coroutines.R
 import otus.homework.coroutines.model.CatModel
-import otus.homework.coroutines.presenter.CatsPresenter
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -19,14 +18,14 @@ class CatsView @JvmOverloads constructor(
 
     private var toast: Toast? = null
 
-    var presenter: CatsPresenter? = null
-
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
-        }
-    }
+//    var presenter: CatsPresenter? = null
+//
+//    override fun onFinishInflate() {
+//        super.onFinishInflate()
+//        findViewById<Button>(R.id.button).setOnClickListener {
+//            presenter?.onInitComplete()
+//        }
+//    }
 
     override fun populate(catModel: CatModel) {
         findViewById<TextView>(R.id.fact_textView).text = catModel.fact.text

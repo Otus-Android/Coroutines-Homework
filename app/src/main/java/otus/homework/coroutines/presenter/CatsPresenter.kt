@@ -2,10 +2,11 @@ package otus.homework.coroutines.presenter
 
 import android.util.Log
 import kotlinx.coroutines.*
-import otus.homework.coroutines.CrashMonitor
-import otus.homework.coroutines.ICatsView
+import otus.homework.coroutines.ui.ICatsView
 import otus.homework.coroutines.api.CatsService
+import otus.homework.coroutines.utils.createExceptionHandler
 import otus.homework.coroutines.model.CatModel
+import otus.homework.coroutines.utils.CrashMonitor
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -59,14 +60,5 @@ class CatsPresenter(
             CrashMonitor.trackWarning()
             _catsView?.showToast(throwable.message ?: "Unknown problem")
         }
-    }
-
-}
-
-inline fun CoroutineScope.createExceptionHandler(
-    crossinline action: (throwable: Throwable) -> Unit
-) = CoroutineExceptionHandler { _, throwable ->
-    launch {
-        action(throwable)
     }
 }
