@@ -13,4 +13,8 @@ class DiContainer {
     }
 
     val service by lazy { retrofit.create(CatsService::class.java) }
+
+    val coroutineScope by lazy {
+        PresenterScope()
+    }
 }
