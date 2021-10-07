@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presenter
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope

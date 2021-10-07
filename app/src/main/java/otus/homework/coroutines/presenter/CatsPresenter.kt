@@ -1,7 +1,11 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presenter
 
 import android.util.Log
 import kotlinx.coroutines.*
+import otus.homework.coroutines.CrashMonitor
+import otus.homework.coroutines.ICatsView
+import otus.homework.coroutines.api.CatsService
+import otus.homework.coroutines.model.CatModel
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -16,10 +20,16 @@ class CatsPresenter(
     fun onInitComplete() {
         val exceptionHandler = createExceptionHandler()
         presenterJob = coroutineScope.launch(exceptionHandler) {
-            val factResponse = withContext(Dispatchers.IO) {
+
+            val factResponse = async(Dispatchers.IO) {
                 catsService.getCatFact()
             }
-            _catsView?.populate(factResponse)
+
+            val picResponse = async(Dispatchers.IO) {
+                catsService.getCatPicture()
+            }
+
+            _catsView?.populate(CatModel(factResponse.await(), picResponse.await()))
         }
     }
 
