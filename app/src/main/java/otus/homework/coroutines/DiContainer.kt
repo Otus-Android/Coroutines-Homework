@@ -12,5 +12,15 @@ class DiContainer {
             .build()
     }
 
+    private val retrofitPicture by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://aws.random.cat/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
     val service by lazy { retrofit.create(CatsService::class.java) }
+
+    val servicePicture by lazy { retrofit.create(CatsServicePicture::class.java) }
+
 }
