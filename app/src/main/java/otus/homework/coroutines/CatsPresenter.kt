@@ -1,28 +1,37 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.*
+import java.net.SocketTimeoutException
+import kotlin.coroutines.CoroutineContext
 
-class CatsPresenter(
-    private val catsService: CatsService
-) {
+class PresenterScope : CoroutineScope {
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + CoroutineName("CatsCoroutine")
+}
+
+class CatsPresenter(private val catsService: CatsService) {
 
     private var _catsView: ICatsView? = null
+    private var job: Job? = null
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
+        job = PresenterScope().launch(SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
+            println(throwable)
+        }) {
+            try {
+                val response = catsService.getCatFact()
                 if (response.isSuccessful && response.body() != null) {
                     _catsView?.populate(response.body()!!)
                 }
+            } catch (ex: SocketTimeoutException) {
+                _catsView?.showError("Не удалось получить ответ от сервера")
+            } catch (ex: Exception) {
+                if (ex !is CancellationException) {
+                    CrashMonitor.trackWarning()
+                    ex.message?.let { _catsView?.showError(it) }
+                }
             }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -31,5 +40,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+        job?.cancel()
     }
 }
