@@ -1,6 +1,7 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
+import retrofit2.Response
 import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
 
@@ -19,9 +20,15 @@ class CatsPresenter(private val catsService: CatsService) {
             println(throwable)
         }) {
             try {
-                val response = catsService.getCatFact()
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+                val factResponse = catsService.getCatFact()
+                val imageResponse = catsService.getCatImage()
+                if (isResponseSuccessful(factResponse) && isResponseSuccessful(imageResponse)) {
+                    _catsView?.populate(
+                        CatsInfo(
+                            factResponse.body()!!.text,
+                            imageResponse.body()!!.file
+                        )
+                    )
                 }
             } catch (ex: SocketTimeoutException) {
                 _catsView?.showError("Не удалось получить ответ от сервера")
@@ -41,5 +48,9 @@ class CatsPresenter(private val catsService: CatsService) {
     fun detachView() {
         _catsView = null
         job?.cancel()
+    }
+
+    private fun <T> isResponseSuccessful(response: Response<T>): Boolean {
+        return response.isSuccessful && response.body() != null
     }
 }

@@ -7,4 +7,7 @@ interface CatsService {
 
     @GET("random?animal_type=cat")
     suspend fun getCatFact() : Response<Fact>
+
+    @GET("https://aws.random.cat/meow")
+    suspend fun getCatImage(): Response<CatsImage>
 }
