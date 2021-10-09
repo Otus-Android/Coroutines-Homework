@@ -14,7 +14,9 @@ class CatsPresenter(
     fun onInitComplete() = scope.launch {
         try {
             val fact = catsService.getCatFact()
-            _catsView?.populate(fact)
+            val image = catsService.getCatImage()
+
+            _catsView?.populate(Cat(fact, image))
         } catch (exception: Exception) {
             if (exception is SocketTimeoutException) {
                 _catsView?.connectionError("Не удалось получить ответ от сервером")
