@@ -1,9 +1,14 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.ui.cats
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import otus.homework.coroutines.data.model.Cat
+import otus.homework.coroutines.data.remote.CatsService
+import otus.homework.coroutines.data.scope.PresenterScope
+import otus.homework.coroutines.data.tools.CrashMonitor
 import java.net.SocketTimeoutException
 
+@Deprecated("Use CatsViewModel instead")
 class CatsPresenter(
     private val catsService: CatsService,
 ) {

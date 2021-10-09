@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.ui.cats
 
 import android.content.Context
 import android.util.AttributeSet
@@ -8,6 +8,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import otus.homework.coroutines.R
+import otus.homework.coroutines.data.model.Cat
+import otus.homework.coroutines.data.model.Result
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -15,12 +18,19 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
+    var viewModel: CatsViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            viewModel?.fetchCats()
+        }
+    }
+
+    override fun load(result: Result<Cat>) {
+        when (result) {
+            is Result.Success -> populate(result.data)
+            is Result.Error -> connectionError(result.message)
         }
     }
 
@@ -40,7 +50,11 @@ class CatsView @JvmOverloads constructor(
 }
 
 interface ICatsView {
+    fun load(result: Result<Cat>)
+
+    @Deprecated("Use load instead")
     fun populate(cat: Cat)
 
+    @Deprecated("Use load instead")
     fun connectionError(message: String)
 }

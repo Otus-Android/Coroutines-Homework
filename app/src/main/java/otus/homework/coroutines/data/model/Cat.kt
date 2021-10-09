@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.data.model
 
 data class Cat(
     val fact: Fact,
