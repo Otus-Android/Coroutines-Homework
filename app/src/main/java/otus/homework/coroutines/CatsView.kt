@@ -8,6 +8,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import otus.homework.coroutines.CatsViewModel.Result
+import otus.homework.coroutines.CatsViewModel.Result.Error
+import otus.homework.coroutines.CatsViewModel.Result.Success
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -15,29 +18,28 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
+    interface Callback {
+        fun onMoreFacts()
+    }
+
+    var callback: Callback? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+        findViewById<Button>(R.id.button).setOnClickListener { callback?.onMoreFacts() }
+    }
+
+    override fun populate(result: Result) = when (result) {
+        is Success -> {
+            Picasso.get()
+                .load(result.data.photoUrl)
+                .into(findViewById<ImageView>(R.id.catPhoto))
+            findViewById<TextView>(R.id.fact_textView).text = result.data.text
         }
-    }
-
-    override fun populate(data: CatsPresenter.CatData) {
-        Picasso.get()
-            .load(data.photoUrl)
-            .into(findViewById<ImageView>(R.id.catPhoto))
-        findViewById<TextView>(R.id.fact_textView).text = data.text
-    }
-
-    override fun showLoadError(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        is Error -> Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
     }
 }
 
 interface ICatsView {
-
-    fun populate(data: CatsPresenter.CatData)
-    fun showLoadError(message: String)
+    fun populate(result: Result)
 }
