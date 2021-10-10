@@ -8,15 +8,17 @@ class CatsPresenter(
     private val catsService: CatsService
 ) {
 
+    data class CatData(val text: String, val photoUrl: String)
+
     private val scope = PresenterScope()
 
     private var _catsView: ICatsView? = null
     private var getCatFactJob: Job? = null
 
-    fun onInitComplete() {
+    fun onInitComplete() = with(catsService) {
         getCatFactJob = scope.launch {
             try {
-                _catsView?.populate(catsService.getCatFact())
+                _catsView?.populate(CatData(getCatFact().text, getCatPhoto().url))
             } catch (ex: Exception) {
                 when (ex) {
                     is SocketTimeoutException ->
