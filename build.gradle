@@ -24,3 +24,8 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+ext {
+    coroutines = '1.4.2'
+    viewModelKtx = '2.3.1'
+}
