@@ -1,25 +1,34 @@
 package otus.homework.coroutines
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import otus.homework.coroutines.AnimalCard
 import otus.homework.coroutines.AnimalImage
 import otus.homework.coroutines.Fact
 
-class CatsPresenter(
+class CatsViewModel(
     private val catsService: CatsService,
     private val imagesService: ImagesService
-) {
+) : ViewModel() {
 
-    private var _catsView: ICatsView? = null
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+        Log.d("TAG", throwable.message.toString())
+        CrashMonitor.trackWarning(throwable.message.toString())
+    }
 
-    private val job = SupervisorJob()
-    private val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine") + job)
+    private val _getFactState = MutableLiveData<Result>()
+    val getFactState: LiveData<Result>
+        get() = _getFactState
 
-    fun onInitComplete() {
-
-        presenterScope.launch {
+    fun onInitComplete() =
+        viewModelScope.launch(coroutineExceptionHandler) {
             try {
                 val factResponseDeferred = async(Dispatchers.IO) { catsService.getCatFact() }
                 val imageResponseDeferred = async(Dispatchers.IO) { imagesService.getRandomImage() }
@@ -33,25 +42,23 @@ class CatsPresenter(
                     CrashMonitor.trackWarning(factResponse.errorBody()?.string())
                 }
             } catch (ex: Exception) {
-                _catsView?.showError(ex.message.toString())
+                _getFactState.value = Error(ex)
                 CrashMonitor.trackWarning(ex.message.toString())
             }
         }
-    }
 
     private fun notifyView(facts: List<Fact>, animalImage: AnimalImage?) {
         val animalCard = AnimalCard(facts.first().fact)
         animalImage?.let {
             animalCard.imageUrl = it.file
         }
-        _catsView?.populate(animalCard)
+        _getFactState.value = Success(animalCard)
     }
 
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
+    fun onMessageShown() {
+        _getFactState.value = Empty
     }
 
-    fun detachView() {
-        _catsView = null
-    }
 }
+
+
