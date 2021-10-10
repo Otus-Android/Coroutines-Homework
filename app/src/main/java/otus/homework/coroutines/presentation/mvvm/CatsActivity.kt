@@ -15,7 +15,7 @@ class CatsActivity : AppCompatActivity() {
     private val viewModel: CatsViewModel by lazy {
         ViewModelProvider(this, object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                return CatsViewModel(diContainer.repository, diContainer.coroutineDispatchers) as T
+                return CatsViewModel(diContainer.repository) as T
             }
         })[CatsViewModel::class.java]
     }

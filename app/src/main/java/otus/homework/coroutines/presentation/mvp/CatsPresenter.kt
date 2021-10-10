@@ -2,29 +2,31 @@ package otus.homework.coroutines.presentation.mvp
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import otus.homework.coroutines.domain.CatsRepository
-import otus.homework.coroutines.domain.Result
 import otus.homework.coroutines.utils.CoroutineDispatchers
+import otus.homework.coroutines.utils.CrashMonitor
 
 class CatsPresenter(
     private val catsRepository: CatsRepository,
-    private val coroutineDispatchers: CoroutineDispatchers
+    coroutineDispatchers: CoroutineDispatchers
 ) {
     private var _catsView: ICatsView? = null
-    private lateinit var catFactJob: Job
-    private val presenterScope = CoroutineScope(coroutineDispatchers.mainDispatcher + CoroutineName("CatsCoroutine"))
+    private var presenterScope =
+        CoroutineScope(coroutineDispatchers.mainDispatcher + CoroutineName("CatsCoroutine"))
 
     fun onInitComplete() {
-        catFactJob = presenterScope.launch {
-            val result = withContext(coroutineDispatchers.ioDispatcher) {
-                catsRepository.getCatRandomFact()
-            }
-            when (result) {
-                is Result.Success -> _catsView?.populate(result.value)
-                is Result.Error -> _catsView?.displayError(result.message)
+        presenterScope.launch {
+            try {
+                _catsView?.showProgress()
+                _catsView?.populate(catsRepository.getCatRandomFact())
+            } catch (e: Exception) {
+                val message = e.localizedMessage.orEmpty()
+                _catsView?.displayError(message)
+                CrashMonitor.trackWarning(message)
+            } finally {
+                _catsView?.hideProgress()
             }
         }
     }
@@ -35,6 +37,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        catFactJob.cancel()
+        presenterScope.cancel()
     }
 }

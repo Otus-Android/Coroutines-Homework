@@ -10,12 +10,12 @@ class DiContainer {
 
     private val retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl(BuildConfig.CAT_FACT_API_URL)
+            .baseUrl("https://cat-fact.herokuapp.com/facts/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
     val service by lazy { retrofit.create(CatsService::class.java) }
-    val repository by lazy { CatsRepositoryImpl(service) }
     val coroutineDispatchers by lazy { CoroutineDispatchersImpl() }
+    val repository by lazy { CatsRepositoryImpl(service, coroutineDispatchers) }
 }
