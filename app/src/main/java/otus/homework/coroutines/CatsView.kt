@@ -15,15 +15,6 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
-
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
-        }
-    }
-
     override fun populate(uiData: CatsViewUiData) {
         findViewById<ImageView>(R.id.picture_imageView).let { imageView ->
             Picasso.get()
@@ -37,6 +28,12 @@ class CatsView @JvmOverloads constructor(
     override fun makeToast(string: String) {
         Toast.makeText(context, string, Toast.LENGTH_SHORT).show()
     }
+
+    override fun setOnFactRequestListener(listener: () -> Unit) {
+        findViewById<Button>(R.id.button).setOnClickListener {
+            listener.invoke()
+        }
+    }
 }
 
 data class CatsViewUiData(val fact: Fact, val picture: Picture)
@@ -44,4 +41,5 @@ data class CatsViewUiData(val fact: Fact, val picture: Picture)
 interface ICatsView {
     fun populate(uiData: CatsViewUiData)
     fun makeToast(string: String)
+    fun setOnFactRequestListener(listener : () -> Unit)
 }
