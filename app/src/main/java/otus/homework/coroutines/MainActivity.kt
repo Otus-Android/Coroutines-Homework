@@ -2,28 +2,37 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
+import androidx.activity.viewModels
 import otus.homework.coroutines.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
-
-    lateinit var catsPresenter: CatsPresenter
-    private val diContainer = DiContainer()
+    val viewModel by viewModels<CatsViewModel> {
+        CatsViewModelFactory()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        catsPresenter = CatsPresenter(diContainer.serviceFact, diContainer.servicePic)
-        binding.catView.presenter = catsPresenter
-        catsPresenter.attachView(binding.catView)
-        catsPresenter.onInitComplete()
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+        with(binding){
+            setContentView(root)
+            button.setOnClickListener {
+                it.isEnabled = false
+                viewModel.loadFacts()
+            }
         }
-        super.onStop()
+
+        viewModel.facts.observe(this){res ->
+            when(res){
+                is Success -> {
+                    binding.catView.populate(res.fact)
+                }
+                is Error -> {
+                    res.msg?.also { binding.catView.showToastMsg(it) }
+                        ?: res.msgId.also{if (it>0) binding.catView.showToastMsg(it)}
+                }
+            }
+        }
+        viewModel.loadFacts()
     }
 }
