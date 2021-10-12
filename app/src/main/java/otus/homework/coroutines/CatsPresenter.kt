@@ -9,7 +9,8 @@ import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val factsService: FactsService,
+    private val picsService: PicsService
 ) {
 
     private var _catsView: ICatsView? = null
@@ -18,12 +19,14 @@ class CatsPresenter(
     fun onInitComplete() {
         job = PresenterScope().launch {
             try {
-                catsService.getCatFact().also {
-                    _catsView?.populate(it)
-                }
+                val defFact = async(CoroutineScope(Dispatchers.IO).coroutineContext){factsService.getCatFact()}
+                val defPic = async(CoroutineScope(Dispatchers.IO).coroutineContext) { picsService.getCatPic() }
+                _catsView?.populate(FactAndPicture(defFact.await(), defPic.await()))
+
             } catch (e: SocketTimeoutException){
                 _catsView?.showToastMsg(R.string.server_error)
             } catch(e: CancellationException) {
+
             } catch (e: Exception){
                 CrashMonitor.trackWarning()
                 e.message?.also {
