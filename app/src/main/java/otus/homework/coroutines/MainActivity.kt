@@ -1,13 +1,14 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var catsPresenter: CatsPresenter
-
-    private val diContainer = DiContainer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -15,7 +16,7 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service)
+        catsPresenter = CatsPresenter(DiContainer.service)
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
@@ -26,5 +27,25 @@ class MainActivity : AppCompatActivity() {
             catsPresenter.detachView()
         }
         super.onStop()
+
+        catsPresenter.onStop()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        catsPresenter.onStart()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.activity_main_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.open_new_activity) {
+            startActivity(Intent(this, ViewModelActivity::class.java))
+        }
+
+        return super.onOptionsItemSelected(item)
     }
 }

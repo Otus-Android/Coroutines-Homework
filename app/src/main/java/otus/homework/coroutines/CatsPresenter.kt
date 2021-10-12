@@ -1,28 +1,20 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.*
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
     private val catsService: CatsService
 ) {
 
+    private var requestJob: Job? = null
     private var _catsView: ICatsView? = null
 
+    private val presenterScope = MainScope() + CoroutineName("CatsCoroutine")
+    private val catsView get() = checkNotNull(_catsView)
+
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
-            }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        loadData()
     }
 
     fun attachView(catsView: ICatsView) {
@@ -30,6 +22,42 @@ class CatsPresenter(
     }
 
     fun detachView() {
+        presenterScope.cancel()
         _catsView = null
+    }
+
+    fun onStart() {
+        loadData()
+    }
+
+    fun onStop() {
+        requestJob?.cancel()
+        requestJob = null
+    }
+
+    private fun loadData() {
+        if (requestJob != null && requestJob!!.isActive)
+            return
+
+        requestJob = presenterScope.launch {
+            try {
+                coroutineScope {
+                    val fact = async(Dispatchers.IO) {
+                        catsService.getCatFact()
+                    }
+
+                    val image = async(Dispatchers.IO) {
+                        catsService.getCatImage()
+                    }
+
+                    catsView.populate(CatUiState(fact.await(), image.await()))
+                }
+            } catch (timeoutException: SocketTimeoutException) {
+                catsView.showMessage("Не удалось получить ответ от сервера")
+            } catch (exception: Exception) {
+                catsView.showMessage("Упс, произошла ошибка: ${exception.message}")
+                CrashMonitor.trackWarning(exception)
+            }
+        }
     }
 }
