@@ -12,28 +12,29 @@ class CatsPresenter(
 
     fun onInitComplete() {
         presenterScope.launch {
-            val catFact = try {
-                catsService.getCatFact()
+            try {
+                coroutineScope {
+                    val catFact = async { catsService.getCatFact() }
+                    val catPicture = async { catsService.getCatPicture() }
+
+                    _catsView?.populate(CatsViewUiData(catFact.await(), catPicture.await()))
+                }
+
             } catch (t: Throwable) {
                 when (t) {
                     is java.net.SocketTimeoutException -> {
                         _catsView?.makeToast("Не удалось получить ответ от сервера")
                     }
                     else -> {
+                        // don't we need to filter if it was coroutine's CancellationException?
+                        // otherwise we could fill up analytics with cancellations as crashes
                         CrashMonitor.trackWarning()
                         t.message?.let {
                             _catsView?.makeToast(it)
                         }
                     }
                 }
-                null
             }
-
-            if (catFact != null) {
-                _catsView?.populate(catFact)
-            }
-            delay(3000)
-            _catsView?.makeToast("Babe")
         }
     }
 
