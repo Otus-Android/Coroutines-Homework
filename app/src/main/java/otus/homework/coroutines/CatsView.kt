@@ -12,6 +12,10 @@ import otus.homework.coroutines.CatsViewModel.Result
 import otus.homework.coroutines.CatsViewModel.Result.Error
 import otus.homework.coroutines.CatsViewModel.Result.Success
 
+interface ICatsView {
+    fun populate(result: Result)
+}
+
 class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -24,22 +28,20 @@ class CatsView @JvmOverloads constructor(
 
     var callback: Callback? = null
 
+    private val moreFactsBtn by lazy { findViewById<Button>(R.id.catMoreFactsBtn) }
+    private val catPhoto by lazy { findViewById<ImageView>(R.id.catPhoto) }
+    private val factText by lazy { findViewById<TextView>(R.id.catFactText) }
+
     override fun onFinishInflate() {
         super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener { callback?.onMoreFacts() }
+        moreFactsBtn.setOnClickListener { callback?.onMoreFacts() }
     }
 
     override fun populate(result: Result) = when (result) {
         is Success -> {
-            Picasso.get()
-                .load(result.data.photoUrl)
-                .into(findViewById<ImageView>(R.id.catPhoto))
-            findViewById<TextView>(R.id.fact_textView).text = result.data.text
+            Picasso.get().load(result.data.photoUrl).into(catPhoto)
+            factText.text = result.data.text
         }
         is Error -> Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
     }
-}
-
-interface ICatsView {
-    fun populate(result: Result)
 }

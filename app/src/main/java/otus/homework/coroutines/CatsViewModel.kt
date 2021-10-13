@@ -1,10 +1,8 @@
 package otus.homework.coroutines
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.CatsViewModel.Result.Error
 import otus.homework.coroutines.CatsViewModel.Result.Success
@@ -13,6 +11,16 @@ import java.net.SocketTimeoutException
 class CatsViewModel(
     private val catsService: CatsService
 ) : ViewModel() {
+
+    class CatsViewModelFactory(private val catsService: CatsService) : ViewModelProvider.Factory {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            @Suppress("UNCHECKED_CAST")
+            if (modelClass.isAssignableFrom(CatsViewModel::class.java)) {
+                return CatsViewModel(catsService) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
+    }
 
     sealed class Result {
         data class Success(val data: CatData) : Result()
@@ -23,12 +31,6 @@ class CatsViewModel(
 
     private val _result = MutableLiveData<Result>()
     val result: LiveData<Result> = _result
-
-    init {
-        // Called on every config change, because we create it every time the main activity is (re)created.
-        // For now, it suits task requirements.
-        onMoreFacts()
-    }
 
     fun onMoreFacts() = with(catsService) {
         viewModelScope.launch(CoroutineExceptionHandler { _, exception ->
@@ -41,7 +43,9 @@ class CatsViewModel(
                 }
             }
         }) {
-            _result.value = Success(CatData(getCatFact().text, getCatPhoto().url))
+            val catFact = async { getCatFact().text }
+            val catPhoto = async { getCatPhoto().url }
+            _result.value = Success(CatData(catFact.await(), catPhoto.await()))
         }
     }
 }

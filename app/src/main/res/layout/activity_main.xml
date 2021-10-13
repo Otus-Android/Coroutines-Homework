@@ -13,7 +13,7 @@
         android:id="@+id/catPhoto"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/fact_textView"
+        app:layout_constraintBottom_toTopOf="@id/catFactText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -22,13 +22,13 @@
         />
 
     <TextView
-        android:id="@+id/fact_textView"
+        android:id="@+id/catFactText"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:paddingVertical="16dp"
         android:textColor="@color/black"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@id/button"
+        app:layout_constraintBottom_toTopOf="@id/catMoreFactsBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/catPhoto"
@@ -36,7 +36,7 @@
         />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/catMoreFactsBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
