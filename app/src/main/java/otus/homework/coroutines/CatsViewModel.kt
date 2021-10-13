@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import androidx.lifecycle.*
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.CatsViewModel.Result.Error
@@ -33,19 +34,19 @@ class CatsViewModel(
     val result: LiveData<Result> = _result
 
     fun onMoreFacts() = with(catsService) {
-        viewModelScope.launch(CoroutineExceptionHandler { _, exception ->
+        viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, exception ->
             when (exception) {
                 is SocketTimeoutException ->
-                    _result.value = Error("Failed to get a response from the server")
+                    _result.postValue(Error("Failed to get a response from the server"))
                 else -> {
                     CrashMonitor.trackWarning(exception)
-                    _result.value = Error(exception.message ?: "No error message")
+                    _result.postValue(Error(exception.message ?: "No error message"))
                 }
             }
         }) {
             val catFact = async { getCatFact().text }
-            val catPhoto = async { getCatPhoto().url }
-            _result.value = Success(CatData(catFact.await(), catPhoto.await()))
+            val catPhotoUrl = async { getCatPhoto().url }
+            _result.postValue(Success(CatData(catFact.await(), catPhotoUrl.await())))
         }
     }
 }
