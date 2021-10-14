@@ -21,12 +21,12 @@ class ViewModelActivity : AppCompatActivity() {
             viewModel.requestFact()
         }
 
-        viewModel.state.observe(this, { state ->
+        viewModel.state.observe(this) { state ->
             when (state) {
                 is Result.Success -> view.populate(state.data)
                 is Result.Error -> view.showMessage(state.message)
             }
-        })
+        }
     }
 
     override fun onStart() {
