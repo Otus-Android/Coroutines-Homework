@@ -24,6 +24,13 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
+    override fun showResult(result: Result) {
+        when (result) {
+            is Success -> populate(result.value)
+            is Error -> showError(result.message)
+        }
+    }
+
     override fun populate(info: CatsInfo) {
         findViewById<TextView>(R.id.fact_textView).text = info.fact
         loadImage(info.image)
@@ -45,4 +52,5 @@ class CatsView @JvmOverloads constructor(
 interface ICatsView {
     fun populate(info: CatsInfo)
     fun showError(message: String)
+    fun showResult(result: Result)
 }
