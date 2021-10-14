@@ -23,10 +23,6 @@ class CatViewModel(private val catsService: CatsService = DiContainer.service) :
         CrashMonitor.trackWarning(exception)
     }
 
-    init {
-        requestFact()
-    }
-
     fun onStart() {
         requestFact()
     }
