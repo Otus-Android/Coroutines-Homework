@@ -1,16 +1,16 @@
 package otus.homework.coroutines
 
 import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
+import java.lang.Error
 import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
 
-class CatsPresenter(
-    private val catsService: CatsService
-) : CoroutineScope {
+class CatsViewModel( private val catsService: CatsService): ViewModel() {
 
-    override val coroutineContext: CoroutineContext = Dispatchers.Main + SupervisorJob() +
-            CoroutineExceptionHandler { coroutineContext, throwable ->
+        val coroutineException=  CoroutineExceptionHandler { coroutineContext, throwable ->
                 Log.d("Exaption", throwable.toString())
             } + CoroutineName("CatsCoroutine")
 
@@ -18,19 +18,26 @@ class CatsPresenter(
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        launch {
+       viewModelScope.launch(coroutineException) {
             try {
                 val job = async(Dispatchers.IO) { catsService.getCatFact()}
                 val jobImg = async(Dispatchers.IO) { catsService.getCatimg("https://aws.random.cat/meow")}
-                _catsView?.populate(FullFact(job.await(),jobImg.await()))
+                doAction(Result.Success(job.await(),jobImg.await()))
             } catch (e: CancellationException) {
-                Log.d("CoroutineExaption", e.toString())
+                doAction(Result.Error(e))
             } catch (e: java.net.SocketTimeoutException) {
                 _catsView?.callOnErrorSocketException()
             } catch (e: Exception) {
-                CrashMonitor.trackWarning(e,TAG)
+                doAction(Result.Error(e))
                 _catsView?.callOnErrorAnyException(e)
             }
+        }
+    }
+
+    fun doAction(result: Result) {
+        when (result) {
+            is Result.Error -> CrashMonitor.trackWarning(result.exception, CatsPresenter.TAG)
+            is Result.Success<*, *> -> { _catsView?.populate(FullFact(result.data as Fact,result.data2 as ImageFact))}
         }
     }
 
@@ -40,9 +47,12 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        coroutineContext.cancelChildren()
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        _catsView = null
+    }
     companion object {
         val TAG = "CatsPresenter"
     }
