@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">Факты о котах </string>
+	<string name="more_facts">Больше фактов</string>
+	<string name="fact_socket_error">Не удалось получить ответ от сервера</string>
+</resources>
