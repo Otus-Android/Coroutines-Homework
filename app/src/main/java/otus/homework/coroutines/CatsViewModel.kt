@@ -25,15 +25,8 @@ class CatsViewModel(
     private fun loadCatData() {
         dataLoadJob?.cancel()
         dataLoadJob = viewModelScope.launch(CoroutineExceptionHandler { _, e ->
-            when (e) {
-                is SocketTimeoutException -> {
-                    showError("Не удалось получить ответ от сервера")
-                }
-                else -> {
-                    showError(e.message ?: "Неизвестная ошибка")
-                    CrashMonitor.trackWarning()
-                }
-            }
+            showError(e.message ?: "Неизвестная ошибка")
+            CrashMonitor.trackWarning()
         }) {
             val factDeferred = async {
                 catsService.getCatFact()
@@ -41,8 +34,12 @@ class CatsViewModel(
             val imageDeferred = async {
                 catsService.getCatImage()
             }
-            val state = CatsUiState(factDeferred.await().text, imageDeferred.await().url)
-            _catsUiState.value = Result.Success(state)
+            try {
+                val state = CatsUiState(factDeferred.await().text, imageDeferred.await().url)
+                _catsUiState.value = Result.Success(state)
+            } catch (e: SocketTimeoutException) {
+                showError("Не удалось получить ответ от сервера")
+            }
         }
     }
     
