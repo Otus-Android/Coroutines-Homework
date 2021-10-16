@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import otus.homework.coroutines.R
 import otus.homework.coroutines.utils.Result
 import otus.homework.coroutines.di.DiContainer
+import otus.homework.coroutines.presenter.CatsPresenter
 
 class MainActivity : AppCompatActivity() {
 

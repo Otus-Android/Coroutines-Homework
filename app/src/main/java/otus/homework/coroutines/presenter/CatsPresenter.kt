@@ -4,33 +4,36 @@ import android.util.Log
 import kotlinx.coroutines.*
 import otus.homework.coroutines.ui.ICatsView
 import otus.homework.coroutines.api.CatsService
-import otus.homework.coroutines.utils.createExceptionHandler
 import otus.homework.coroutines.model.CatModel
 import otus.homework.coroutines.utils.CrashMonitor
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
     private val catsService: CatsService,
-    private val coroutineScope: CoroutineScope
+    private val coroutineScope: CoroutineScope,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     private val TAG = "CatsPresenter"
 
     private var _catsView: ICatsView? = null
-    private var presenterJob: Job? = null
 
     fun onInitComplete() {
+        // used to track warnings in CrashMonitor
         val exceptionHandler = createExceptionHandler()
-        presenterJob = coroutineScope.launch(exceptionHandler) {
+        coroutineScope.launch(exceptionHandler) {
+            try {
+                val factResponse = async(ioDispatcher) {
+                    catsService.getCatFact()
+                }
 
-            val factResponse = async(Dispatchers.IO) {
-                catsService.getCatFact()
+                val picResponse = async(ioDispatcher) {
+                    catsService.getCatPicture()
+                }
+                _catsView?.populate(CatModel(factResponse.await(), picResponse.await()))
+
+            } catch (t: Throwable) {
+                onFailure(t)
             }
-
-            val picResponse = async(Dispatchers.IO) {
-                catsService.getCatPicture()
-            }
-
-            _catsView?.populate(CatModel(factResponse.await(), picResponse.await()))
         }
     }
 
@@ -44,21 +47,27 @@ class CatsPresenter(
 
     fun cancelCurrentJob() {
         Log.d(TAG, "cancelCurrentJob: is called")
-        presenterJob?.cancel()
+        coroutineScope.cancel()
     }
 
     private fun createExceptionHandler(): CoroutineExceptionHandler {
-        return coroutineScope.createExceptionHandler {
-            onFailure(it)
+        return CoroutineExceptionHandler { _, _ ->
+            CrashMonitor.trackWarning()
         }
     }
 
     private fun onFailure(throwable: Throwable) {
-        if (throwable is SocketTimeoutException) {
-            _catsView?.showToast("Не удалось получить ответ от сервера")
-        } else {
-            CrashMonitor.trackWarning()
-            _catsView?.showToast(throwable.message ?: "Unknown problem")
+        when (throwable) {
+            is SocketTimeoutException -> {
+                _catsView?.showToast("Не удалось получить ответ от сервера")
+            }
+            // need to rethrow CancellationException to allow cancelling child coroutines
+            is CancellationException -> {
+                throw throwable
+            }
+            else -> {
+                _catsView?.showToast(throwable.message ?: "Unknown problem")
+            }
         }
     }
 }

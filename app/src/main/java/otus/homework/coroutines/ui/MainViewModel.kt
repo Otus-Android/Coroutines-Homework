@@ -1,13 +1,9 @@
 package otus.homework.coroutines.ui
 
 import androidx.lifecycle.*
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import otus.homework.coroutines.utils.Result
 import otus.homework.coroutines.api.CatsService
-import otus.homework.coroutines.utils.createExceptionHandler
 import otus.homework.coroutines.model.CatModel
 import otus.homework.coroutines.utils.CrashMonitor
 import java.lang.IllegalArgumentException
@@ -30,37 +26,45 @@ class MainViewModel(private val catsService: CatsService) : ViewModel() {
     private fun getNewFact() {
         val exceptionHandler = createExceptionHandler()
         viewModelScope.launch(exceptionHandler) {
+            try {
+                val factResponse = async(Dispatchers.IO) {
+                    catsService.getCatFact()
+                }
 
-            val factResponse = async(Dispatchers.IO) {
-                catsService.getCatFact()
-            }
-
-            val picResponse = async(Dispatchers.IO) {
-                catsService.getCatPicture()
-            }
-            _catModelLiveData.postValue(
-                Result.Success(
-                    CatModel(
-                        factResponse.await(),
-                        picResponse.await()
+                val picResponse = async(Dispatchers.IO) {
+                    catsService.getCatPicture()
+                }
+                _catModelLiveData.postValue(
+                    Result.Success(
+                        CatModel(
+                            factResponse.await(),
+                            picResponse.await()
+                        )
                     )
                 )
-            )
+            } catch (t: Throwable) {
+                onFailure(t)
+            }
         }
     }
 
     private fun createExceptionHandler(): CoroutineExceptionHandler {
-        return viewModelScope.createExceptionHandler {
-            onFailure(it)
+        return CoroutineExceptionHandler { _, _ ->
+            CrashMonitor.trackWarning()
         }
     }
 
     private fun onFailure(throwable: Throwable) {
-        if (throwable is SocketTimeoutException) {
-            _catModelLiveData.postValue(Result.Error("Не удалось получить ответ от сервера"))
-        } else {
-            CrashMonitor.trackWarning()
-            _catModelLiveData.postValue(Result.Error(throwable.message ?: "Unknown error"))
+        when (throwable) {
+            is SocketTimeoutException -> {
+                _catModelLiveData.postValue(Result.Error("Не удалось получить ответ от сервера"))
+            }
+            is CancellationException -> {
+                throw throwable
+            }
+            else -> {
+                _catModelLiveData.postValue(Result.Error(throwable.message ?: "Unknown error"))
+            }
         }
     }
 }
