@@ -8,12 +8,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
-import otus.homework.coroutines.CatsViewModel.Result
-import otus.homework.coroutines.CatsViewModel.Result.Error
-import otus.homework.coroutines.CatsViewModel.Result.Success
+import otus.homework.coroutines.Result.Error
+import otus.homework.coroutines.Result.Success
 
 interface ICatsView {
     fun populate(result: Result)
+    fun showLoadError(message: String)
 }
 
 class CatsView @JvmOverloads constructor(
@@ -42,6 +42,10 @@ class CatsView @JvmOverloads constructor(
             Picasso.get().load(result.data.photoUrl).into(catPhoto)
             factText.text = result.data.text
         }
-        is Error -> Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+        is Error -> showError(result.message)
     }
+
+    override fun showLoadError(message: String) = showError(message)
+
+    private fun showError(message: String) = Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 }
