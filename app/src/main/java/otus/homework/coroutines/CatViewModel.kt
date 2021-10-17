@@ -1,15 +1,12 @@
 package otus.homework.coroutines
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.*
+import androidx.lifecycle.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
-class CatViewModel(private val catsService: CatsService = DiContainer.service) : ViewModel() {
-
-    private var job: Job? = null
+class CatViewModel(private val catsService: CatsService) : ViewModel() {
 
     private val stateLiveData = MutableLiveData<Result<CatUiState>>()
     val state: LiveData<Result<CatUiState>> = stateLiveData
@@ -23,25 +20,13 @@ class CatViewModel(private val catsService: CatsService = DiContainer.service) :
         CrashMonitor.trackWarning(exception)
     }
 
-    fun onStart() {
-        requestFact()
-    }
-
-    fun onStop() {
-        job?.cancel()
-        job = null
-    }
-
     fun requestFact() {
-        if (job != null && job!!.isActive)
-            return
-
-        job = viewModelScope.launch(handler) {
-            val fact = async(Dispatchers.IO) {
+        viewModelScope.launch(handler) {
+            val fact = async {
                 catsService.getCatFact()
             }
 
-            val image = async(Dispatchers.IO) {
+            val image = async {
                 catsService.getCatImage()
             }
 
@@ -49,5 +34,12 @@ class CatViewModel(private val catsService: CatsService = DiContainer.service) :
 
             stateLiveData.postValue(state)
         }
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+class CatViewModelFactory(private val catsService: CatsService) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return CatViewModel(catsService) as T
     }
 }

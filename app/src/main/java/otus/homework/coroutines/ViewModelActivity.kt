@@ -6,7 +6,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 
 class ViewModelActivity : AppCompatActivity() {
-    private val viewModel by viewModels<CatViewModel>()
+    private val viewModel by viewModels<CatViewModel> { CatViewModelFactory(DiContainer.service) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,15 +27,5 @@ class ViewModelActivity : AppCompatActivity() {
                 is Result.Error -> view.showMessage(state.message)
             }
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        viewModel.onStart()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        viewModel.onStop()
     }
 }
