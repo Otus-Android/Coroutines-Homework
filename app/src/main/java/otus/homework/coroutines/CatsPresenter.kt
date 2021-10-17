@@ -1,10 +1,7 @@
 package otus.homework.coroutines
 
 import android.util.Log
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.*
 import otus.homework.coroutines.models.PresentModel
 import otus.homework.coroutines.services.ImageService
 import otus.homework.coroutines.utils.PresenterScope
@@ -16,51 +13,45 @@ class CatsPresenter(
     private val catsService: CatsService,
     private val imageService: ImageService
 
-){
 
-    val job = PresenterScope()
+) {
+    private val presentScope = PresenterScope()
 
     private var _catsView: ICatsView? = null
 
-    fun onInitComplete()  {
-        job.launch{
-            try {
+    private val exceptionHandler = SupervisorJob() + CoroutineExceptionHandler { _, exception ->
+        CrashMonitor.trackWarning(exception)
+    }
 
-                val responseFact = catsService.getCatFact()
-                val responseImage = imageService.getCatImage()
+    fun onInitComplete() {
+        presentScope.launch(exceptionHandler) {
+            try {
+                val requestFact = async() { catsService.getCatFact() }
+                val requestImage = async() { imageService.getCatImage() }
+                val responseFact = requestFact.await()
+                val responseImage = requestImage.await()
 
                 if (responseFact.isSuccessful && responseImage.isSuccessful) {
                     val presentModel = PresentModel(responseImage.body()!!, responseFact.body()!!)
                     _catsView?.populate(presentModel)
-                } else {
-                    _catsView?.showToast("Ошибка responseFact: ${responseFact.message()}" +
-                            "Ошибка responseFact: ${responseImage.message()}")
+                }
+            } catch (cause: Exception) {
+                when (cause) {
+                    is SocketTimeoutException -> _catsView?.showToast("Не удалось получить ответ от сервера")
+                    is CancellationException -> throw cause
+                    else ->  _catsView?.showToast("Exception: $cause")
                 }
             }
-            catch (cause: SocketTimeoutException){
-                _catsView?.showToast("Не удалось получить ответ от сервера")
-                Log.d(TAG, "SocketTimeoutException")
-            } catch (cause: Exception){
-                _catsView?.showToast("Exception: ${cause.message}")
-                Log.d(TAG, "Exception: ${cause.message}")
-                CrashMonitor.trackWarning()
-
-            }
-
-
         }
     }
 
-
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
-
     }
 
     fun detachView() {
         _catsView = null
+        presentScope.cancel()
     }
-
-
 
 }
