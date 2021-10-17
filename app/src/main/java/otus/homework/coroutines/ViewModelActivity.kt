@@ -27,5 +27,7 @@ class ViewModelActivity : AppCompatActivity() {
                 is Result.Error -> view.showMessage(state.message)
             }
         }
+
+        viewModel.requestFact()
     }
 }
