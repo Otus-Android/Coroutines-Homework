@@ -7,8 +7,6 @@ import java.net.SocketTimeoutException
 import kotlin.coroutines.cancellation.CancellationException
 
 class CatsViewModel(private val diContainer: DiContainer): ViewModel(){
-
-    private var job: Job? = null
     private val _facts = MutableLiveData<Result>()
 
     val handler = CoroutineExceptionHandler { context, e ->
