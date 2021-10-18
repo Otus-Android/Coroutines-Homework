@@ -7,6 +7,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlin.coroutines.CoroutineContext
 
 class PresenterScope : CoroutineScope {
-    override val coroutineContext: CoroutineContext
-        get() = SupervisorJob() + Dispatchers.Main + CoroutineName("CatsCoroutine")
+    override val coroutineContext: CoroutineContext =
+        SupervisorJob() + Dispatchers.Main + CoroutineName("CatsCoroutine")
 }

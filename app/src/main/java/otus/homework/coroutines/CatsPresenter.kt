@@ -39,8 +39,13 @@ class CatsPresenter(
                     catsService.getCatImage()
                 }
 
-                catsView.populate(CatUiState(fact.await(), image.await()))
+                val state = CatUiState(fact.await(), image.await())
+
+                catsView.populate(state)
             }
+        } catch (e: CancellationException) {
+            catsView.showMessage("Отменено")
+            throw e
         } catch (timeoutException: SocketTimeoutException) {
             catsView.showMessage("Не удалось получить ответ от сервера")
         } catch (exception: Exception) {
