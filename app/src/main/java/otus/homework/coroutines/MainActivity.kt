@@ -8,7 +8,7 @@ import otus.homework.coroutines.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     val viewModel by viewModels<CatsViewModel> {
-        CatsViewModelFactory()
+        CatsViewModelFactory(DiContainer())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

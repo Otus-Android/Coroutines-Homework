@@ -6,47 +6,37 @@ import java.lang.Exception
 import java.net.SocketTimeoutException
 import kotlin.coroutines.cancellation.CancellationException
 
-class CatsViewModel: ViewModel(){
+class CatsViewModel(private val diContainer: DiContainer): ViewModel(){
 
     private var job: Job? = null
     private val _facts = MutableLiveData<Result>()
-    private val diContainer by lazy {
-        DiContainer()
-    }
+
     val handler = CoroutineExceptionHandler { context, e ->
-        _facts.value = when(e){
-            is CancellationException -> Error(msgId = 0, msg = null)
-            is SocketTimeoutException -> Error(msgId = R.string.server_error, msg = null)
-            else -> {
-                CrashMonitor.trackWarning()
-                Error(0, e.message)
-            }
-        }
+        CrashMonitor.trackWarning()
+        _facts.value = Error(0, e.message)
     }
     val facts: LiveData<Result>
         get() = _facts
     fun loadFacts(){
-        job = viewModelScope.launch(handler) {
-            val cContext = CoroutineScope(Dispatchers.IO).coroutineContext
-            val defFact = async(cContext){
+        viewModelScope.launch(handler) {
+            val defFact = async(Dispatchers.IO) {
                 diContainer.serviceFact.getCatFact()
             }
-            val defPic = async(cContext) {
+            val defPic = async(Dispatchers.IO) {
                 diContainer.servicePic.getCatPic()
             }
-            _facts.value = Success(FactAndPicture(defFact.await(), defPic.await()))
+            try {
+                _facts.value = Success(FactAndPicture(defFact.await(), defPic.await()))
+            } catch (e: SocketTimeoutException){
+                _facts.value = Error(msgId = R.string.server_error, msg = null)
+            }
         }
-    }
-
-    override fun onCleared() {
-        job?.cancel()
-        super.onCleared()
     }
 }
 
-class CatsViewModelFactory: ViewModelProvider.NewInstanceFactory() {
+class CatsViewModelFactory(private val di: DiContainer): ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>) = CatsViewModel() as T
+    override fun <T : ViewModel> create(modelClass: Class<T>) = CatsViewModel(di) as T
 }
 
 sealed class Result
