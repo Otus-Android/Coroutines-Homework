@@ -1,5 +1,6 @@
 package otus.homework.coroutines.ui
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -15,6 +16,7 @@ class MainActivity : AppCompatActivity() {
 
     private val diContainer = DiContainer()
 
+    @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -26,12 +28,5 @@ class MainActivity : AppCompatActivity() {
         view.viewModel = viewModel
         viewModel.attachView(view)
         viewModel.fetchCats()
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            viewModel.detachView()
-        }
-        super.onStop()
     }
 }
