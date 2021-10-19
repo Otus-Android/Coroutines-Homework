@@ -7,29 +7,22 @@ import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
     private val catsService: CatsService
-) : CoroutineScope {
-
-    override val coroutineContext: CoroutineContext = Dispatchers.Main + SupervisorJob() +
-            CoroutineExceptionHandler { coroutineContext, throwable ->
-                Log.d("Exaption", throwable.toString())
-            } + CoroutineName("CatsCoroutine")
-
+) : HomeWorkScope() {
 
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        launch {
+        launch(Dispatchers.IO) {
             try {
-                val job = async(Dispatchers.IO) { catsService.getCatFact()}
-                val jobImg = async(Dispatchers.IO) { catsService.getCatimg("https://aws.random.cat/meow")}
-                _catsView?.populate(FullFact(job.await(),jobImg.await()))
+                val fact =  catsService.getCatFact()
+                val img = catsService.getCatimg("https://aws.random.cat/meow")
+                _catsView?.populate(FullFact(fact,img))
             } catch (e: CancellationException) {
                 Log.d("CoroutineExaption", e.toString())
             } catch (e: java.net.SocketTimeoutException) {
                 _catsView?.callOnErrorSocketException()
             } catch (e: Exception) {
-                CrashMonitor.trackWarning(e,TAG)
-                _catsView?.callOnErrorAnyException(e)
+                CrashMonitor.trackWarning(e, TAG)
             }
         }
     }
@@ -40,7 +33,7 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        coroutineContext.cancelChildren()
+        coroutineContext.cancel()
     }
 
     companion object {

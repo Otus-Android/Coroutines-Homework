@@ -25,6 +25,15 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
+    override fun populateForViewModel(result: Result) {
+        when (result) {
+            is Result.Error -> callOnErrorSocketException()
+            is Result.Success<*, *> -> {
+                populate(FullFact(result.data as Fact,result.data2 as ImageFact))
+            }
+        }
+    }
+
     override fun populate(fullFact: FullFact) {
         findViewById<TextView>(R.id.fact_textView).text = fullFact.fact.text
         val imageView = findViewById<ImageView>(R.id.imageView)
@@ -38,15 +47,10 @@ class CatsView @JvmOverloads constructor(
     override fun callOnErrorSocketException() {
         Toast.makeText(context, "Не удалось получить ответ от сервером", Toast.LENGTH_SHORT).show()
     }
-
-    override fun callOnErrorAnyException(exception: Exception) {
-        Toast.makeText(context, exception.message?:exception.toString(), Toast.LENGTH_SHORT).show()
-    }
 }
 
 interface ICatsView {
-
+    fun populateForViewModel(result: Result)
     fun populate(fullFact: FullFact)
     fun callOnErrorSocketException()
-    fun callOnErrorAnyException(exception: Exception)
 }
