@@ -23,14 +23,21 @@ class MainActivity : AppCompatActivity() {
 
         catsViewModel = CatsViewModel(diContainer.txtService, diContainer.imgService)
         view.viewModel = catsViewModel
-        catsViewModel.attachView(view)
+
+        catsViewModel.resultLiveData.observe(this, {
+            if (it is Result.Success) {
+                view.populate(it.fact)
+            } else if (it is Result.Error) {
+                view.toast(it.errorTxt)
+            }
+        })
+
         catsViewModel.onInitComplete()
     }
 
     override fun onStop() {
         if (isFinishing) {
             catsPresenter.detachView()
-            catsViewModel.detachView()
         }
         super.onStop()
     }

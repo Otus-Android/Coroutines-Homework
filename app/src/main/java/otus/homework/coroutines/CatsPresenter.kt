@@ -16,8 +16,8 @@ class CatsPresenter(
     fun onInitComplete() {
         job = PresenterScope().launch {
             try {
-                val img = async { getImg() }
-                val txt = async { getTxt() }
+                val img = PresenterScope().async(Dispatchers.IO) { getImg() }
+                val txt = PresenterScope().async(Dispatchers.IO) { getTxt() }
                 _catsView?.populate(Fact(txt.await(), img.await()))
             } catch (e: SocketTimeoutException) {
                 _catsView?.toast("Не удалось получить ответ от сервера")

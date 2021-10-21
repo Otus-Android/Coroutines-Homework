@@ -1,5 +1,7 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
@@ -11,22 +13,25 @@ class CatsViewModel(
     private val imgService: ImgService
 ) : ViewModel() {
 
-    private var _catsView: ICatsView? = null
+    private val _resultLiveData = MutableLiveData<Result>()
+    val resultLiveData: LiveData<Result>
+        get() = _resultLiveData
+
     private var job: Job? = null
 
     fun onInitComplete() {
-        job = viewModelScope.launch(CoroutineExceptionHandler { coroutineContext, throwable ->
+        job = viewModelScope.launch(CoroutineExceptionHandler { _, throwable ->
             CrashMonitor.trackWarning(throwable)
-            throwable.message?.let { processResult(Error(it)) }
+            throwable.message?.let { _resultLiveData.value = Result.Error(it) }
         }) {
             try {
-                val img = async { getImg() }
-                val txt = async { getTxt() }
-                processResult(Success(Fact(txt.await(), img.await())))
+                val img = viewModelScope.async(Dispatchers.IO) { getImg() }
+                val txt = viewModelScope.async(Dispatchers.IO) { getTxt() }
+                _resultLiveData.value = Result.Success(Fact(txt.await(), img.await()))
             } catch (e: SocketTimeoutException) {
-                processResult(Error("Не удалось получить ответ от сервера"))
+                _resultLiveData.value = Result.Error("Не удалось получить ответ от сервера")
             } catch (e: UnknownHostException) {
-                processResult(Error("Проверьте интернет-подключение"))
+                _resultLiveData.value = Result.Error("Проверьте интернет-подключение")
             }
         }
     }
@@ -46,24 +51,4 @@ class CatsViewModel(
         }
         return ""
     }
-
-    fun processResult(result: Result) {
-        when (result) {
-            is Success -> _catsView?.populate(result.fact)
-            is Error -> _catsView?.toast(result.errorTxt)
-        }
-    }
-
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
-
-    fun detachView() {
-        job?.cancel()
-        _catsView = null
-    }
 }
-
-sealed class Result
-data class Error(var errorTxt: String) : Result()
-data class Success(var fact: Fact) : Result()
