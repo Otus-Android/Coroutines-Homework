@@ -1,10 +1,11 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
+import android.media.Image
 import retrofit2.http.GET
 
 interface CatsService {
 
-    @GET("random?animal_type=cat")
-    fun getCatFact() : Call<Fact>
+    @GET("fact")
+    suspend fun getCatFact(): Fact
+
 }
