@@ -1,6 +1,7 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
+import java.net.SocketException
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -8,50 +9,58 @@ class CatsPresenter(
 ) {
     
     // Whole scope closed only on view detach to cancel all unnecessary jobs
-    private val scope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
-    private var catDataJob: Job? = null
+    private val presenterScope = CoroutineScope(SupervisorJob() + Dispatchers.Main + CoroutineName("CatsCoroutine"))
+    private var dataLoadJob: Job? = null
     private var _catsView: ICatsView? = null
     
-    fun onInitComplete() = loadCatData()
+    fun onInitComplete() = launchCatDataLoading()
     
-    fun onButtonClick() = loadCatData()
+    fun onButtonClick() = launchCatDataLoading()
     
-    private fun loadCatData() = withView {
-        catDataJob?.cancel() // Cancel extra network calls on quick button clicks
-        catDataJob = scope.launch(CoroutineExceptionHandler { _, e ->
-            showError(e.message ?: "Неизвестная ошибка")
-            CrashMonitor.trackWarning()
-        }) {
-            val factDeferred = async {
-                catsService.getCatFact()
-            }
-            val imageDeferred = async {
-                catsService.getCatImage()
-            }
-            doSafely {
-                populate(CatsUiState(factDeferred.await().text, imageDeferred.await().url))
-            }
+    private fun launchCatDataLoading() = withView {
+        dataLoadJob?.cancel()
+        dataLoadJob = launchSafely {
+            populate(loadCatData())
         }
     }
     
-    private suspend fun CoroutineScope.doSafely(
+    private suspend fun loadCatData(): CatsUiState = coroutineScope {
+        val factDeferred = async {
+            catsService.getCatFact()
+        }
+        val imageDeferred = async {
+            catsService.getCatImage()
+        }
+        CatsUiState(factDeferred.await().text, imageDeferred.await().url)
+    }
+    
+    private fun launchSafely(
         block: suspend CoroutineScope.() -> Unit
-    ) = withView {
-        try {
-            block(this@doSafely)
-        } catch (e: SocketTimeoutException) {
-            showError("Не удалось получить ответ от сервера")
+    ): Job = withView {
+        presenterScope.launch(
+            CoroutineExceptionHandler { _, e ->
+                showError(e.message ?: "Неизвестная ошибка")
+                CrashMonitor.trackWarning()
+            }
+        ) {
+            try {
+                block()
+            } catch (e: SocketTimeoutException) {
+                showError("Не удалось получить ответ от сервера")
+            } catch (e: SocketException) {
+                showError("Не удалось получить ответ от сервера")
+            }
         }
     }
     
-    private inline fun withView(block: ICatsView.() -> Unit) = requireNotNull(_catsView).block()
+    private inline fun <T> withView(block: ICatsView.() -> T) = requireNotNull(_catsView).block()
     
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
     
     fun detachView() {
-        catDataJob?.cancel()
+        dataLoadJob?.cancel()
         _catsView = null
     }
 }
