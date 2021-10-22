@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
+import java.net.SocketException
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
@@ -17,34 +18,50 @@ class CatsViewModel(
     val catsUiState: LiveData<Result<CatsUiState>> = _catsUiState
     
     init {
-        loadCatData()
+        launchCatDataLoading()
     }
     
-    fun onButtonClick() = loadCatData()
+    fun onButtonClick() = launchCatDataLoading()
     
-    private fun loadCatData() {
+    private fun launchCatDataLoading() {
         dataLoadJob?.cancel()
-        dataLoadJob = viewModelScope.launch(CoroutineExceptionHandler { _, e ->
-            showError(e.message ?: "Неизвестная ошибка")
-            CrashMonitor.trackWarning()
-        }) {
-            val factDeferred = async {
-                catsService.getCatFact()
+        dataLoadJob = launchSafely {
+            _catsUiState.value = Result.Success(loadCatData())
+        }
+    }
+    
+    private suspend fun loadCatData(): CatsUiState = coroutineScope {
+        val factDeferred = async {
+            catsService.getCatFact()
+        }
+        val imageDeferred = async {
+            catsService.getCatImage()
+        }
+        CatsUiState(factDeferred.await().text, imageDeferred.await().url)
+    }
+    
+    private fun launchSafely(
+        block: suspend CoroutineScope.() -> Unit
+    ): Job {
+        return viewModelScope.launch(
+            CoroutineExceptionHandler { _, e ->
+                _catsUiState.value = Result.Error(e.message ?: "Неизвестная ошибка")
+                CrashMonitor.trackWarning()
             }
-            val imageDeferred = async {
-                catsService.getCatImage()
-            }
+        ) {
             try {
-                val state = CatsUiState(factDeferred.await().text, imageDeferred.await().url)
-                _catsUiState.value = Result.Success(state)
+                block()
             } catch (e: SocketTimeoutException) {
+                showError("Не удалось получить ответ от сервера")
+            } catch (e: SocketException) {
                 showError("Не удалось получить ответ от сервера")
             }
         }
     }
     
     private fun showError(message: String) {
-        _catsUiState.value = Result.Error(message) // TODO: should be separate LiveEvent or non-exclusive UI model for Success and Error
+        // TODO: should be separate LiveEvent or exclusive UI for Success and Error states
+        _catsUiState.value = Result.Error(message)
     }
     
 }
