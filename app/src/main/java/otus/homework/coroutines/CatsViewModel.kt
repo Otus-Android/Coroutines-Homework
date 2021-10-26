@@ -1,20 +1,26 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import retrofit2.Response
+import java.lang.Exception
 import java.net.SocketTimeoutException
 
-class CatsPresenter(
+class CatsViewModel(
     private val catsService: CatsService,
-    private val catsServiceImg: CatsServiceImg
-) {
+    private val catsServiceImg: CatsServiceImg)
+    : ViewModel() {
 
-    private var _catsView: ICatsView? = null
-    private val presenterScope = PresenterScope()
+    val catsData: MutableLiveData<Result> by lazy {
+        MutableLiveData<Result>()
+    }
 
     fun onInitComplete() {
-
-        presenterScope.launch {
+        viewModelScope.launch(CoroutineExceptionHandler { _, throwable ->
+            CrashMonitor.logThrowable(throwable)
+        }) {
             try {
                 val response =
                     async(Dispatchers.Default) {
@@ -31,12 +37,10 @@ class CatsPresenter(
                 withContext(Dispatchers.Main) {
                     if (checkResponse(resFact)) {
                         if (checkResponse(resImage)) {
-                            _catsView?.populate(
-                                CatsData(
-                                    resFact.body()!!.text,
-                                    resImage.body()!!.file
-                                )
-                            )
+                            catsData.value = Success(CatsData(
+                                resFact.body()!!.text,
+                                resImage.body()!!.file
+                            ))
                         } else {
                             CrashMonitor.trackWarning()
                         }
@@ -47,25 +51,16 @@ class CatsPresenter(
             } catch (e: Exception) {
                 when (e) {
                     is CancellationException -> throw e
-                    is SocketTimeoutException -> _catsView?.networkError()
+                    is SocketTimeoutException -> catsData.value = NetworkError
                     else -> {
                         CrashMonitor.logException(e)
                         e.message?.let {
-                            _catsView?.showToast(it)
+                            catsData.value = Error(it)
                         }
                     }
                 }
             }
         }
-    }
-
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
-
-    fun detachView() {
-        _catsView = null
-        presenterScope.cancel()
     }
 
     private fun checkResponse(response: Response<*>): Boolean {
