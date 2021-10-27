@@ -38,8 +38,8 @@ class CatsView @JvmOverloads constructor(
         Toast.makeText(context, R.string.timeout_error, Toast.LENGTH_SHORT).show()
     }
 
-    override fun showError(exception: Exception) {
-        Toast.makeText(context, exception.message, Toast.LENGTH_SHORT).show()
+    override fun showError(message: String?) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -49,5 +49,5 @@ interface ICatsView {
 
     fun showTimeoutError()
 
-    fun showError(exception: Exception)
+    fun showError(message: String?)
 }

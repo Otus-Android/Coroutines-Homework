@@ -27,7 +27,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         if (isFinishing) {
-            catsPresenter.cancelJob()
             catsPresenter.detachView()
         }
         super.onStop()
