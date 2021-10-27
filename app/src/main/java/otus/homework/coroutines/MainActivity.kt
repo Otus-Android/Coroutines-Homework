@@ -15,7 +15,11 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service)
+        val fetchFactAndImageUseCase = FetchFactAndImageUseCase(
+            catsService = diContainer.factService,
+            randomImageService = diContainer.randomImageService
+        )
+        catsPresenter = CatsPresenter(fetchFactAndImageUseCase)
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
@@ -23,6 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         if (isFinishing) {
+            catsPresenter.cancelJob()
             catsPresenter.detachView()
         }
         super.onStop()
