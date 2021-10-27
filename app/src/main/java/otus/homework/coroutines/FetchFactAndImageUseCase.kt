@@ -1,13 +1,19 @@
 package otus.homework.coroutines
 
+import java.lang.Exception
+
 class FetchFactAndImageUseCase(
     private val catsService: CatsService,
     private val randomImageService: RandomImageService
 ) {
 
-    suspend operator fun invoke() : Pair<Fact, RandomImage> {
-        val fact = catsService.getCatFact()
-        val randomImage = randomImageService.getRandomImage()
-        return (fact to randomImage)
+    suspend operator fun invoke() : Result<Pair<Fact, RandomImage>> {
+        return try {
+            val fact = catsService.getCatFact()
+            val randomImage = randomImageService.getRandomImage()
+            Result.Success(fact to randomImage)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 }
