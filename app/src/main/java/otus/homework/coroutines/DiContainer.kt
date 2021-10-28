@@ -12,5 +12,7 @@ class DiContainer {
             .build()
     }
 
+    val coroutineScope by lazy { HomeWorkScope() }
+
     val service by lazy { retrofit.create(CatsService::class.java) }
 }
