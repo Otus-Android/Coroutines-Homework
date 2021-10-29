@@ -7,7 +7,7 @@ import retrofit2.http.Url
 interface CatsService {
 
     @GET
-    suspend fun getCatFact(@Url url: String, ): Response<Fact>
+    suspend fun getCatFact(@Url url: String): Response<Fact>
 
     @GET
     suspend fun getCatImage(@Url url: String): Response<Image>

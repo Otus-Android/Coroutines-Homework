@@ -6,35 +6,39 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import otus.homework.coroutines.domain.CatRandomFact
 import otus.homework.coroutines.domain.CatsRepository
 import otus.homework.coroutines.domain.Result
-import otus.homework.coroutines.utils.CoroutineDispatchers
 import otus.homework.coroutines.utils.CrashMonitor
 
-class CatsViewModel(
-    private val catsRepository: CatsRepository,
-    private val coroutineDispatchers: CoroutineDispatchers
-) : ViewModel() {
+class CatsViewModel(private val catsRepository: CatsRepository) : ViewModel() {
     val catFact: LiveData<CatRandomFact>
         get() = _catFact
-    private val _catFact = MutableLiveData<CatRandomFact>()
     val error: LiveData<String>
         get() = _error
+    val isLoading: LiveData<Boolean>
+        get() = _isLoading
+    private val _catFact = MutableLiveData<CatRandomFact>()
     private val _error = SingleLiveEvent<String>()
+    private val _isLoading = MutableLiveData<Boolean>()
 
     private val exceptionHandler =
-        CoroutineExceptionHandler { _, throwable -> CrashMonitor.trackWarning(throwable.localizedMessage.orEmpty()) }
+        CoroutineExceptionHandler { _, throwable ->
+            val message = throwable.localizedMessage.orEmpty()
+            _error.value = message
+            CrashMonitor.trackWarning(throwable.localizedMessage.orEmpty())
+        }
 
     fun loadCatRandomFact() {
         viewModelScope.launch(exceptionHandler) {
-            val result = withContext(coroutineDispatchers.ioDispatcher) {
-                catsRepository.getCatRandomFact()
-            }
-            when (result) {
-                is Result.Success -> _catFact.value = result.value
-                is Result.Error -> _error.value = result.message
+            try {
+                _isLoading.value = true
+                when (val result = catsRepository.getCatRandomFact()) {
+                    is Result.Success -> _catFact.value = result.value
+                    is Result.Error -> _error.value = result.errorMessage
+                }
+            } finally {
+                _isLoading.value = false
             }
         }
     }

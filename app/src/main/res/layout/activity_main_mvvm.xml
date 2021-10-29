@@ -3,25 +3,29 @@
 
     <data class="CatFactBinding">
 
+        <import type="android.view.View"/>
+
         <variable
             name="viewModel"
             type="otus.homework.coroutines.presentation.mvvm.CatsViewModel" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
+    <ScrollView
         android:layout_width="match_parent"
-        android:padding="16dp"
         android:layout_height="match_parent">
 
+        <LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="16dp">
+
         <androidx.cardview.widget.CardView
-            android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            android:layout_height="240dp"
             android:layout_margin="16dp"
-            app:layout_constraintBottom_toTopOf="@+id/fact_textView"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             app:cardCornerRadius="16dp">
 
             <ImageView
@@ -35,33 +39,35 @@
 
         </androidx.cardview.widget.CardView>
 
-        <TextView
-            android:id="@+id/fact_textView"
-            android:layout_width="0dp"
-            android:layout_height="360dp"
-            android:layout_marginBottom="16dp"
-            android:freezesText="true"
-            android:scrollbars="vertical"
-            android:text="@{viewModel.catFact.text}"
-            android:textColor="@color/black"
-            android:textSize="24sp"
-            app:layout_constraintBottom_toTopOf="@+id/button"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:scrollable="@{true}"
-            tools:text="Cat fact" />
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="@{viewModel.isLoading() ? View.VISIBLE : View.GONE}" />
+
+            <TextView
+                android:id="@+id/fact_textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:freezesText="true"
+                android:scrollbars="vertical"
+                android:text="@{viewModel.catFact.text}"
+                android:textColor="@color/black"
+                android:textSize="24sp"
+                app:scrollable="@{true}"
+                tools:text="Cat fact" />
 
         <Button
             android:id="@+id/button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
+            android:enabled="@{!viewModel.isLoading()}"
             android:onClick="@{() -> viewModel.loadCatRandomFact()}"
-            android:text="@string/more_facts"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:text="@string/more_facts" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
+        </LinearLayout>
+    </ScrollView>
 </layout>
