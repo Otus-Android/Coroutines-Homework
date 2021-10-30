@@ -6,6 +6,6 @@ import kotlin.coroutines.CoroutineContext
 
 open class HomeWorkScope : CoroutineScope {
     override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main + SupervisorJob() + CoroutineName("CatsCoroutine")
+        get() = Dispatchers.Main  + CoroutineName("CatsCoroutine")
 }
 
