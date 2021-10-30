@@ -8,15 +8,17 @@ import java.net.SocketTimeoutException
 class CatsViewModel(private val catsService: CatsService) : ViewModel() {
 
     private var _catsView: ICatsView? = null
-    private var job: Job? = null
 
     fun onInitComplete() {
-        job = viewModelScope.launch(SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
+        viewModelScope.launch(CoroutineExceptionHandler { _, _ ->
             CrashMonitor.trackWarning()
         }) {
             try {
-                val factResponse = catsService.getCatFact()
-                val imageResponse = catsService.getCatImage()
+                val factResponseDeferred = async { catsService.getCatFact() }
+                val imageResponseDeferred = async { catsService.getCatImage() }
+                val factResponse = factResponseDeferred.await()
+                val imageResponse = imageResponseDeferred.await()
+
                 if (isResponseSuccessful(factResponse) && isResponseSuccessful(imageResponse)) {
                     _catsView?.showResult(
                         Success(
@@ -27,14 +29,11 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
                         )
                     )
                 }
-            } catch (ex: SocketTimeoutException) {
-                _catsView?.showResult(Error("Не удалось получить ответ от сервера"))
             } catch (ex: Exception) {
-                if (ex !is CancellationException) {
-                    CrashMonitor.trackWarning()
-                    ex.message?.let {
-                        _catsView?.showResult(Error(it))
-                    }
+                when (ex) {
+                    is CancellationException -> throw ex
+                    is SocketTimeoutException -> _catsView?.showResult(Error("Не удалось получить ответ от сервера"))
+                    else -> ex.message?.let { _catsView?.showResult(Error(it)) }
                 }
             }
         }
@@ -46,7 +45,6 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
 
     fun detachView() {
         _catsView = null
-        job?.cancel()
     }
 
     private fun <T> isResponseSuccessful(response: Response<T>): Boolean {

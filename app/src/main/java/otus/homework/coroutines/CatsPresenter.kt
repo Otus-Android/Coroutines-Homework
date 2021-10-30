@@ -7,21 +7,25 @@ import kotlin.coroutines.CoroutineContext
 
 class PresenterScope : CoroutineScope {
     override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main + CoroutineName("CatsCoroutine")
+        get() = SupervisorJob() + Dispatchers.Main + CoroutineName("CatsCoroutine") +
+                CoroutineExceptionHandler { _, _ ->
+                    CrashMonitor.trackWarning()
+                }
 }
 
 class CatsPresenter(private val catsService: CatsService) {
 
     private var _catsView: ICatsView? = null
-    private var job: Job? = null
+    private var scope = PresenterScope()
 
     fun onInitComplete() {
-        job = PresenterScope().launch(SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
-            println(throwable)
-        }) {
+        scope.launch {
             try {
-                val factResponse = catsService.getCatFact()
-                val imageResponse = catsService.getCatImage()
+                val factResponseDeferred = async { catsService.getCatFact() }
+                val imageResponseDeferred = async { catsService.getCatImage() }
+                val factResponse = factResponseDeferred.await()
+                val imageResponse = imageResponseDeferred.await()
+
                 if (isResponseSuccessful(factResponse) && isResponseSuccessful(imageResponse)) {
                     _catsView?.populate(
                         CatsInfo(
@@ -30,12 +34,11 @@ class CatsPresenter(private val catsService: CatsService) {
                         )
                     )
                 }
-            } catch (ex: SocketTimeoutException) {
-                _catsView?.showError("Не удалось получить ответ от сервера")
             } catch (ex: Exception) {
-                if (ex !is CancellationException) {
-                    CrashMonitor.trackWarning()
-                    ex.message?.let { _catsView?.showError(it) }
+                when (ex) {
+                    is CancellationException -> throw ex
+                    is SocketTimeoutException -> _catsView?.showResult(Error("Не удалось получить ответ от сервера"))
+                    else -> ex.message?.let { _catsView?.showResult(Error(it)) }
                 }
             }
         }
@@ -47,7 +50,7 @@ class CatsPresenter(private val catsService: CatsService) {
 
     fun detachView() {
         _catsView = null
-        job?.cancel()
+        scope.cancel()
     }
 
     private fun <T> isResponseSuccessful(response: Response<T>): Boolean {
