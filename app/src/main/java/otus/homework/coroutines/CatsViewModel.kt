@@ -22,7 +22,7 @@ class CatsViewModel(
 
     fun onViewInitializationComplete() {
 
-        viewModelScope.launch(exHandler + SupervisorJob()) {
+        viewModelScope.launch(exHandler) {
             val catFactDef = async(Dispatchers.IO) { catsService.getCatFact() }
             val catImgDef = async(Dispatchers.IO) { catsImageService.getCatImage() }
             try {
