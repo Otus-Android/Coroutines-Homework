@@ -2,8 +2,8 @@ package otus.homework.coroutines
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
-import java.lang.Exception
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
@@ -13,7 +13,7 @@ class CatsViewModel(
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        viewModelScope.launch {
+        viewModelScope.launch(CoroutineExceptionHandler { _, e -> handleError(e) }) {
             when (val result = fetchFactAndImageResultUseCase.invoke()) {
                 is Result.Success -> {
                     val (fact, randomImage) = result.data
@@ -24,7 +24,7 @@ class CatsViewModel(
         }
     }
 
-    private fun handleError(error: Exception) {
+    private fun handleError(error: Throwable) {
         when (error) {
             is SocketTimeoutException -> _catsView?.showTimeoutError()
             else -> {
