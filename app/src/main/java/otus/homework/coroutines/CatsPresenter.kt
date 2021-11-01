@@ -1,37 +1,40 @@
 package otus.homework.coroutines
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.lang.Exception
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
     private val fetchFactAndImageUseCase: FetchFactAndImageUseCase
-) : ViewModel() {
+) {
 
     private var _catsView: ICatsView? = null
+    private var job: Job? = null
 
     fun onInitComplete() {
-        viewModelScope.launch {
-            when (val result = fetchFactAndImageUseCase.invoke()) {
-                is Result.Success -> {
-                    val (fact, randomImage) = result.data
-                    _catsView?.populate(fact, randomImage)
-                }
-                is Result.Error -> handleError(result.error)
+        job = PresenterScope.launch {
+            try {
+                val (fact, randomImage) = fetchFactAndImageUseCase.invoke()
+                _catsView?.populate(fact, randomImage)
+            } catch (e: Exception) {
+                handleError(e)
             }
         }
     }
 
-    private fun handleError(error: Exception) {
-        when (error) {
+    private fun handleError(e: Exception) {
+        when (e) {
             is SocketTimeoutException -> _catsView?.showTimeoutError()
             else -> {
                 CrashMonitor.trackWarning()
-                _catsView?.showError(error.message)
+                _catsView?.showError(e.message)
             }
         }
+    }
+
+    fun cancelJob() {
+        job?.cancel()
+        job = null
     }
 
     fun attachView(catsView: ICatsView) {
