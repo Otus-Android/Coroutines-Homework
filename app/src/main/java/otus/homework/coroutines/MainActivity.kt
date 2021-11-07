@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : AppCompatActivity() {
 
