@@ -2,7 +2,10 @@ package otus.homework.coroutines.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.data.CatResult
 import otus.homework.coroutines.data.CatsFactService
@@ -18,34 +21,24 @@ class CatViewModel(
 ) : ViewModel() {
     private var _catsView: ICatsView? = null
 
+    private val exceptionHandler = CoroutineExceptionHandler { _, _ ->
+        CrashMonitor.trackWarning()
+    }
+
     fun onInitComplete() {
-        viewModelScope.launch() {
+        viewModelScope.launch(exceptionHandler) {
             try {
                 val image = async { getImage() }
                 val fact = async { getFact() }
-                val results = awaitAll(image, fact)
+                val model = FactModel(image.await().file, fact.await().text)
 
-                val model = buildResult(results)
-                withContext(Dispatchers.Main) { successResult(model) }
+                val result = CatResult.Success(model)
+                successResult(result)
 
             } catch (e: Exception) {
                 notifyAboutError(e)
             }
         }
-    }
-
-    private fun buildResult(data: List<Any>): CatResult<FactModel> {
-        var image = ""
-        var fact = ""
-        data.forEach {
-            if (it is ImageDto) {
-                image = it.file
-            }
-            if (it is FactDto) {
-                fact = it.text
-            }
-        }
-        return CatResult.Success(FactModel(image, fact))
     }
 
     private fun successResult(model: CatResult<FactModel>) {
@@ -60,17 +53,12 @@ class CatViewModel(
         }
     }
 
-    /**
-     * Заглушка, пока сервис с фактами не работает
-     */
     private suspend fun getFact(): FactDto {
-        delay(1000)
-        return FactDto("Какой-то факт")
+        throw IllegalArgumentException("Какая-то страшная ошибка")
+        return catsFactService.getFact()
     }
 
-    private suspend fun getImage(): ImageDto {
-        return catsImageService.getCatImage()
-    }
+    private suspend fun getImage(): ImageDto = catsImageService.getCatImage()
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
