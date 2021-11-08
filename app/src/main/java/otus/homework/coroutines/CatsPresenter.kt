@@ -1,12 +1,14 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
+import otus.homework.coroutines.model.CatData
 import java.lang.Exception
 import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imageService: ImageService,
 ) {
 
     private var _catsView: ICatsView? = null
@@ -17,7 +19,8 @@ class CatsPresenter(
         try {
             job = PresenterScope().launch {
                 val fact = async(Dispatchers.IO) { catsService.getCatFact() }
-                _catsView?.populate(fact.await())
+                val image = async(Dispatchers.IO) { imageService.getCatImage() }
+                _catsView?.populate(CatData(image.await().path, fact.await()))
             }
         } catch (e: Exception) {
             onError(e)
