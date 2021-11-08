@@ -23,36 +23,37 @@ class CatsViewModel(
     fun onViewInitializationComplete() {
 
         viewModelScope.launch(exHandler) {
-            val catFactDef = async(Dispatchers.IO) { catsService.getCatFact() }
-            val catImgDef = async(Dispatchers.IO) { catsImageService.getCatImage() }
-            try {
-                _catsLiveData.postValue(
-                    Result.Success(
-                        CatModel(
-                            catFactDef.await(),
-                            catImgDef.await()
-                        )
-                    )
-                )
-            } catch (ex: Exception) {
-                when (ex) {
-                    is SocketTimeoutException -> {
-                        _catsLiveData.postValue(
-                            Result.Error(
-                                "Не удалось получить ответ от сервера",
-                                ex
+            supervisorScope {
+                val catFactDef = async(Dispatchers.IO) { catsService.getCatFact() }
+                val catImgDef = async(Dispatchers.IO) { catsImageService.getCatImage() }
+                try {
+                    _catsLiveData.postValue(
+                        Result.Success(
+                            CatModel(
+                                catFactDef.await(),
+                                catImgDef.await()
                             )
                         )
-                    }
-                    is CancellationException -> {
-                        throw ex
-                    }
-                    else -> {
-                        _catsLiveData.postValue(Result.Error(ex.message.toString(), ex))
+                    )
+                } catch (ex: Exception) {
+                    when (ex) {
+                        is SocketTimeoutException -> {
+                            _catsLiveData.postValue(
+                                Result.Error(
+                                    "Не удалось получить ответ от сервера",
+                                    ex
+                                )
+                            )
+                        }
+                        is CancellationException -> {
+                            throw ex
+                        }
+                        else -> {
+                            _catsLiveData.postValue(Result.Error(ex.message.toString(), ex))
+                        }
                     }
                 }
             }
-
         }
     }
 

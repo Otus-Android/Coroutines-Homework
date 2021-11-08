@@ -3,14 +3,11 @@ package otus.homework.coroutines
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
-import java.net.SocketTimeoutException
 
 
 class MainActivity : AppCompatActivity() {
 
-    //lateinit var catsPresenter: CatsPresenter
+    //    lateinit var catsPresenter: CatsPresenter
     private val catsViewModel: CatsViewModel by viewModels {
         CatsViewModelFactory(
             diContainer.service,

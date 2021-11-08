@@ -18,24 +18,26 @@ class CatsPresenter(
     }
 
     fun onInitComplete() {
-        presenterScope.launch(exHandler + SupervisorJob()) {
-            val catFactDef = async(Dispatchers.IO) { catsService.getCatFact() }
-            val catImgDef = async(Dispatchers.IO) { catsImageService.getCatImage() }
-            try {
-                _catsView?.populate(CatModel(catFactDef.await(), catImgDef.await()))
-            } catch (ex: Exception) {
-                when (ex) {
-                    is SocketTimeoutException -> {
-                        _catsView?.showSocketExceptionMessage()
+        presenterScope.launch(exHandler) {
+            supervisorScope {
+                val catFactDef = async(Dispatchers.IO) { catsService.getCatFact() }
+                val catImgDef = async(Dispatchers.IO) { catsImageService.getCatImage() }
+                try {
+                    _catsView?.populate(CatModel(catFactDef.await(), catImgDef.await()))
+                } catch (ex: Exception) {
+                    when (ex) {
+                        is SocketTimeoutException -> {
+                            _catsView?.showSocketExceptionMessage()
+                        }
+                        is CancellationException -> {
+                            throw ex
+                        }
+                        else -> {
+                            _catsView?.showExceptionMessage(ex.message.toString())
+                        }
                     }
-                    is CancellationException -> {
-                        throw ex
-                    }
-                    else -> {
-                        _catsView?.showExceptionMessage(ex.message.toString())
-                    }
-                }
 
+                }
             }
         }
     }
@@ -51,7 +53,7 @@ class CatsPresenter(
 
     class PresenterScope : CoroutineScope {
         override val coroutineContext: CoroutineContext
-            get() = Dispatchers.Main + CoroutineName("CatsCoroutine")
+            get() = Dispatchers.Main + CoroutineName("CatsCoroutine") + SupervisorJob()
     }
 
 
