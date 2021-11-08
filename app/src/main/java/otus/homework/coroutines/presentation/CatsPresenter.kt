@@ -2,7 +2,7 @@ package otus.homework.coroutines.presentation
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
-import kotlinx.coroutines.job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.PresenterScope
@@ -63,6 +63,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        scope.coroutineContext.job.cancel()
+        scope.coroutineContext.cancel()
     }
 }
