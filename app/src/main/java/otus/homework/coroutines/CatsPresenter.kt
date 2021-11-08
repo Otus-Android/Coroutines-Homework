@@ -12,7 +12,7 @@ class PresenterScope : CoroutineScope {
 }
 
 class CatsPresenter(
-  private val catsService: CatsService
+  private val repository: Repository
 ) {
 
   private var _catsView: ICatsView? = null
@@ -22,8 +22,8 @@ class CatsPresenter(
   fun onInitComplete() {
     job = scope.launch {
       try {
-        val fact = catsService.getCatFact()
-        _catsView?.populate(fact)
+        val cat = repository.getCat()
+        _catsView?.populate(cat)
       } catch (e: Exception) {
         handle(e)
       }
