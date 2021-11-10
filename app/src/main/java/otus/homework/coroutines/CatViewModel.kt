@@ -13,33 +13,31 @@ class CatViewModel(private val catsService: CatsService) : ViewModel() {
     private val _catModel = MutableLiveData<Result>()
     val catModel: LiveData<Result> get() = _catModel
 
-    private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-        when (exception) {
-            is SocketTimeoutException -> _catModel.postValue(Result.Error("Не удалось получить ответ от сервера"))
-            else -> {
-                _catModel.postValue(Result.Error("Ошибка ${exception.message}"))
-                CrashMonitor.trackWarning()
-            }
-        }
+    private val exceptionHandler = CoroutineExceptionHandler { _, e ->
+        _catModel.postValue(Result.Error("Ошибка ${e.message}"))
+        CrashMonitor.trackWarning()
     }
 
     init {
         loadInfo()
     }
 
-    internal fun loadInfo() {
+    fun loadInfo() {
         viewModelScope.launch(exceptionHandler) {
-            val fact = async(Dispatchers.IO) {
-                catsService.getCatFact()
+            try {
+                val fact = async(Dispatchers.IO) {
+                    catsService.getCatFact()
+                }
+                val image = async(Dispatchers.IO) {
+                    catsService.getCatImage()
+                }
+                val model = Result.Success(CatModel(fact.await(), image.await()))
+                _catModel.postValue(model)
+            } catch (socketTimeoutException: SocketTimeoutException) {
+                _catModel.postValue(Result.Error("Не удалось получить ответ от сервера"))
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
             }
-
-            val image = async(Dispatchers.IO) {
-                catsService.getCatImage()
-            }
-
-            val model = Result.Success(CatModel(fact.await(), image.await()))
-            _catModel.postValue(model)
         }
     }
-
 }
