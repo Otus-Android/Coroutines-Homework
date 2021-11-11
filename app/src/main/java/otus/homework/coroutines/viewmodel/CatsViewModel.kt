@@ -5,9 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import otus.homework.coroutines.CatsService
 import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.ImageService
@@ -32,20 +30,18 @@ class CatsViewModelImpl(
     override val catResultState = MutableLiveData<Result>()
 
     override fun onInitComplete() {
-        try {
-            viewModelScope.launch {
-                val fact = async(Dispatchers.IO) { factService.getCatFact() }
-                val image = async(Dispatchers.IO) { imageService.getCatImage() }
+        val handler = CoroutineExceptionHandler { _, e -> onError(e) }
 
-                val result = CatData(image.await().path, fact.await())
-                catResultState.value = Result.Success(result)
-            }
-        } catch (e: Exception) {
-            onError(e)
+        viewModelScope.launch(handler + SupervisorJob()) {
+            val fact = async(Dispatchers.IO) { factService.getCatFact() }
+            val image = async(Dispatchers.IO) { imageService.getCatImage() }
+
+            val result = CatData(image.await().path, fact.await())
+            catResultState.value = Result.Success(result)
         }
     }
 
-    private fun onError(e: Exception) {
+    private fun onError(e: Throwable) {
         val errorState = when (e) {
             is SocketTimeoutException -> {
                 Result.Error(R.string.socket_timeout_error_text)
