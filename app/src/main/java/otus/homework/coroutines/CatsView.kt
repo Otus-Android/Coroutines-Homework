@@ -11,6 +11,7 @@ import com.squareup.picasso.Picasso
 import otus.homework.coroutines.model.CatData
 import otus.homework.coroutines.model.Fact
 import otus.homework.coroutines.model.Image
+import otus.homework.coroutines.viewmodel.CatsViewModel
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -18,14 +19,14 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
+    var viewModel: CatsViewModel? = null
 
     var imageView: ImageView? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            viewModel?.onInitComplete()
         }
         imageView = findViewById(R.id.cat_image_view)
     }

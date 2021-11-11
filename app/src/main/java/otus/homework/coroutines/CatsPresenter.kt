@@ -50,7 +50,7 @@ class CatsPresenter(
         _catsView = null
     }
 
-    class PresenterScope() : CoroutineScope {
+    class PresenterScope : CoroutineScope {
         override val coroutineContext: CoroutineContext
             get() = Dispatchers.Main + CoroutineName("CatsCoroutine")
     }
