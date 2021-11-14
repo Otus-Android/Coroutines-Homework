@@ -13,7 +13,6 @@ class CatsPresenter(
     private val catsService: CatsService,
     private val imageService: ImageService
 
-
 ) {
     private val presentScope = PresenterScope()
 
@@ -25,21 +24,19 @@ class CatsPresenter(
 
     fun onInitComplete() {
         presentScope.launch(exceptionHandler) {
-            try {
-                val requestFact = async() { catsService.getCatFact() }
-                val requestImage = async() { imageService.getCatImage() }
-                val responseFact = requestFact.await()
-                val responseImage = requestImage.await()
-
-                if (responseFact.isSuccessful && responseImage.isSuccessful) {
-                    val presentModel = PresentModel(responseImage.body()!!, responseFact.body()!!)
-                    _catsView?.populate(presentModel)
-                }
-            } catch (cause: Exception) {
-                when (cause) {
-                    is SocketTimeoutException -> _catsView?.showToast("Не удалось получить ответ от сервера")
-                    is CancellationException -> throw cause
-                    else ->  _catsView?.showToast("Exception: $cause")
+            supervisorScope {
+                try {
+                    val requestFact = async { catsService.getCatFact()}
+                    val requestImage = async { imageService.getCatImage()}
+                    val responseFact = requestFact.await()
+                    val responseImage = requestImage.await()
+                    _catsView?.populate(PresentModel(responseImage, responseFact))
+                } catch (cause: Exception) {
+                    when (cause) {
+                        is SocketTimeoutException -> _catsView?.showToast("Не удалось получить ответ от сервера")
+                        is CancellationException -> throw cause
+                        else -> _catsView?.showToast("Exception: $cause")
+                    }
                 }
             }
         }
@@ -53,5 +50,4 @@ class CatsPresenter(
         _catsView = null
         presentScope.cancel()
     }
-
 }

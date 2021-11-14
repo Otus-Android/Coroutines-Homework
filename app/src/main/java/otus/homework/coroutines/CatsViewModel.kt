@@ -22,31 +22,26 @@ class CatsViewModel(
 
     fun onInitComplete() {
         viewModelScope.launch(exceptionHandler) {
-            val requestFact = async() { catsService.getCatFact() }
-            val requestImage = async() { imageService.getCatImage() }
-
-            try {
-                val responseFact = requestFact.await()
-                val responseImage = requestImage.await()
-
-                if (responseFact.isSuccessful && responseImage.isSuccessful) {
-                    val presentModel = PresentModel(responseImage.body()!!, responseFact.body()!!)
-                    _catsView?.showResultCat(ResultCats.Success(presentModel))
-                }
-            } catch (cause: Exception) {
-                when (cause) {
-                    is SocketTimeoutException -> _catsView?.showResultCat(ResultCats.Error(cause))
-                    else -> throw cause
+            supervisorScope {
+                try {
+                    val requestFact = async { catsService.getCatFact() }
+                    val requestImage = async { imageService.getCatImage() }
+                    val responseFact = requestFact.await()
+                    val responseImage = requestImage.await()
+                    _catsView?.populate(PresentModel(responseImage, responseFact))
+                } catch (cause: Exception) {
+                    when (cause) {
+                        is SocketTimeoutException -> _catsView?.showResultCat(ResultCats.Error(cause))
+                        else -> throw cause
+                    }
                 }
             }
         }
     }
 
-
     override fun onCleared() {
         super.onCleared()
         _catsView = null
     }
-
 }
 
