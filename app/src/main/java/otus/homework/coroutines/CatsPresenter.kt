@@ -15,33 +15,34 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
     private var job: Job? = null
-    private fun PresenterScope() = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
-    fun onInitComplete() {
-        job = PresenterScope().launch {
-            try {
-                val defFact = async(CoroutineScope(Dispatchers.IO).coroutineContext){factsService.getCatFact()}
-                val defPic = async(CoroutineScope(Dispatchers.IO).coroutineContext) { picsService.getCatPic() }
-                _catsView?.populate(FactAndPicture(defFact.await(), defPic.await()))
+    private val presenterScope by lazy {
+        CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
+    }
+        fun onInitComplete() {
+            job = presenterScope.launch {
+                try {
+                    val defFact = async(Dispatchers.IO){factsService.getCatFact()}
+                    val defPic = async(Dispatchers.IO) { picsService.getCatPic() }
+                    _catsView?.populate(FactAndPicture(defFact.await(), defPic.await()))
 
-            } catch (e: SocketTimeoutException){
-                _catsView?.showToastMsg(R.string.server_error)
-            } catch(e: CancellationException) {
-
-            } catch (e: Exception){
-                CrashMonitor.trackWarning()
-                e.message?.also {
-                    _catsView?.showToastMsg(it)
+                } catch (e: SocketTimeoutException){
+                    _catsView?.showToastMsg(R.string.server_error)
+                } catch (e: Exception){
+                    CrashMonitor.trackWarning()
+                    e.message?.also {
+                        _catsView?.showToastMsg(it)
+                    }
                 }
             }
         }
+
+        fun attachView(catsView: ICatsView) {
+            _catsView = catsView
+        }
+
+        fun detachView() {
+            job?.cancel()
+            _catsView = null
+        }
     }
 
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
-
-    fun detachView() {
-        job?.cancel()
-        _catsView = null
-    }
-}
