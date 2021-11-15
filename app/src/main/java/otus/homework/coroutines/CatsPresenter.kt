@@ -14,27 +14,29 @@ class CatsPresenter(
 
     fun onInitComplete() {
 
-        presenterScope.launch {
+        presenterScope.launch(CoroutineExceptionHandler { _, throwable ->
+            CrashMonitor.logThrowable(throwable)
+        }) {
             try {
                 val response =
-                    async(Dispatchers.Default) {
+                    async {
                         catsService.getCatFact()
                     }
 
-                val responseImg = async(Dispatchers.Default) {
+                val responseImg = async {
                     catsServiceImg.getCatImage()
                 }
 
                 val resFact = response.await()
                 val resImage = responseImg.await()
 
-                withContext(Dispatchers.Main) {
+                launch {
                     if (checkResponse(resFact)) {
-                        if (checkResponse(resImage)) {
+                        if (resImage.file.isNotEmpty()) {
                             _catsView?.populate(
                                 CatsData(
                                     resFact.body()!!.text,
-                                    resImage.body()!!.file
+                                    resImage.file
                                 )
                             )
                         } else {

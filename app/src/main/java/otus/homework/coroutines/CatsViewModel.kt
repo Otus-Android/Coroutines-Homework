@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,7 +14,8 @@ class CatsViewModel(
     private val catsServiceImg: CatsServiceImg)
     : ViewModel() {
 
-    val catsData: MutableLiveData<Result> by lazy {
+    val catsData: LiveData<Result> by lazy { _catsData }
+    private val _catsData: MutableLiveData<Result> by lazy {
         MutableLiveData<Result>()
     }
 
@@ -23,23 +25,23 @@ class CatsViewModel(
         }) {
             try {
                 val response =
-                    async(Dispatchers.Default) {
+                    async {
                         catsService.getCatFact()
                     }
 
-                val responseImg = async(Dispatchers.Default) {
+                val responseImg = async {
                     catsServiceImg.getCatImage()
                 }
 
                 val resFact = response.await()
                 val resImage = responseImg.await()
 
-                withContext(Dispatchers.Main) {
+                launch {
                     if (checkResponse(resFact)) {
-                        if (checkResponse(resImage)) {
-                            catsData.value = Success(CatsData(
+                        if (resImage.file.isNotEmpty()) {
+                            _catsData.value = Success(CatsData(
                                 resFact.body()!!.text,
-                                resImage.body()!!.file
+                                resImage.file
                             ))
                         } else {
                             CrashMonitor.trackWarning()
@@ -51,11 +53,11 @@ class CatsViewModel(
             } catch (e: Exception) {
                 when (e) {
                     is CancellationException -> throw e
-                    is SocketTimeoutException -> catsData.value = NetworkError
+                    is SocketTimeoutException -> _catsData.value = NetworkError
                     else -> {
                         CrashMonitor.logException(e)
                         e.message?.let {
-                            catsData.value = Error(it)
+                            _catsData.value = Error(it)
                         }
                     }
                 }
