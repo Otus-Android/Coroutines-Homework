@@ -8,11 +8,11 @@ import kotlin.coroutines.CoroutineContext
 
 class PresenterScope : CoroutineScope {
   override val coroutineContext: CoroutineContext =
-    Dispatchers.Main + CoroutineName("CatsCoroutine")
+    Dispatchers.Main + CoroutineName("CatsCoroutine") + SupervisorJob()
 }
 
 class CatsPresenter(
-  private val repository: Repository
+  private val service: CatsService
 ) {
 
   private var _catsView: ICatsView? = null
@@ -21,9 +21,10 @@ class CatsPresenter(
 
   fun onInitComplete() {
     job = scope.launch {
+      val catFact = async(Dispatchers.IO) { service.getCatFact() }
+      val catImage = async(Dispatchers.IO) { service.getCatImage() }
       try {
-        val cat = repository.getCat()
-        _catsView?.populate(cat)
+        _catsView?.populate((Cat(catFact.await().text, catImage.await().src)))
       } catch (e: Exception) {
         handle(e)
       }
@@ -31,9 +32,8 @@ class CatsPresenter(
   }
 
   private fun handle(exception: Exception) = when (exception) {
-    is SocketTimeoutException -> {
-      _catsView?.show("No response from server")
-    }
+    is SocketTimeoutException -> _catsView?.show("No response from server")
+    is CancellationException -> throw exception
     else -> {
       _catsView?.show(exception.message ?: "something nasty happened")
       CrashMonitor.trackWarning(exception)

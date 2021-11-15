@@ -9,8 +9,8 @@ class MainActivity : AppCompatActivity() {
 //    lateinit var catsPresenter: CatsPresenter
 
     private val diContainer = DiContainer()
-    private val viewModel by viewModels<CatViewModel> { ViewModelFactory(diContainer.repository) }
-    
+    private val viewModel by viewModels<CatViewModel> { ViewModelFactory(diContainer.service) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -18,21 +18,23 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         view.action = viewModel::loadCat
+        viewModel.loadCat()
 
         viewModel.data.observe(this) { result ->
             when (result) {
-                is Success ->
-                    view.populate(result.data)
+                is Success<*> ->
+                    if (result.data is Cat) view.populate(result.data)
                 is Error ->
                     view.show(result.message)
             }
         }
+    }
 
 //        catsPresenter = CatsPresenter(diContainer.repository)
 //        view.presenter = catsPresenter
 //        catsPresenter.attachView(view)
 //        catsPresenter.onInitComplete()
-    }
+//    }
 
 //    override fun onStop() {
 //        if (isFinishing) {

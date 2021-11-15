@@ -14,5 +14,4 @@ class DiContainer {
 
     val service by lazy { retrofit.create(CatsService::class.java) }
 
-    val repository by lazy { RepositoryImpl(service, Mapper()) }
 }

@@ -43,7 +43,7 @@ class CatsView @JvmOverloads constructor(
     }
 
     override fun show(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
 }
 
