@@ -1,18 +1,20 @@
 package otus.homework.coroutines
 
-import java.lang.Exception
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import java.net.SocketTimeoutException
 
 class FetchFactAndImageResultUseCase(
     private val catsService: CatsService,
     private val randomImageService: RandomImageService
 ) {
 
-    suspend operator fun invoke() : Result<Pair<Fact, RandomImage>> {
-        return try {
-            val fact = catsService.getCatFact()
-            val randomImage = randomImageService.getRandomImage()
-            Result.Success(fact to randomImage)
-        } catch (e: Exception) {
+    suspend operator fun invoke(): Result<Pair<Fact, RandomImage>> = coroutineScope {
+        try {
+            val fact = async { catsService.getCatFact() }
+            val randomImage = async { randomImageService.getRandomImage() }
+            Result.Success(fact.await() to randomImage.await())
+        } catch (e: SocketTimeoutException) {
             Result.Error(e)
         }
     }

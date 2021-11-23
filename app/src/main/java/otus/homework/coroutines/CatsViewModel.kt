@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
-import java.net.SocketTimeoutException
 
 class CatsViewModel(
     private val fetchFactAndImageResultUseCase: FetchFactAndImageResultUseCase
@@ -19,19 +18,14 @@ class CatsViewModel(
                     val (fact, randomImage) = result.data
                     _catsView?.populate(fact, randomImage)
                 }
-                is Result.Error -> handleError(result.error)
+                is Result.Error -> _catsView?.showTimeoutError()
             }
         }
     }
 
     private fun handleError(error: Throwable) {
-        when (error) {
-            is SocketTimeoutException -> _catsView?.showTimeoutError()
-            else -> {
-                CrashMonitor.trackWarning()
-                _catsView?.showError(error.message)
-            }
-        }
+        CrashMonitor.trackWarning()
+        _catsView?.showError(error.message)
     }
 
     fun attachView(catsView: ICatsView) {

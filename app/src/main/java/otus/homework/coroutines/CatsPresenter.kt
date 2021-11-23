@@ -32,16 +32,16 @@ class CatsPresenter(
         }
     }
 
-    fun cancelJob() {
-        job?.cancel()
-        job = null
-    }
-
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
 
     fun detachView() {
         _catsView = null
+    }
+
+    fun onStop() {
+        job?.cancel()
+        job = null
     }
 }

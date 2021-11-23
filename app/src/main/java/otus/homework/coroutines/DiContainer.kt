@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class DiContainer {
 
-    val factService: CatsService by lazy { configureRetrofit("https://cat-fact.herokuapp.com/facts/").create(CatsService::class.java) }
+    val factService: CatsService by lazy { configureRetrofit("https://catfact.ninja/").create(CatsService::class.java) }
 
     val randomImageService: RandomImageService by lazy { configureRetrofit("https://aws.random.cat/").create(RandomImageService::class.java) }
 
