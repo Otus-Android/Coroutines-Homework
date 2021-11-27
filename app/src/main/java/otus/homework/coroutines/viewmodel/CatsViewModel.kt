@@ -42,6 +42,8 @@ class CatsViewModelImpl(
     }
 
     private fun onError(e: Throwable) {
+        if (e is CancellationException) return
+
         val errorState = when (e) {
             is SocketTimeoutException -> {
                 Result.Error(R.string.socket_timeout_error_text)

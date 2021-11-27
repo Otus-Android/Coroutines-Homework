@@ -16,18 +16,21 @@ class CatsPresenter(
     private var job: Job? = null
 
     fun onInitComplete() {
-        try {
-            job = PresenterScope().launch {
-                val fact = async(Dispatchers.IO) { catsService.getCatFact() }
-                val image = async(Dispatchers.IO) { imageService.getCatImage() }
+
+        job = PresenterScope().launch {
+            val fact = NetworkScope().async { catsService.getCatFact() }
+            val image = NetworkScope().async { imageService.getCatImage() }
+            try {
                 _catsView?.populate(CatData(image.await().path, fact.await()))
+            } catch (e: Exception) {
+                onError(e)
             }
-        } catch (e: Exception) {
-            onError(e)
         }
     }
 
     private fun onError(e: Exception) {
+        if (e is CancellationException) return
+
         when (e) {
             is SocketTimeoutException -> {
                 _catsView?.showMessage(R.string.socket_timeout_error_text)
@@ -53,5 +56,10 @@ class CatsPresenter(
     class PresenterScope : CoroutineScope {
         override val coroutineContext: CoroutineContext
             get() = Dispatchers.Main + CoroutineName("CatsCoroutine")
+    }
+
+    class  NetworkScope: CoroutineScope{
+        override val coroutineContext: CoroutineContext
+            get() = Dispatchers.IO + SupervisorJob()
     }
 }
