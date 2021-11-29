@@ -1,7 +1,6 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
-import retrofit2.Response
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -14,12 +13,14 @@ class CatsPresenter(
 
     fun onInitComplete() {
 
-        presenterScope.launch(CoroutineExceptionHandler { _, throwable ->
+        presenterScope.launch(SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
             CrashMonitor.logThrowable(throwable)
+            throwable.message?.let {
+                _catsView?.showToast(it)
+            }
         }) {
             try {
-                val response =
-                    async {
+                val response = async {
                         catsService.getCatFact()
                     }
 
@@ -30,33 +31,14 @@ class CatsPresenter(
                 val resFact = response.await()
                 val resImage = responseImg.await()
 
-                launch {
-                    if (checkResponse(resFact)) {
-                        if (resImage.file.isNotEmpty()) {
-                            _catsView?.populate(
-                                CatsData(
-                                    resFact.body()!!.text,
-                                    resImage.file
-                                )
-                            )
-                        } else {
-                            CrashMonitor.trackWarning()
-                        }
-                    } else {
-                        CrashMonitor.trackWarning()
-                    }
-                }
-            } catch (e: Exception) {
-                when (e) {
-                    is CancellationException -> throw e
-                    is SocketTimeoutException -> _catsView?.networkError()
-                    else -> {
-                        CrashMonitor.logException(e)
-                        e.message?.let {
-                            _catsView?.showToast(it)
-                        }
-                    }
-                }
+                _catsView?.populate(
+                    CatsData(
+                        resFact.text,
+                        resImage.file
+                    )
+                )
+            } catch (e: SocketTimeoutException) {
+                _catsView?.networkError()
             }
         }
     }
@@ -68,9 +50,5 @@ class CatsPresenter(
     fun detachView() {
         _catsView = null
         presenterScope.cancel()
-    }
-
-    private fun checkResponse(response: Response<*>): Boolean {
-        return response.isSuccessful && response.body() != null
     }
 }

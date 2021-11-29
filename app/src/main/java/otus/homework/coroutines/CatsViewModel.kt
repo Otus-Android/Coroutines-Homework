@@ -5,8 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
-import retrofit2.Response
-import java.lang.Exception
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
@@ -20,8 +18,11 @@ class CatsViewModel(
     }
 
     fun onInitComplete() {
-        viewModelScope.launch(CoroutineExceptionHandler { _, throwable ->
+        viewModelScope.launch(SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
             CrashMonitor.logThrowable(throwable)
+            throwable.message?.let {
+                _catsData.value = Error(it)
+            }
         }) {
             try {
                 val response =
@@ -36,36 +37,13 @@ class CatsViewModel(
                 val resFact = response.await()
                 val resImage = responseImg.await()
 
-                launch {
-                    if (checkResponse(resFact)) {
-                        if (resImage.file.isNotEmpty()) {
-                            _catsData.value = Success(CatsData(
-                                resFact.body()!!.text,
-                                resImage.file
-                            ))
-                        } else {
-                            CrashMonitor.trackWarning()
-                        }
-                    } else {
-                        CrashMonitor.trackWarning()
-                    }
-                }
-            } catch (e: Exception) {
-                when (e) {
-                    is CancellationException -> throw e
-                    is SocketTimeoutException -> _catsData.value = NetworkError
-                    else -> {
-                        CrashMonitor.logException(e)
-                        e.message?.let {
-                            _catsData.value = Error(it)
-                        }
-                    }
-                }
+                _catsData.value = Success(CatsData(
+                    resFact.text,
+                    resImage.file
+                ))
+            } catch (e: SocketTimeoutException) {
+               _catsData.value = NetworkError
             }
         }
-    }
-
-    private fun checkResponse(response: Response<*>): Boolean {
-        return response.isSuccessful && response.body() != null
     }
 }
