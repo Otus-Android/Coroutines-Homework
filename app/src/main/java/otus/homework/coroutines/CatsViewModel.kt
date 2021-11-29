@@ -11,7 +11,6 @@ import kotlin.coroutines.CoroutineContext
 class CatsViewModel( private val catsService: CatsService): ViewModel() {
 
     private val coroutineException = CoroutineExceptionHandler { coroutineContext, throwable ->
-        if(throwable !is java.net.SocketTimeoutException )
             CrashMonitor.trackWarning(throwable, CatsPresenter.TAG)
         }+ CoroutineName("CatsCoroutine")
 
@@ -19,16 +18,19 @@ class CatsViewModel( private val catsService: CatsService): ViewModel() {
 
     fun onInitComplete() {
        viewModelScope.launch(coroutineException) {
-           try {
-               val fact = async(Dispatchers.IO) { catsService.getCatFact() }
-               val img = async(Dispatchers.IO) { catsService.getCatimg("https://aws.random.cat/meow") }
-               _catsView!!.populateForViewModel(Result.Success(fact.await(), img.await()))
-           } catch (e: CancellationException) {
-               Log.d("CoroutineExaption", e.toString())
-           } catch (e: java.net.SocketTimeoutException) {
-               _catsView!!.populateForViewModel(Result.Error(e))
+           supervisorScope {
+               try {
+                   val fact = async(Dispatchers.IO) { catsService.getCatFact() }
+                   val img = async(Dispatchers.IO) { catsService.getCatimg("https://aws.random.cat/meow") }
+                   _catsView!!.populateForViewModel(Result.Success(fact.await(), img.await()))
+               } catch (e: CancellationException) {
+                   Log.d("CoroutineExaption", e.toString())
+                   throw e
+               } catch (e: java.net.SocketTimeoutException) {
+                   _catsView!!.populateForViewModel(Result.Error(e))
+               }
            }
-        }
+       }
     }
 
 

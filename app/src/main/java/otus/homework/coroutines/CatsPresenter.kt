@@ -8,25 +8,28 @@ import kotlin.coroutines.CoroutineContext
 class CatsPresenter(
     private val catsService: CatsService,
     private val coroutineScope: HomeWorkScope
-)  {
+) {
 
     private val coroutineException = CoroutineExceptionHandler { coroutineContext, throwable ->
-        if(throwable !is java.net.SocketTimeoutException )
-            CrashMonitor.trackWarning(throwable, CatsPresenter.TAG)
-        }
+        CrashMonitor.trackWarning(throwable, CatsPresenter.TAG)
+    }
 
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
         coroutineScope.launch(coroutineException) {
-            try {
-                val fact = async(Dispatchers.IO) { catsService.getCatFact() }
-                val img =  async(Dispatchers.IO) {catsService.getCatimg("https://aws.random.cat/meow")}
-                _catsView?.populate(FullFact(fact.await(),img.await()))
-            } catch (e: CancellationException) {
-                Log.d("CoroutineExaption", e.toString())
-            } catch (e: java.net.SocketTimeoutException) {
-                _catsView?.callOnErrorSocketException()
+            supervisorScope {
+                try {
+                    val fact = async(Dispatchers.IO) { catsService.getCatFact() }
+                    val img = async(Dispatchers.IO) {catsService.getCatimg("https://aws.random.cat/meow") }
+                    _catsView?.populate(FullFact(fact.await(), img.await()))
+                } catch (e: CancellationException) {
+                    Log.e("CoroutineExaption", e.toString())
+                    throw e
+                } catch (e: java.net.SocketTimeoutException) {
+                    Log.e("Socket", "oshibka")
+                    _catsView?.callOnErrorSocketException()
+                }
             }
         }
     }
