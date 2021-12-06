@@ -18,31 +18,35 @@ class CatsViewModel(
     }
 
     fun onInitComplete() {
-        viewModelScope.launch(SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
+        viewModelScope.launch(CoroutineExceptionHandler { _, throwable ->
             CrashMonitor.logThrowable(throwable)
             throwable.message?.let {
                 _catsData.value = Error(it)
             }
         }) {
-            try {
-                val response =
-                    async {
-                        catsService.getCatFact()
+            supervisorScope {
+                try {
+                    val response =
+                        async {
+                            catsService.getCatFact()
+                        }
+
+                    val responseImg = async {
+                        catsServiceImg.getCatImage()
                     }
 
-                val responseImg = async {
-                    catsServiceImg.getCatImage()
+                    val resFact = response.await()
+                    val resImage = responseImg.await()
+
+                    _catsData.value = Success(
+                        CatsData(
+                            resFact.text,
+                            resImage.file
+                        )
+                    )
+                } catch (e: SocketTimeoutException) {
+                    _catsData.value = NetworkError
                 }
-
-                val resFact = response.await()
-                val resImage = responseImg.await()
-
-                _catsData.value = Success(CatsData(
-                    resFact.text,
-                    resImage.file
-                ))
-            } catch (e: SocketTimeoutException) {
-               _catsData.value = NetworkError
             }
         }
     }

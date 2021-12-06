@@ -13,32 +13,34 @@ class CatsPresenter(
 
     fun onInitComplete() {
 
-        presenterScope.launch(SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
+        presenterScope.launch(CoroutineExceptionHandler { _, throwable ->
             CrashMonitor.logThrowable(throwable)
             throwable.message?.let {
                 _catsView?.showToast(it)
             }
         }) {
-            try {
-                val response = async {
+            supervisorScope {
+                try {
+                    val response = async {
                         catsService.getCatFact()
                     }
 
-                val responseImg = async {
-                    catsServiceImg.getCatImage()
-                }
+                    val responseImg = async {
+                        catsServiceImg.getCatImage()
+                    }
 
-                val resFact = response.await()
-                val resImage = responseImg.await()
+                    val resFact = response.await()
+                    val resImage = responseImg.await()
 
-                _catsView?.populate(
-                    CatsData(
-                        resFact.text,
-                        resImage.file
+                    _catsView?.populate(
+                        CatsData(
+                            resFact.text,
+                            resImage.file
+                        )
                     )
-                )
-            } catch (e: SocketTimeoutException) {
-                _catsView?.networkError()
+                } catch (e: SocketTimeoutException) {
+                    _catsView?.networkError()
+                }
             }
         }
     }
