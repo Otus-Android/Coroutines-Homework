@@ -1,6 +1,5 @@
 package otus.homework.coroutines.presentation
 
-import android.util.Log
 import kotlinx.coroutines.*
 import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.PresenterScope
@@ -32,32 +31,23 @@ class CatsPresenter(
             supervisorScope {
 
                 val fact = async { getFact() }
-                val factResult =
-                    try {
-                        fact.await().text
-                    } catch (e: SocketTimeoutException) {
-                        Log.i("11111", "catch fact ${e.message}: ")
-                        _catsView?.showToast("${e.message}")
-                        EMPTY_VALUE
-                    }
-
                 val image = async { getImage() }
-                val imageResult =
-                    try {
-                        image.await().file
-                    } catch (e: Exception) {
-                        _catsView?.showToast("${e.message}")
-                        EMPTY_VALUE
-                    }
 
+                try {
+                    val factResult = fact.await().text
+                    val imageResult = image.await().file
+                    val model = FactModel(
+                        image = imageResult,
+                        fact = factResult
+                    )
 
-                val model = FactModel(
-                    image = imageResult,
-                    fact = factResult
-                )
+                    val result = CatResult.Success(model)
+                    successResult(result)
 
-                val result = CatResult.Success(model)
-                successResult(result)
+                } catch (e: SocketTimeoutException) {
+                    _catsView?.showToast("${e.message}")
+                    EMPTY_VALUE
+                }
             }
         }
     }
@@ -68,7 +58,6 @@ class CatsPresenter(
 
     private suspend fun getFact(): FactDto {
         delay(1000)
-        throw SocketTimeoutException("Какая-то ошибка")
         return catsFactService.getFact()
     }
 
