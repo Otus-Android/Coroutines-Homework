@@ -9,22 +9,16 @@ import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.bumptech.glide.Glide
 import com.squareup.picasso.Picasso
+import com.bumptech.glide.request.RequestOptions
+
+
+
 
 class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
-
-    var presenter :CatsPresenter? = null
-
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
-            it.isEnabled = false
-            presenter?.onInitComplete()
-        }
-    }
 
     private fun setButtonEnabled(){
         findViewById<Button>(R.id.button).isEnabled = true
@@ -45,7 +39,7 @@ class CatsView @JvmOverloads constructor(
         findViewById<TextView>(R.id.fact_textView).text = fact.fact.text
         Glide.with(context)
             .load(fact.picture.file)
-            .centerCrop()
+            .apply(RequestOptions().fitCenter())
             .into(findViewById(R.id.cat_image))
     }
 
