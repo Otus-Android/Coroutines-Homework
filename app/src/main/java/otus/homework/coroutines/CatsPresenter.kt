@@ -14,23 +14,25 @@ class CatsPresenter(
 ) {
 
     private var _catsView: ICatsView? = null
-    private var job: Job? = null
-    private val presenterScope by lazy {
+    private val presenterScope =
         CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
-    }
+
         fun onInitComplete() {
-            job = presenterScope.launch {
-                try {
+            presenterScope.launch {
+                supervisorScope {
                     val defFact = async(Dispatchers.IO){factsService.getCatFact()}
                     val defPic = async(Dispatchers.IO) { picsService.getCatPic() }
-                    _catsView?.populate(FactAndPicture(defFact.await(), defPic.await()))
-
-                } catch (e: SocketTimeoutException){
-                    _catsView?.showToastMsg(R.string.server_error)
-                } catch (e: Exception){
-                    CrashMonitor.trackWarning()
-                    e.message?.also {
-                        _catsView?.showToastMsg(it)
+                    try {
+                        _catsView?.populate(FactAndPicture(defFact.await(), defPic.await()))
+                    } catch (e: SocketTimeoutException) {
+                        _catsView?.showToastMsg(R.string.server_error)
+                    } catch(e: CancellationException){
+                        throw e
+                    } catch (e: Exception){
+                        CrashMonitor.trackWarning()
+                        e.message?.also {
+                            _catsView?.showToastMsg(it)
+                        }
                     }
                 }
             }
@@ -41,7 +43,7 @@ class CatsPresenter(
         }
 
         fun detachView() {
-            job?.cancel()
+            presenterScope.cancel()
             _catsView = null
         }
     }
