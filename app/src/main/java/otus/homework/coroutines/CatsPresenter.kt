@@ -21,18 +21,20 @@ class CatsPresenter(private val catsService: CatsService) {
     fun onInitComplete() {
         scope.launch {
             try {
-                val factResponseDeferred = async { catsService.getCatFact() }
-                val imageResponseDeferred = async { catsService.getCatImage() }
-                val factResponse = factResponseDeferred.await()
-                val imageResponse = imageResponseDeferred.await()
+                supervisorScope {
+                    val factResponseDeferred = async { catsService.getCatFact() }
+                    val imageResponseDeferred = async { catsService.getCatImage() }
+                    val factResponse = factResponseDeferred.await()
+                    val imageResponse = imageResponseDeferred.await()
 
-                if (isResponseSuccessful(factResponse) && isResponseSuccessful(imageResponse)) {
-                    _catsView?.populate(
-                        CatsInfo(
-                            factResponse.body()!!.text,
-                            imageResponse.body()!!.file
+                    if (isResponseSuccessful(factResponse) && isResponseSuccessful(imageResponse)) {
+                        _catsView?.populate(
+                            CatsInfo(
+                                factResponse.body()!!.text,
+                                imageResponse.body()!!.file
+                            )
                         )
-                    )
+                    }
                 }
             } catch (ex: Exception) {
                 when (ex) {
