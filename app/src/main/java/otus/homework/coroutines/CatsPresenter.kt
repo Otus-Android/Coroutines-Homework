@@ -14,7 +14,9 @@ class CatsPresenter(
     fun onInitComplete() {
         scope.launch {
             try {
-                _catsView?.populate(catsService.getCatFact())
+                val fact = async { catsService.getCatFact() }
+                val image = async { catsService.getCatImage() }
+                _catsView?.populate(CatData(fact.await(), image.await()))
             } catch (ex: Exception) {
                 when (ex) {
                     is SocketTimeoutException -> {
