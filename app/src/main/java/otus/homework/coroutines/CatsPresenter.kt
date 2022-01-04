@@ -12,30 +12,34 @@ class CatsPresenter(
 
     fun onInitComplete() {
 
-        presenterScope.launch(SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
-            when (throwable) {
-                is SocketTimeoutException ->
-                    presenterScope.launch {
-                        withContext(Dispatchers.Main) {
-                            _catsView?.showToast("Не удалось получить ответ от сервера")
-                        }
-                    }
-                else -> presenterScope.launch(Dispatchers.Default) {
+        presenterScope.launch(CoroutineExceptionHandler { _, throwable ->
+            presenterScope.launch {
+                withContext(Dispatchers.Main) {
                     _catsView?.showToast(throwable.message.orEmpty())
-                    CrashMonitor.trackWarning()
                 }
             }
+            CrashMonitor.trackWarning()
         }) {
-            val cats = catsService.getCatFact()
-            val picture = catsService.getCatPicture()
-            withContext(Dispatchers.Main) {
-                _catsView?.populate(CatModel(cats, picture))
+            try {
+                val cats = async {
+                    catsService.getCatFact()
+                }
+
+                val picture = async {
+                    catsService.getCatPicture()
+                }
+
+                _catsView?.populate(CatModel(cats.await(), picture.await()))
+
+            } catch (e: SocketTimeoutException) {
+                withContext(Dispatchers.Main) {
+                    _catsView?.showToast("Не удалось получить ответ от сервера")
+                }
             }
         }
     }
 
     fun attachView(catsView: ICatsView) {
-
         _catsView = catsView
     }
 
@@ -46,6 +50,6 @@ class CatsPresenter(
 
     class PresenterScope : CoroutineScope {
         override val coroutineContext: CoroutineContext =
-            Dispatchers.IO + CoroutineName("CatsCoroutine")
+            Dispatchers.IO + CoroutineName("CatsCoroutine") + SupervisorJob()
     }
 }
