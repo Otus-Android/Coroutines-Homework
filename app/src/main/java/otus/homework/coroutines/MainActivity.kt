@@ -1,30 +1,38 @@
 package otus.homework.coroutines
 
 import android.os.Bundle
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.squareup.picasso.Picasso
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
-
     private val diContainer = DiContainer()
+
+    private val viewModel by viewModels<CatViewModel> { CatViewModelFactory(diContainer.service) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
-        setContentView(view)
-
-        catsPresenter = CatsPresenter(diContainer.service, diContainer.scope)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+        viewModel.data.observe(this) {
+            when (it) {
+                is Result.Success -> {
+                    findViewById<TextView>(R.id.fact_textView).text = it.value.fact.text
+                    Picasso.get()
+                        .load(it.value.image.url)
+                        .into(findViewById<ImageView>(R.id.image))
+                }
+                is Result.Error -> Toast
+                    .makeText(baseContext, it.message, Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
-        super.onStop()
+
+        findViewById<Button>(R.id.button).setOnClickListener { viewModel.refresh() }
     }
 }
