@@ -8,15 +8,14 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 class CatsViewModel(private val catsService: CatsService) : ViewModel() {
-    private val _resultLiveData: MutableLiveData<Result?> = MutableLiveData()
-    val resultLiveData: LiveData<Result?>
+    private val _resultLiveData: MutableLiveData<Result> = MutableLiveData()
+    val resultLiveData: LiveData<Result>
         get() = _resultLiveData
     private val coroutineExceptionHandler =
         CoroutineExceptionHandler { _: CoroutineContext, throwable: Throwable ->
             CrashMonitor.trackWarning()
             throwable.message?.let {
                 _resultLiveData.value = Error(it)
-                _resultLiveData.value = null
             }
         }
 
@@ -33,7 +32,6 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
 
             } catch (t: java.net.SocketTimeoutException) {
                 _resultLiveData.value = Error("Couldn't fetch response from the server")
-                _resultLiveData.value = null
             }
         }
     }
