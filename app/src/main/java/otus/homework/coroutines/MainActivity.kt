@@ -2,22 +2,22 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import otus.homework.coroutines.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
-
-    lateinit var catsPresenter: CatsPresenter
-
-    private val diContainer = DiContainer()
+    private val binding: ActivityMainBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+    private lateinit var catsPresenter: CatsPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+        initPresenter()
+    }
 
-        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
-        setContentView(view)
-
-        catsPresenter = CatsPresenter(diContainer.service)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
+    private fun initPresenter() {
+        catsPresenter = CatsPresenter(DiContainer().service)
+        binding.catsInfoView.presenter = catsPresenter
+        catsPresenter.attachView(binding.catsInfoView)
         catsPresenter.onInitComplete()
     }
 
