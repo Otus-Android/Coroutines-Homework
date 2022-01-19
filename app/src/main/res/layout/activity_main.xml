@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <otus.homework.coroutines.CatsView
+    <otus.homework.coroutines.view.CatsView
         android:id="@+id/cats_info_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

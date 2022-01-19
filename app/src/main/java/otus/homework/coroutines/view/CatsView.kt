@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.view
 
 import android.content.Context
 import android.util.AttributeSet
@@ -6,6 +6,8 @@ import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
+import otus.homework.coroutines.DiContainer
+import otus.homework.coroutines.controller.CatsPresenter
 import otus.homework.coroutines.databinding.CatsViewBinding
 
 class CatsView @JvmOverloads constructor(
@@ -21,12 +23,13 @@ class CatsView @JvmOverloads constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         binding.button.setOnClickListener {
-            presenter?.onInitComplete()
+            presenter?.updateData()
         }
     }
 
-    override fun populate(fact: Fact) {
-        binding.factTextView.text = fact.text
+    override fun populate(model: CatModel) {
+        binding.factTextView.text = model.fact
+        DiContainer().setImageInto(model.pictureUrl, binding.picture)
     }
 
     override fun showToast(messageRes: Int) {
@@ -39,7 +42,7 @@ class CatsView @JvmOverloads constructor(
 }
 
 interface ICatsView {
-    fun populate(fact: Fact)
+    fun populate(model: CatModel)
     fun showToast(@StringRes messageRes: Int)
     fun showToast(messageText: String)
 }

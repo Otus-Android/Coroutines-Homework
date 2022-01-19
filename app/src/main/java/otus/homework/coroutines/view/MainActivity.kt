@@ -1,7 +1,9 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.view
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import otus.homework.coroutines.DiContainer
+import otus.homework.coroutines.controller.CatsPresenter
 import otus.homework.coroutines.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -15,10 +17,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initPresenter() {
-        catsPresenter = CatsPresenter(DiContainer().service)
+        catsPresenter = CatsPresenter(DiContainer().factsService, DiContainer().picsService)
         binding.catsInfoView.presenter = catsPresenter
         catsPresenter.attachView(binding.catsInfoView)
-        catsPresenter.onInitComplete()
+        catsPresenter.updateData()
     }
 
     override fun onStop() {
