@@ -1,64 +1,28 @@
 package otus.homework.coroutines.controller
 
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import otus.homework.coroutines.CrashMonitor
-import otus.homework.coroutines.R
-import otus.homework.coroutines.facts.Fact
-import otus.homework.coroutines.facts.FactsService
-import otus.homework.coroutines.pictures.Picture
-import otus.homework.coroutines.pictures.PicturesService
-import otus.homework.coroutines.view.CatModel
-import otus.homework.coroutines.view.ICatsView
-import java.net.SocketTimeoutException
+import otus.homework.coroutines.view.CatsView
+import otus.homework.coroutines.viewmodel.CatModel
+import otus.homework.coroutines.viewmodel.CatsViewModel
+import otus.homework.coroutines.viewmodel.Result
 
-class CatsPresenter(
-    private val factsService: FactsService,
-    private val picsService: PicturesService,
-) {
-    private lateinit var presenterScope: PresenterScope
-    private val scopeExceptionHandler = CoroutineExceptionHandler { _, ex ->
-        ex.message?.let { _catsView?.showToast(it) }
-        CrashMonitor.trackWarning()
-    }
-    private var _catsView: ICatsView? = null
+class CatsPresenter(private val catsView: CatsView, private val model: CatsViewModel) {
 
-    fun attachView(catsView: ICatsView) {
-        presenterScope = PresenterScope()
-        _catsView = catsView
+    fun onBtnClick() {
+        model.updateData()
     }
 
-    fun updateData() {
-        presenterScope.launch(scopeExceptionHandler) {
-            val fact = async { fetchCatFact() }
-            val pic = async { fetchCatPicture() }
-            val model = CatModel(fact.await()?.text, pic.await()?.file)
-            _catsView?.populate(model)
+    fun onStateChanged(result: Result<CatModel>) {
+        when (result) {
+            is Result.Success -> catsView.populate(result.value)
+            is Result.Error -> onError(result)
         }
     }
 
-    private suspend fun fetchCatPicture(): Picture? {
-        return fetchCatching { picsService.getPicture() }
-    }
-
-    private suspend fun fetchCatFact(): Fact? {
-        return fetchCatching { factsService.getFact() }
-    }
-
-    private inline fun <T> fetchCatching(fetch: () -> T): T? {
-        try {
-            return fetch()
-        } catch (e: SocketTimeoutException) {
-            _catsView?.showToast(R.string.server_not_responding)
+    private fun onError(result: Result.Error) {
+        when {
+            result.msg != null -> catsView.showToast(result.msg)
+            result.resId != null -> catsView.showToast(result.resId)
         }
-        return null
-    }
-
-    fun detachView() {
-        presenterScope.cancel()
-        _catsView = null
     }
 
 }
