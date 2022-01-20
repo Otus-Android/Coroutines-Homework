@@ -36,11 +36,7 @@ class CatsPresenter(
                     throw ex
                 } catch (ex: Throwable) {
                     CrashMonitor.trackWarning(ex)
-                    if (ex.message != null) {
-                        _catsView?.showToast(ex.message!!)
-                    } else {
-                        _catsView?.showToast(msgId = R.string.general_error)
-                    }
+                    _catsView?.showToast(ex.message, R.string.general_error)
                 }
             }
         }
