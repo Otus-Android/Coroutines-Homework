@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.service
 
 import android.util.Log
 
@@ -9,7 +9,7 @@ object CrashMonitor {
     /**
      * Pretend this is Crashlytics/AppCenter
      */
-    fun trackWarning() {
-        Log.d(logName, "Warning received")
+    fun trackWarning(ex: Throwable) {
+        Log.d(logName, "Error received ${ex.message}")
     }
 }
