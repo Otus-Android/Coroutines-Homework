@@ -1,7 +1,7 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         if (isFinishing) {
             catsPresenter.detachView()
+            catsPresenter.onStopWork()
         }
         super.onStop()
     }
