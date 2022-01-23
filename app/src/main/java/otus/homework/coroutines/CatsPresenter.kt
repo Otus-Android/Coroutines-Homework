@@ -4,7 +4,7 @@ import kotlinx.coroutines.*
 
 class CatsPresenter(
     private val catsService: CatsService,
-
+    private val imageService: ImageService
 ) {
 
     private var _catsView: ICatsView? = null
@@ -13,10 +13,10 @@ class CatsPresenter(
 
     fun onInitComplete() {
         getFactJob = presenterScope.launch {
-
+            val fact = async(Dispatchers.IO) { catsService.getCatFact() }
+            val imageUrl = async(Dispatchers.IO) { imageService.getCatImage() }
             try {
-                val fact = catsService.getCatFact()
-                _catsView?.populate(fact)
+                _catsView?.populate(CatsPresentation(fact.await(), imageUrl.await().file))
             } catch (ex: java.net.SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
             } catch (ex: Exception) {
