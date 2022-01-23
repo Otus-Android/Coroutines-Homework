@@ -14,23 +14,30 @@ class CatsPresenter(
                     _, throwable -> println("CoroutineExceptionHandler ${throwable.message}")
             }).launch {
             coroutineScope {
-                val facts = withContext(Dispatchers.IO) {
-                    catsService.getCatFact()
-                }
-                withContext(Dispatchers.Main) {
                     try {
-                        _catsView?.populate(facts)
+                        val fact = async(Dispatchers.IO) {
+                            catsService.getCatFact()
+                        }
+                        val image = async(Dispatchers.IO) {
+                            catsService.getCatImage()
+                        }
+                        image.start()
+                        fact.start()
+                        withContext(Dispatchers.Main) {
+                            _catsView?.populate(fact.await(), image.await().file)
+                        }
                     } catch (ex: Exception) {
-                        when (ex) {
-                            is CancellationException -> throw ex
-                            is SocketTimeoutException -> _catsView?.showToastMessage("Не удалось получить ответ от сервером")
-                            else -> {
-                                ex.message?.let { _catsView?.showToastMessage(it) }
-                                CrashMonitor.trackWarning(ex)
+                        withContext(Dispatchers.Main) {
+                            when (ex) {
+                                is CancellationException -> throw ex
+                                is SocketTimeoutException -> _catsView?.showToastMessage("Не удалось получить ответ от сервером")
+                                else -> {
+                                    ex.message?.let { _catsView?.showToastMessage(it) }
+                                    CrashMonitor.trackWarning(ex)
+                                }
                             }
                         }
                     }
-                }
             }
         }
     }
