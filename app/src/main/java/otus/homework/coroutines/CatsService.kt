@@ -1,10 +1,17 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
+import otus.homework.coroutines.dto.Fact
+import otus.homework.coroutines.dto.ImageFile
 import retrofit2.http.GET
 
 interface CatsService {
 
+    companion object{
+        private const val CAT_IMAGE_URL = "https://aws.random.cat/meow"
+    }
     @GET("random?animal_type=cat")
-    fun getCatFact() : Call<Fact>
+    suspend fun getCatFact() : Fact
+
+    @GET(CAT_IMAGE_URL)
+    suspend fun getCatImage() : ImageFile
 }
