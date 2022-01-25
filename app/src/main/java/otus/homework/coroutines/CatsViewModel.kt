@@ -1,17 +1,24 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
-class CatsPresenter(
-    private val catsServiceFact: CatsService,
-    private val catsServiceImg: CatsService
-) {
+class CatsViewModel : ViewModel() {
 
-    private var _catsView: ICatsView? = null
-    private var presenterScope: CoroutineScope = PresenterScope
+    private var presenterScope: CoroutineScope = viewModelScope
+    private val catsLiveData = MutableLiveData<Result>()
 
-    fun onInitComplete() {
+    lateinit var catsServiceFact: CatsService
+    lateinit var catsServiceImg: CatsService
+
+    val getObservableData: LiveData<Result>
+        get() = catsLiveData
+
+    fun requestData() {
         presenterScope.launch {
             try {
                 coroutineScope {
@@ -30,29 +37,25 @@ class CatsPresenter(
                     }
 
                     awaitAll(factRequest, imageRequest)
-                    _catsView?.populate(IllustratedFact(image!!, fact!!))
+                    catsLiveData.value = Result.Success(IllustratedFact(image!!, fact!!))
                 }
             }
             catch (ex: Exception) {
                 when (ex) {
                     is SocketTimeoutException -> {
-                        _catsView?.showResourceString(R.string.socket_timeout_error)
+                        catsLiveData.value = Result.Error(null, R.string.socket_timeout_error)
                     }
                     else -> {
                         CrashMonitor.trackWarning()
-                        _catsView?.showErrorText(ex.message)
+                        catsLiveData.value = Result.Error(ex.message, null)
                     }
                 }
             }
         }
     }
 
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
-
-    fun detachView() {
-        _catsView = null
+    override fun onCleared() {
+        super.onCleared()
         presenterScope.cancel()
     }
 }
