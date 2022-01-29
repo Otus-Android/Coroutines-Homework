@@ -5,7 +5,6 @@ import kotlinx.coroutines.*
 
 private val exceptionHandler =
     CoroutineExceptionHandler { _, throwable ->
-
         CrashMonitor.trackWarning()
     }
 

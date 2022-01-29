@@ -39,7 +39,6 @@ class CatsPresenter(
                 }
             } catch (e: java.net.SocketTimeoutException) {
                 _catsView?.showError("Ошибка сокета")
-
             }
         }
 
