@@ -6,6 +6,10 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.google.android.material.imageview.ShapeableImageView
+import com.squareup.picasso.Picasso
+import otus.homework.coroutines.CatsPresenter
+import otus.homework.coroutines.R
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -13,7 +17,7 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var presenter : CatsPresenter? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -22,8 +26,12 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+    override fun populate(factAndPicture: FactAndPicture) {
+        findViewById<TextView>(R.id.fact_textView).text = factAndPicture.fact.text
+
+        Picasso.get()
+            .load(factAndPicture.picture.file)
+            .into(findViewById<ShapeableImageView>(R.id.picture_shapeableImageView))
     }
 
     override fun showError(message: String) {
@@ -33,5 +41,5 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
     fun showError(message: String)
-    fun populate(fact: Fact)
+    fun populate(factAndPicture: FactAndPicture)
 }
