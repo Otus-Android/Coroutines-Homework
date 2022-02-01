@@ -3,7 +3,6 @@ package otus.homework.coroutines
 import kotlinx.coroutines.*
 import otus.homework.coroutines.Result.Success
 import java.net.SocketTimeoutException
-import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
     private val catsService: CatsService
@@ -15,12 +14,10 @@ class CatsPresenter(
     fun onMoreFacts() = with(catsService) {
         scope.launch {
             supervisorScope {
+                val catFact = async(Dispatchers.IO) { getCatFact().text }
+                val catPhotoUrl = async(Dispatchers.IO) { getCatPhoto().url }
                 try {
-                    val catFact = async { getCatFact().text }
-                    val catPhotoUrl = async { getCatPhoto().url }
-                    withContext(Dispatchers.IO) {
-                        _catsView?.populate(Success(CatData(catFact.await(), catPhotoUrl.await())))
-                    }
+                    _catsView?.populate(Success(CatData(catFact.await(), catPhotoUrl.await())))
                 } catch (ex: Exception) {
                     when (ex) {
                         is CancellationException -> throw ex
@@ -47,7 +44,6 @@ class CatsPresenter(
 
     private class PresenterScope : CoroutineScope {
 
-        override val coroutineContext: CoroutineContext
-            get() = Dispatchers.Main + CoroutineName("CatsCoroutine")
+        override val coroutineContext = Job() + Dispatchers.Main + CoroutineName("CatsCoroutine")
     }
 }

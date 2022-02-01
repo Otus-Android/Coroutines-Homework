@@ -3,7 +3,6 @@ package otus.homework.coroutines
 import androidx.lifecycle.*
 import kotlinx.coroutines.*
 import otus.homework.coroutines.Result.Error
-import otus.homework.coroutines.Result.Success
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
@@ -14,20 +13,22 @@ class CatsViewModel(
     val result: LiveData<Result> = _result
 
     fun onMoreFacts() = with(catsService) {
-        viewModelScope.launch(CoroutineExceptionHandler { _, exception ->
-            when (exception) {
-                is SocketTimeoutException ->
-                    _result.value = Error("Failed to get a response from the server")
-                else -> {
-                    CrashMonitor.trackWarning(exception)
-                    _result.value = Error(exception.message ?: "No error message")
-                }
-            }
+        viewModelScope.launch(CoroutineExceptionHandler { _, ex ->
+            CrashMonitor.trackWarning(ex)
+            _result.value = Error(ex.message ?: "No error message")
         }) {
-            val catFact = async { getCatFact().text }
-            val catPhotoUrl = async { getCatPhoto().url }
-            withContext(Dispatchers.IO) {
-                _result.postValue(Success(CatData(catFact.await(), catPhotoUrl.await())))
+            supervisorScope {
+                val catFact = async(Dispatchers.IO) { getCatFact().text }
+                val catPhotoUrl = async(Dispatchers.IO) { getCatPhoto().url }
+                try {
+                    _result.postValue(Result.Success(CatData(catFact.await(), catPhotoUrl.await())))
+                } catch (ex: Exception) {
+                    when (ex) {
+                        is SocketTimeoutException ->
+                            _result.value = Error("Failed to get a response from the server")
+                        else -> throw ex
+                    }
+                }
             }
         }
     }

@@ -28,9 +28,9 @@ class CatsView @JvmOverloads constructor(
 
     var callback: Callback? = null
 
-    private val moreFactsBtn by lazy { findViewById<Button>(R.id.catMoreFactsBtn) }
-    private val catPhoto by lazy { findViewById<ImageView>(R.id.catPhoto) }
-    private val factText by lazy { findViewById<TextView>(R.id.catFactText) }
+    private val moreFactsBtn by lazy(LazyThreadSafetyMode.NONE) { findViewById<Button>(R.id.catMoreFactsBtn) }
+    private val catPhoto by lazy(LazyThreadSafetyMode.NONE) { findViewById<ImageView>(R.id.catPhoto) }
+    private val factText by lazy(LazyThreadSafetyMode.NONE) { findViewById<TextView>(R.id.catFactText) }
 
     override fun onFinishInflate() {
         super.onFinishInflate()
