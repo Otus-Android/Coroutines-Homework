@@ -8,10 +8,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import otus.homework.coroutines.di.DiContainer
-import otus.homework.coroutines.domain.Error
-import otus.homework.coroutines.domain.ICatRepository
-import otus.homework.coroutines.domain.INetworkExceptionHandler
-import otus.homework.coroutines.domain.Success
+import otus.homework.coroutines.domain.*
 import otus.homework.coroutines.presenation.presenter.CatsPresenter
 import otus.homework.coroutines.presenation.view.CatsView
 
@@ -21,35 +18,17 @@ class MainActivity : AppCompatActivity() {
 	lateinit var catsPresenter: CatsPresenter
 
 
-	private var rootView: View? = null
+	private var rootView: CatsView? = null
 	private var progressView: View? = null
 
-	private val viewModel by viewModels<CatsViewModel> {
-		object : ViewModelProvider.Factory {
-			override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-				return try {
-					modelClass.getConstructor(
-						ICatRepository::class.java,
-						INetworkExceptionHandler::class.java,
-					).newInstance(
-						DiContainer.catsRepository,
-						DiContainer.crashMonitorExceptionHandler()
-					)
-				} catch (e: InstantiationException) {
-					throw RuntimeException("Cannot create an instance of $modelClass", e)
-				} catch (e: IllegalAccessException) {
-					throw RuntimeException("Cannot create an instance of $modelClass", e)
-				}
-			}
-		}
-	}
+	private val viewModel by viewModels<CatsViewModel>()
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
-		val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
-		setContentView(view)
-		view.onButtonClick = viewModel::getCatsFact
+		rootView = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
+		setContentView(rootView)
+		rootView?.onButtonClick = viewModel::getCatsFact
 		//todo:раскомментировать, чтобы проверить презентер(задания 1,2)
 		/*	 catsPresenter = CatsPresenter(DiContainer.catsFactService(), DiContainer.catsImageService())
 			view.presenter = catsPresenter
@@ -70,16 +49,16 @@ class MainActivity : AppCompatActivity() {
 	private fun initSubscriptions() {
 		viewModel.catsCardLiveData.observe(this) { result ->
 			when (result) {
-				is Success -> (rootView as? CatsView)?.populate(result.data)
+				is Success -> rootView?.populate(result.data)
 
 				is Error -> DiContainer
 					.uiExceptionHandler(applicationContext)
 					.handleException(result.t)
-			}
-		}
 
-		viewModel.isShowProgressLiveData.observe(this) { isLoading ->
-			progressView?.isVisible = isLoading
+				is Processing -> {
+					progressView?.isVisible = result.inProcess
+				}
+			}
 		}
 	}
 

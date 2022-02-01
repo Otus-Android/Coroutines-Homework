@@ -7,7 +7,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import otus.homework.coroutines.R
 import otus.homework.coroutines.data.network.CatsFactService
 import otus.homework.coroutines.data.network.CatsImageService
-import otus.homework.coroutines.data.repository.CatRepository
 import otus.homework.coroutines.domain.CrashMonitor
 import otus.homework.coroutines.domain.INetworkExceptionHandler
 import retrofit2.Retrofit
@@ -43,10 +42,6 @@ object DiContainer {
 			.build()
 	}
 
-	val catsRepository = CatRepository(
-		catsFactService(),
-		catsImageService()
-	)
 
 	fun crashMonitorExceptionHandler() = object : INetworkExceptionHandler {
 		override fun handleException(throwable: Throwable) {
