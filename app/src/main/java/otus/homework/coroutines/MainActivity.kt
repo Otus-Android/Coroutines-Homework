@@ -34,9 +34,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        if (isFinishing) {
-            catsViewModel.cancelJob()
-        }
         super.onStop()
     }
 }

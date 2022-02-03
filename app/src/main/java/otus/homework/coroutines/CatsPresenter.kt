@@ -19,9 +19,11 @@ class CatsPresenter(
                 _catsView?.populate(CatsPresentation(fact.await(), imageUrl.await().file))
             } catch (ex: java.net.SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
+                throw CancellationException()
             } catch (ex: Exception) {
                 CrashMonitor.trackWarning(ex)
                 _catsView?.showToast(ex.message ?: "")
+                throw CancellationException()
             }
         }
     }
