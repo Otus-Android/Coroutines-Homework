@@ -20,10 +20,8 @@ class CatsPresenter(
 
     private val presenterScope = PresenterScope()
 
-    private lateinit var job: Job
-
     fun onInitComplete() {
-        job = presenterScope.launch {
+        presenterScope.launch {
             supervisorScope {
                 val fact = async {
                     catFactService.getCatFact()
@@ -42,6 +40,8 @@ class CatsPresenter(
                 } catch (error: SocketTimeoutException) {
                     _catsView?.showToast(resources.getString(R.string.server_exception_message))
                 } catch (error: Throwable) {
+                    if (error is CancellationException) throw error
+
                     _catsView?.showToast(error.message)
                     CrashMonitor.trackWarning()
                 }
@@ -54,7 +54,7 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        if (!job.isCancelled) job.cancel()
+        presenterScope.cancel()
         _catsView = null
     }
 }

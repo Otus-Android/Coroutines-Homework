@@ -25,31 +25,26 @@ class CatsViewModel(
     private val _state = MutableLiveData<Result<Cat>>()
     val state: LiveData<Result<Cat>> = _state
 
-    private val handler = CoroutineExceptionHandler { _, _ ->
+    private val handler = CoroutineExceptionHandler { _, error ->
+        if (error is SocketTimeoutException) {
+            _state.value = Result.Error(resources.getString(R.string.server_exception_message))
+        } else {
+            _state.value = Result.Error(error.message)
+        }
         CrashMonitor.trackWarning()
     }
 
     fun getCats() {
         viewModelScope.launch(handler) {
-            val fact = async {
-                catFactService.getCatFact()
-            }
-            val picture = async {
-                catPictureService.getCatPicture()
-            }
+            val fact = async { catFactService.getCatFact() }
+            val picture = async { catPictureService.getCatPicture() }
 
-            try {
-                _state.value = Result.Success(
-                    Cat(
-                        text = fact.await().text,
-                        picture = picture.await().file
-                    )
+            _state.value = Result.Success(
+                Cat(
+                    text = fact.await().text,
+                    picture = picture.await().file
                 )
-            } catch (error: SocketTimeoutException) {
-                _state.value = Result.Error(resources.getString(R.string.server_exception_message))
-            } catch (error: Throwable) {
-                _state.value = Result.Error(resources.getString(R.string.server_exception_message))
-            }
+            )
         }
     }
 }
