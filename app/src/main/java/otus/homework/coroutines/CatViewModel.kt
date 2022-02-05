@@ -24,17 +24,19 @@ class CatViewModel(private val catsService: CatsService) : ViewModel() {
 
     fun loadInfo() {
         viewModelScope.launch(exceptionHandler) {
-            try {
-                val fact = async(Dispatchers.IO) {
-                    catsService.getCatFact()
+            supervisorScope {
+                try {
+                    val fact = async(Dispatchers.IO) {
+                        catsService.getCatFact()
+                    }
+                    val image = async(Dispatchers.IO) {
+                        catsService.getCatImage()
+                    }
+                    val model = Result.Success(CatModel(fact.await(), image.await()))
+                    _catModel.postValue(model)
+                } catch (socketTimeoutException: SocketTimeoutException) {
+                    _catModel.postValue(Result.Error("Не удалось получить ответ от сервера"))
                 }
-                val image = async(Dispatchers.IO) {
-                    catsService.getCatImage()
-                }
-                val model = Result.Success(CatModel(fact.await(), image.await()))
-                _catModel.postValue(model)
-            } catch (socketTimeoutException: SocketTimeoutException) {
-                _catModel.postValue(Result.Error("Не удалось получить ответ от сервера"))
             }
         }
     }

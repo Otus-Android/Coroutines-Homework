@@ -20,21 +20,23 @@ class CatsPresenter(
 
     fun onInitComplete() {
         job = presenterScope.launch(exceptionHandler) {
-            try {
-                val fact = async(Dispatchers.IO) {
-                    catsService.getCatFact()
-                }
-                val image = async(Dispatchers.IO) {
-                    catsService.getCatImage()
-                }
-                _catsView?.populate(CatModel(fact.await(), image.await()))
-            } catch (exception: Exception) {
-                when (exception) {
-                    is SocketTimeoutException -> {
-                        _catsView?.showToast("Не удалось получить ответ от сервера")
+            supervisorScope {
+                try {
+                    val fact = async(Dispatchers.IO) {
+                        catsService.getCatFact()
                     }
-                    is CancellationException -> {
-                        throw exception
+                    val image = async(Dispatchers.IO) {
+                        catsService.getCatImage()
+                    }
+                    _catsView?.populate(CatModel(fact.await(), image.await()))
+                } catch (exception: Exception) {
+                    when (exception) {
+                        is SocketTimeoutException -> {
+                            _catsView?.showToast("Не удалось получить ответ от сервера")
+                        }
+                        is CancellationException -> {
+                            throw exception
+                        }
                     }
                 }
             }
