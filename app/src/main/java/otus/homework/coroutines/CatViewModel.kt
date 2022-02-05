@@ -35,8 +35,6 @@ class CatViewModel(private val catsService: CatsService) : ViewModel() {
                 _catModel.postValue(model)
             } catch (socketTimeoutException: SocketTimeoutException) {
                 _catModel.postValue(Result.Error("Не удалось получить ответ от сервера"))
-            } catch (cancellationException: CancellationException) {
-                throw cancellationException
             }
         }
     }
