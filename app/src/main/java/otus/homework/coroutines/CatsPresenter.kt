@@ -13,9 +13,9 @@ class CatsPresenter(
 
     fun onInitComplete() {
         getFactJob = presenterScope.launch {
-            val fact = async(Dispatchers.IO) { catsService.getCatFact() }
-            val imageUrl = async(Dispatchers.IO) { imageService.getCatImage() }
             try {
+                val fact = async { catsService.getCatFact() }
+                val imageUrl = async { imageService.getCatImage() }
                 _catsView?.populate(CatsPresentation(fact.await(), imageUrl.await().file))
             } catch (ex: java.net.SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
@@ -23,7 +23,8 @@ class CatsPresenter(
             } catch (ex: Exception) {
                 CrashMonitor.trackWarning(ex)
                 _catsView?.showToast(ex.message ?: "")
-                throw CancellationException()
+               if (ex is CancellationException)
+                   throw ex
             }
         }
     }

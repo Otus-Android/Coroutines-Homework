@@ -22,19 +22,14 @@ class CatsViewModel(
     fun onInitComplete() {
         getFactJob = viewModelScope.launch(exceptionHandler) {
             try {
-                val fact =  catsService.getCatFact()
-                val imageUrl = imageService.getCatImage()
+                val fact =  async { catsService.getCatFact() }
+                val imageUrl = async { imageService.getCatImage() }
                 _catsPresentation.value =
-                    Result.Success(CatsPresentation(fact, imageUrl.file))
+                    Result.Success(CatsPresentation(fact.await(), imageUrl.await().file))
             } catch (ex: java.net.SocketTimeoutException) {
                 _catsPresentation.value = Result.Error("Не удалось получить ответ от сервера")
-                throw Exception(ex)
             }
         }
-    }
-
-    override fun onCleared() {
-        getFactJob.cancel()
     }
 }
 
