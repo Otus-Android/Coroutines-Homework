@@ -1,10 +1,6 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.lang.Exception
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -12,16 +8,18 @@ class CatsPresenter(
 ) {
 
     private var _catsView: ICatsView? = null
-    private val presenterScope: PresenterScope =
-        PresenterScope(Dispatchers.Main, CoroutineName("CatsCoroutine"))
+    private val presenterScope = PresenterScope()
 
     fun onInitComplete() {
         presenterScope.launch {
+            val factJob = async(SupervisorJob()) { catsService.getCatFact() }
+            val imageJob = async(SupervisorJob()) { catsService.getCatImage() }
+
             try {
                 _catsView?.populate(
                     FactAndImage(
-                        catsService.getCatFact(),
-                        catsService.getCatImage()
+                        factJob.await(),
+                        imageJob.await()
                     )
                 )
             } catch (e: Exception) {
@@ -35,8 +33,6 @@ class CatsPresenter(
                     }
                 }
             }
-
-            catsService.getCatFact()
         }
     }
 

@@ -23,14 +23,13 @@ class MainActivity : AppCompatActivity() {
         view.presenter = catsPresenter
         view.viewModel = catsViewModel
         catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-        //catsViewModel.getData()
+        //catsPresenter.onInitComplete()
+        catsViewModel.getData()
     }
 
     override fun onStop() {
         if (isFinishing) {
             catsPresenter.detachView()
-            catsViewModel.stop()
         }
         super.onStop()
     }
