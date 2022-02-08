@@ -43,10 +43,4 @@ class MainActivity : AppCompatActivity() {
 //        catsPresenter.onInitComplete()
     }
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsViewModel.detachView()
-        }
-        super.onStop()
-    }
 }

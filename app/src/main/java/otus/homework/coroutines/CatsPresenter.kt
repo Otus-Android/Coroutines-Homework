@@ -18,8 +18,8 @@ class CatsPresenter(
     fun onInitComplete() {
         jobCat = presenterScope.launch {
             try {
-                val catFact = async(Dispatchers.IO) { catsService.getCatFact() }
-                val picture = async(Dispatchers.IO) { pictureService.getCatPicture() }
+                val catFact = async { catsService.getCatFact() }
+                val picture = async{ pictureService.getCatPicture() }
 
                 _catsView?.populate(catFact.await(), picture.await())
 

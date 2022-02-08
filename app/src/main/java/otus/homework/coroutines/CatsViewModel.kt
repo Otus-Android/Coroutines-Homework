@@ -22,8 +22,8 @@ class CatsViewModel(
 
         jobCat = viewModelScope.launch(exceptionHandler) {
             try {
-                val catFact = async(Dispatchers.IO) { catsService.getCatFact() }
-                val picture = async(Dispatchers.IO) { pictureService.getCatPicture() }
+                val catFact = async { catsService.getCatFact() }
+                val picture = async { pictureService.getCatPicture() }
 
                 state.value = Result.Success(CatModel(catFact.await(), picture.await()))
 
@@ -34,9 +34,6 @@ class CatsViewModel(
         }
     }
 
-   fun detachView(){
-       jobCat?.cancel()
-    }
 }
 class CatsViewModelFactory(
     private val catsService: CatsService,
