@@ -20,20 +20,22 @@ class CatsPresenter(
             }
             CrashMonitor.trackWarning()
         }) {
-            try {
-                val cats = async {
-                    catsService.getCatFact()
-                }
+            coroutineScope {
+                try {
+                    val cats = async {
+                        catsService.getCatFact()
+                    }
 
-                val picture = async {
-                    catsService.getCatPicture()
-                }
+                    val picture = async {
+                        catsService.getCatPicture()
+                    }
 
-                _catsView?.populate(CatModel(cats.await(), picture.await()))
+                    _catsView?.populate(CatModel(cats.await(), picture.await()))
 
-            } catch (e: SocketTimeoutException) {
-                withContext(Dispatchers.Main) {
-                    _catsView?.showToast("Не удалось получить ответ от сервера")
+                } catch (e: SocketTimeoutException) {
+                    withContext(Dispatchers.Main) {
+                        _catsView?.showToast("Не удалось получить ответ от сервера")
+                    }
                 }
             }
         }
