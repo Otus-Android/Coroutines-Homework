@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        catsViewModel.getObservableData().observe(this, catsObserver)
+        catsViewModel.result.observe(this, catsObserver)
     }
 
 }

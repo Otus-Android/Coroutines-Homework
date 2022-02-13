@@ -15,6 +15,11 @@ class CatsPresenter(
     private var _catsView: ICatsView? = null
     private var job: Job? = null
 
+    private val exceptionHandler =
+        CoroutineExceptionHandler { _, throwable ->
+            CrashMonitor.trackWarning()
+        }
+
     fun onInitComplete() {
         getCatsFact()
     }
@@ -23,7 +28,8 @@ class CatsPresenter(
         var picture: Picture? = null
         var fact: Fact? = null
         val scope = PresenterScope()
-        job = scope.launch(Dispatchers.Main + CoroutineName("v1coroutine")) {
+
+        job = scope.launch() {
             try {
                 coroutineScope {
                     var one = async {
