@@ -14,8 +14,10 @@ class CatsViewModel(
 
     private var jobCat: Job? = null
 
+    private var _catsView: ICatsView? = null
+
     private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-        CrashMonitor.trackWarning(exception.message!!)
+        CrashMonitor.trackWarning(exception.message)
     }
 
     fun onInitComplete() {
@@ -26,8 +28,7 @@ class CatsViewModel(
                 val cat = Result.Success(Cat(fact.await(), image.await()))
                 _data.postValue(cat)
             } catch (e: SocketTimeoutException) {
-                //toasts("Не удалось получить ответ от сервера")
-
+                _catsView?.toasts("Не удалось получить ответ от сервера")
             }
         }
     }
