@@ -7,26 +7,19 @@ class CatsPresenter(
     private val catsService: CatsService
 ) {
 
+    private var jobCat: Job? = null
     private var _catsView: ICatsView? = null
     private val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
 
     fun onInitComplete() {
-        presenterScope.launch {
+        jobCat = presenterScope.launch {
             try {
-                val fact = async(Dispatchers.IO) { catsService.getCatFact() }
-                val image = async(Dispatchers.IO) { catsService.getCatImage() }
+                val fact = async { catsService.getCatFact() }
+                val image = async { catsService.getCatImage() }
                 val cat = Cat(fact.await(), image.await())
                 _catsView?.populate(cat)
-            } catch (e: Exception) {
-                when (e) {
-                    is SocketTimeoutException -> {
-                        _catsView?.toasts("Не удалось получить ответ от сервера")
-                    }
-                    else -> {
-                        CrashMonitor.trackWarning(e.message!!)
-                        _catsView?.toasts(e.message!!)
-                    }
-                }
+            } catch (e: SocketTimeoutException) {
+                _catsView?.toasts("Не удалось получить ответ от сервера")
             }
         }
     }
@@ -37,6 +30,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        presenterScope?.cancel()
+        jobCat?.cancel()
     }
 }

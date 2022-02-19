@@ -7,7 +7,9 @@ object CrashMonitor {
     /**
      * Pretend this is Crashlytics/AppCenter
      */
-    fun trackWarning(warning:String) {
-        Log.e("CrashMonitor", warning)
+    fun trackWarning(warning:String?) {
+        if (warning != null) {
+            Log.e("CrashMonitor", warning)
+        }
     }
 }

@@ -8,8 +8,6 @@ class CatsViewModel(
     private val catsService: CatsService
 ) : ViewModel() {
 
-    private var _catsView: ICatsView? = null
-
     private val _data = MutableLiveData<Result>()
     val data: LiveData<Result>
         get() = _data
@@ -23,26 +21,15 @@ class CatsViewModel(
     fun onInitComplete() {
         jobCat = viewModelScope.launch(exceptionHandler) {
             try {
-                val fact = async(Dispatchers.IO) { catsService.getCatFact() }
-                val image = async(Dispatchers.IO) { catsService.getCatImage() }
+                val fact = async { catsService.getCatFact() }
+                val image = async { catsService.getCatImage() }
                 val cat = Result.Success(Cat(fact.await(), image.await()))
                 _data.postValue(cat)
-            } catch (e: Exception) {
-                when (e) {
-                    is SocketTimeoutException -> {
-                        _catsView?.toasts("Не удалось получить ответ от сервера")
-                    }
-                    else -> {
-                        CrashMonitor.trackWarning(e.message!!)
-                        _catsView?.toasts(e.message!!)
-                    }
-                }
+            } catch (e: SocketTimeoutException) {
+                //toasts("Не удалось получить ответ от сервера")
+
             }
         }
-    }
-
-    fun detachView(){
-        jobCat?.cancel()
     }
 }
 

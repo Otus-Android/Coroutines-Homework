@@ -34,12 +34,12 @@ class CatsView @JvmOverloads constructor(
             .into(imageView)
     }
 
-    override fun toasts(text: String) {
+    override fun toasts(text: String?) {
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
     }
 }
 
 interface ICatsView {
     fun populate(cat: Cat)
-    fun toasts(text: String)
+    fun toasts(text: String?)
 }
