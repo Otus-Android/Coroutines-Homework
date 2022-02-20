@@ -1,0 +1,24 @@
+package otus.homework.coroutines.utils
+
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
+class DiContainer {
+
+    private val catRetrofitUrl by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://dog-facts-api.herokuapp.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    private val catImageRetrofitUrl by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://aws.random.cat/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    val catFactService: CatsService by lazy { catRetrofitUrl.create(CatsService::class.java) }
+    val catImageService: CatsService by lazy { catImageRetrofitUrl.create(CatsService::class.java) }
+}
