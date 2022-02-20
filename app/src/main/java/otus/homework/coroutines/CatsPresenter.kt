@@ -13,13 +13,15 @@ class CatsPresenter(
 
     fun onInitComplete() {
         jobCat = presenterScope.launch {
-            try {
-                val fact = async { catsService.getCatFact() }
-                val image = async { catsService.getCatImage() }
-                val cat = Cat(fact.await(), image.await())
-                _catsView?.populate(cat)
-            } catch (e: SocketTimeoutException) {
-                _catsView?.toasts("Не удалось получить ответ от сервера")
+            coroutineScope {
+                try {
+                    val fact = async { catsService.getCatFact() }
+                    val image = async { catsService.getCatImage() }
+                    val cat = Cat(fact.await(), image.await())
+                    _catsView?.populate(cat)
+                } catch (e: SocketTimeoutException) {
+                    _catsView?.toasts("Не удалось получить ответ от сервера")
+                }
             }
         }
     }

@@ -22,13 +22,16 @@ class CatsViewModel(
 
     fun onInitComplete() {
         jobCat = viewModelScope.launch(exceptionHandler) {
-            try {
-                val fact = async { catsService.getCatFact() }
-                val image = async { catsService.getCatImage() }
-                val cat = Result.Success(Cat(fact.await(), image.await()))
-                _data.postValue(cat)
-            } catch (e: SocketTimeoutException) {
-                _catsView?.toasts("Не удалось получить ответ от сервера")
+            coroutineScope {
+                try {
+                    val fact = async { catsService.getCatFact() }
+                    val image = async { catsService.getCatImage() }
+                    val cat = Result.Success(Cat(fact.await(), image.await()))
+                    _data.postValue(cat)
+
+                } catch (e: SocketTimeoutException) {
+                    _catsView?.toasts("Не удалось получить ответ от сервера")
+                }
             }
         }
     }
