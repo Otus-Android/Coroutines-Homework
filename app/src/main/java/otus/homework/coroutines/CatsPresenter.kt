@@ -17,12 +17,14 @@ class CatsPresenter(
 
     fun onInitComplete() {
         jobCat = presenterScope.launch {
+
             try {
-                val catFact = async { catsService.getCatFact() }
-                val picture = async{ pictureService.getCatPicture() }
+                coroutineScope {
+                    val catFact = async { catsService.getCatFact() }
+                    val picture = async { pictureService.getCatPicture() }
 
-                _catsView?.populate(catFact.await(), picture.await())
-
+                    _catsView?.populate(catFact.await(), picture.await())
+                }
             } catch (e: Exception) {
                 when (e) {
                     is SocketTimeoutException -> {

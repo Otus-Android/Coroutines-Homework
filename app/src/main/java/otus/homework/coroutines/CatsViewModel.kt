@@ -11,8 +11,8 @@ class CatsViewModel(
 
     private var jobCat: Job? = null
 
-    val state = MutableLiveData<Result<CatModel>>()
-
+    private val _state = MutableLiveData<Result<CatModel>>()
+    val state :LiveData<Result<CatModel>> = _state
 
     private val exceptionHandler = CoroutineExceptionHandler { _, e ->
         e.message?.let { CrashMonitor.trackWarning(it) }
@@ -22,13 +22,15 @@ class CatsViewModel(
 
         jobCat = viewModelScope.launch(exceptionHandler) {
             try {
-                val catFact = async { catsService.getCatFact() }
-                val picture = async { pictureService.getCatPicture() }
+                coroutineScope {
+                    val catFact = async { catsService.getCatFact() }
+                    val picture = async { pictureService.getCatPicture() }
 
-                state.value = Result.Success(CatModel(catFact.await(), picture.await()))
+                    _state.value = Result.Success(CatModel(catFact.await(), picture.await()))
 
+                }
             } catch (e: SocketTimeoutException) {
-                state.value = Result.Error("Не удалось получить ответ от сервера")
+                _state.value = Result.Error("Не удалось получить ответ от сервера")
 
             }
         }
