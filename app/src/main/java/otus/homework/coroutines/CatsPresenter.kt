@@ -1,8 +1,11 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.lang.Exception
+import java.lang.RuntimeException
 
 class CatsPresenter(
     private val catsService: CatsService
@@ -10,26 +13,43 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
 
+    var currentRequest: Job? = null
+
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
+        currentRequest = PresenterScope().launch {
+            val response = try {
+                withContext(Dispatchers.Default) { catsService.getCatFact() }
+            } catch (ex: java.net.SocketTimeoutException) {
+                CrashMonitor.trackWarning("Не удалось получить ответ от сервера")
+               return@launch
             }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
+            catch (ex: Exception) {
+                CrashMonitor.trackWarning(ex.message?: "Exception")
+                return@launch
             }
-        })
+            if (response.isSuccessful && response.body() != null) {
+                _catsView?.populate(response.body()!!)
+            } else {
+                CrashMonitor.trackWarning(response.message())
+            }
+        }
     }
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
 
-    fun detachView() {
+    fun onViewStop() {
+        detachView()
+        cancelRequest()
+    }
+
+    private fun detachView() {
         _catsView = null
     }
+
+    private fun cancelRequest() {
+        currentRequest?.cancel()
+    }
 }
+
