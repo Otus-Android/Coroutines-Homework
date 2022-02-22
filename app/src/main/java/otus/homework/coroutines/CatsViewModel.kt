@@ -23,20 +23,50 @@ class CatsViewModel : ViewModel() {
 
     fun onInitComplete() {
         currentRequest = viewModelScope.launch(handler) {
-            val fact = async { getFact() }
-            val image = async { getRandomImage() }
-            _catsView?.populate(FactModel(fact.await()?.text, image.await()?.file))
+            supervisorScope {
+                val fact = async { getFact() }
+                val image = async { getRandomImage() }
+                _catsView?.populate(FactModel(fact.await()?.text, image.await()?.file))
+            }
         }
     }
+//Как сделать что бы при ошибке в одном вызове, второй все же выполнился и отрендерился
 
+//    private suspend fun getFact(): Fact? {
+//        val responseSuperScope =  supervisorScope {
+//            val response = withContext(Dispatchers.Default + handler) {
+//                throw Exception()
+//                catsService?.getCatFact()
+//            }.getBodyOrNull()
+//            return@supervisorScope response?.getSuccessData()
+//        }
+//        return responseSuperScope
+//    }
+
+//    У меня получился вариант через try
+
+    //    private suspend fun getFact(): Fact? {
+//        val response = try {
+//            withContext(Dispatchers.Default + handler) {
+//                catsService?.getCatFact()
+//            }.getBodyOrNull()
+//        } catch (ex: Exception) {
+//            return null
+//        }
+//        return response?.getSuccessData()
+//    }
+//
     private suspend fun getFact(): Fact? {
-        val response = withContext(Dispatchers.Default) { catsService?.getCatFact() }
-        return response.getBodyOrNull()
+         val response = withContext(Dispatchers.Default + handler) {
+                catsService?.getCatFact()
+            }.getBodyOrNull()
+        return response?.getSuccessData()
     }
 
     private suspend fun getRandomImage(): Image? {
-        val response = withContext(Dispatchers.Default) { catsService?.getRandomImage() }
-        return response.getBodyOrNull()
+        val response =
+            withContext(Dispatchers.Default + handler) { catsService?.getRandomImage() }.getBodyOrNull()
+        return response?.getSuccessData()
     }
 
     fun attachView(catsView: ICatsView) {
@@ -62,14 +92,19 @@ class CatsViewModel : ViewModel() {
  * Return body if [isSuccessful] is true
  * or [null]
  **/
-fun <T> Response<T>?.getBodyOrNull(): T? {
+fun <T> Response<T>?.getBodyOrNull(): Result<T>? {
     if (this == null) return null
 
-    return if (this.isSuccessful) {
-        this.body()
+    return if (this.isSuccessful && this.body() != null) {
+        Result.Success(this.body()!!)
     } else {
         CrashMonitor.trackWarning(this.message())
-        null
+        Result.Error(
+            NetworkException(
+                this.message(),
+                this.code()
+            )
+        )
     }
 }
 
