@@ -17,14 +17,12 @@ class CatsViewmodel(
 
     private val errorHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
         CrashMonitor.trackWarning()
-
-        if (throwable is CancellationException) throw throwable
     }
 
     fun getData() {
         viewModelScope.launch(errorHandler) {
-            val factJob = async(SupervisorJob()) { catsService.getCatFact() }
-            val imageJob = async(SupervisorJob()) { catsService.getCatImage() }
+            val factJob = async { catsService.getCatFact() }
+            val imageJob = async { catsService.getCatImage() }
 
             try {
                 _data.value = Result.Success(
@@ -34,6 +32,8 @@ class CatsViewmodel(
                     )
                 )
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
+
                 when (e) {
                     is SocketTimeoutException -> {
                         _data.value = Result.Error("Не удалось получить ответ от сервера")
@@ -44,10 +44,5 @@ class CatsViewmodel(
                 }
             }
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        viewModelScope.cancel()
     }
 }
