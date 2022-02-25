@@ -1,9 +1,13 @@
 package otus.homework.coroutines
 
 import android.util.Log
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import otus.homework.coroutines.other.PresenterScope
 import otus.homework.coroutines.other.Resource.*
 import java.net.SocketTimeoutException
@@ -18,55 +22,45 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
 
-    val scope = PresenterScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
+    val scope = PresenterScope()
 
     fun onInitComplete() {
         scope.launch(Dispatchers.IO) {
             getFacts().collect { result ->
-                ensureActive()
                 when (result) {
                     is Loading -> {
 
                     }
                     is Success -> {
-                        withContext(Dispatchers.Main) {
-                            result.data?.let {
-                                _catsView?.populateFact(
-                                    it
-                                )
-                            }
+                        result.data?.let {
+                            _catsView?.populateFact(
+                                it
+                            )
                         }
                     }
                     is Error -> {
-                        withContext(Dispatchers.Main) {
-                            result.message?.let { Log.e(TAG, it) }
-                            _catsView?.showToast("Не удалось получить ответ от сервера")
-                        }
+                        result.message?.let { Log.e(TAG, it) }
+                        _catsView?.showToast("Не удалось получить ответ от сервера")
                     }
                 }
             }
         }
         scope.launch(Dispatchers.IO) {
             getImageUrl().collect { result ->
-                ensureActive()
                 when (result) {
                     is Loading -> {
 
                     }
                     is Success -> {
-                        withContext(Dispatchers.Main) {
-                            result.data?.let {
-                                _catsView?.populateImage(
-                                    it.file
-                                )
-                            }
+                        result.data?.let {
+                            _catsView?.populateImage(
+                                it.file
+                            )
                         }
                     }
                     is Error -> {
-                        withContext(Dispatchers.Main) {
-                            result.message?.let { Log.e(TAG, it) }
-                            _catsView?.showToast("Не удалось получить ответ от сервера")
-                        }
+                        result.message?.let { Log.e(TAG, it) }
+                        _catsView?.showToast("Не удалось получить ответ от сервера")
                     }
                 }
             }
@@ -88,7 +82,7 @@ class CatsPresenter(
         } catch (e: SocketTimeoutException) {
             emit(Error(e.message))
         }
-    }
+    }.flowOn(Dispatchers.Main)
 
     private suspend fun getImageUrl() = flow() {
         try {
@@ -98,7 +92,7 @@ class CatsPresenter(
         } catch (e: SocketTimeoutException) {
             emit(Error(e.message))
         }
-    }
+    }.flowOn(Dispatchers.Main)
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView

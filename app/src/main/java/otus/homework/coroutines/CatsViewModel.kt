@@ -1,14 +1,13 @@
 package otus.homework.coroutines
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
 import otus.homework.coroutines.dto.Fact
+import otus.homework.coroutines.dto.ImageFile
 import otus.homework.coroutines.other.Resource
 import java.net.SocketTimeoutException
 
@@ -18,87 +17,34 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
         const val TAG = "CatsViewModel"
     }
 
-    private val _fact = MutableLiveData<Fact>()
-    val fact: LiveData<Fact> = _fact
+    private val _result = MutableSharedFlow<Resource<Fact>>()
+    val result: SharedFlow<Resource<Fact>> = _result
 
-    private val _imageUrl = MutableLiveData<String>()
-    val imageUrl: LiveData<String> = _imageUrl
-
-    private val _toastMessage = MutableLiveData<String?>()
-    val toastMessage: LiveData<String?> = _toastMessage
+    private val _imageUrl = MutableSharedFlow<Resource<ImageFile>>()
+    val imageUrl: SharedFlow<Resource<ImageFile>> = _imageUrl
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         CrashMonitor.trackWarning()
     }
 
     fun onButtonNewFactPressed() {
-        viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
-            getFacts().collect { result ->
-                ensureActive()
-                when (result) {
-                    is Resource.Loading -> {
-
-                    }
-                    is Resource.Success -> {
-                        withContext(Dispatchers.Main) {
-                            result.data?.let {
-                                _fact.postValue(it)
-                            }
-                        }
-                    }
-                    is Resource.Error -> {
-                        withContext(Dispatchers.Main) {
-                            result.message?.let { Log.e(TAG, it) }
-                            _toastMessage.postValue("Не удалось получить ответ от сервера")
-                        }
-                    }
-                }
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                _result.emit(Resource.Loading())
+                val fact = catsService.getCatFact()
+                _result.emit(Resource.Success(fact))
+            } catch (e: SocketTimeoutException) {
+                _result.emit(Resource.Error(e.message))
             }
         }
-        viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
-            getImageUrl().collect { result ->
-                ensureActive()
-                when (result) {
-                    is Resource.Loading -> {
-
-                    }
-                    is Resource.Success -> {
-                        withContext(Dispatchers.Main) {
-                            result.data?.let {
-                                _imageUrl.postValue(it.file)
-                            }
-                            _toastMessage.postValue(null)
-                        }
-                    }
-                    is Resource.Error -> {
-                        withContext(Dispatchers.Main) {
-                            result.message?.let { Log.e(TAG, it) }
-                            _toastMessage.postValue("Не удалось получить ответ от сервера")
-                        }
-                    }
-                }
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                _imageUrl.emit(Resource.Loading())
+                val imageUrl = catsService.getCatImage()
+                _imageUrl.emit(Resource.Success(imageUrl))
+            } catch (e: SocketTimeoutException) {
+                _imageUrl.emit(Resource.Error(e.message))
             }
         }
     }
-
-    private suspend fun getFacts() = flow() {
-        try {
-            emit(Resource.Loading())
-            val fact = catsService.getCatFact()
-            emit(Resource.Success(fact))
-        } catch (e: SocketTimeoutException) {
-            emit(Resource.Error(e.message))
-        }
-    }
-
-    private suspend fun getImageUrl() = flow() {
-        try {
-            emit(Resource.Loading())
-            val imageUrl = catsService.getCatImage()
-            emit(Resource.Success(imageUrl))
-        } catch (e: SocketTimeoutException) {
-            emit(Resource.Error(e.message))
-        }
-    }
-
 }

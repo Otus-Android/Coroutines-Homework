@@ -1,14 +1,17 @@
 package otus.homework.coroutines
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import otus.homework.coroutines.other.Resource
 
 class MainActivity : AppCompatActivity() {
     /** Закомментировал логику презентера, так как использую ViewModel*/
@@ -48,20 +51,33 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun initObservers() {
-        viewModel.fact.observe(this) {
-            factTextView.text = it.text
-        }
-        viewModel.toastMessage.observe(this) { message ->
-            message?.let {
-                Toast.makeText(
-                    applicationContext,
-                    it,
-                    Toast.LENGTH_LONG
-                ).show()
+        lifecycleScope.launch {
+            viewModel.result.collect { resource ->
+                when (resource) {
+                    is Resource.Error -> Toast.makeText(
+                        applicationContext, resource.message,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    is Resource.Loading -> {
+                    }
+                    is Resource.Success -> {
+                        factTextView.text = resource.data?.text
+                    }
+                }
             }
-        }
-        viewModel.imageUrl.observe(this) {
-            Picasso.get().load(it).fit().into(imageView)
+            viewModel.imageUrl.collect { resource ->
+                when (resource) {
+                    is Resource.Error -> Toast.makeText(
+                        applicationContext, resource.message,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    is Resource.Loading -> {
+                    }
+                    is Resource.Success -> {
+                        Picasso.get().load(resource.data?.file).fit().into(imageView)
+                    }
+                }
+            }
         }
     }
 

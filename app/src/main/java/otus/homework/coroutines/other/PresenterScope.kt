@@ -1,8 +1,10 @@
 package otus.homework.coroutines.other
 
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
 
-class PresenterScope(context: CoroutineContext) : CoroutineScope {
-    override val coroutineContext: CoroutineContext = context
+class PresenterScope : CoroutineScope {
+    override val coroutineContext: CoroutineContext = Dispatchers.Main + CoroutineName("CatsCoroutine")
 }
