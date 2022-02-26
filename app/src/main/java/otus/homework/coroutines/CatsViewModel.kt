@@ -4,9 +4,9 @@
 
 package otus.homework.coroutines
 
-import android.util.Log
 import androidx.lifecycle.*
 import kotlinx.coroutines.*
+import java.util.concurrent.CancellationException
 
 class CatsViewModel(
     private val catsService: CatsService,
@@ -22,10 +22,12 @@ class CatsViewModel(
     fun onInitComplete() {
         getFactJob = viewModelScope.launch(exceptionHandler) {
             try {
-                val fact =  async { catsService.getCatFact() }
-                val imageUrl = async { imageService.getCatImage() }
-                _catsPresentation.value =
-                    Result.Success(CatsPresentation(fact.await(), imageUrl.await().file))
+                coroutineScope {
+                    val fact = async { catsService.getCatFact() }
+                    val imageUrl = async { imageService.getCatImage() }
+                    _catsPresentation.value =
+                        Result.Success(CatsPresentation(fact.await(), imageUrl.await().file))
+                }
             } catch (ex: java.net.SocketTimeoutException) {
                 _catsPresentation.value = Result.Error("Не удалось получить ответ от сервера")
             }

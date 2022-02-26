@@ -14,17 +14,18 @@ class CatsPresenter(
     fun onInitComplete() {
         getFactJob = presenterScope.launch {
             try {
-                val fact = async { catsService.getCatFact() }
-                val imageUrl = async { imageService.getCatImage() }
-                _catsView?.populate(CatsPresentation(fact.await(), imageUrl.await().file))
+                coroutineScope {
+                    val fact = async { catsService.getCatFact() }
+                    val imageUrl = async { imageService.getCatImage() }
+                    _catsView?.populate(CatsPresentation(fact.await(), imageUrl.await().file))
+                }
             } catch (ex: java.net.SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
-                throw CancellationException()
             } catch (ex: Exception) {
-                CrashMonitor.trackWarning(ex)
-                _catsView?.showToast(ex.message ?: "")
                if (ex is CancellationException)
                    throw ex
+               CrashMonitor.trackWarning(ex)
+               _catsView?.showToast(ex.message ?: "")
             }
         }
     }
