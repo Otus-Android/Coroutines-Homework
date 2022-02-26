@@ -21,6 +21,7 @@ class ExceptionWrapperImpl : ExceptionWrapper {
 
     override fun exceptionHandler(callback: (Throwable) -> Unit) =
         CoroutineExceptionHandler { _, throwable ->
+            CrashMonitor.trackWarning(throwable)
             callback.invoke(throwable)
         }
 
@@ -30,11 +31,11 @@ class ExceptionWrapperImpl : ExceptionWrapper {
     ) {
         try {
             onSuccess.invoke()
+        } catch (error: SocketTimeoutException) {
+            onError.invoke("Не удалось получить ответ от сервера")
         } catch (error: Exception) {
             CrashMonitor.trackWarning(error)
             onError.invoke(error.message)
-        } catch (error: SocketTimeoutException) {
-            onError.invoke("Не удалось получить ответ от сервера")
         }
     }
 }
