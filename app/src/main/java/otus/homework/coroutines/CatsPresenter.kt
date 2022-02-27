@@ -18,15 +18,11 @@ class CatsPresenter(
                     var fact: Fact? = null
                     var image: Image? = null
                     val factRequest = async {
-                        fact = withContext(Dispatchers.Default) {
-                            catsServiceFact.getCatFact()
-                        }
+                        fact = catsServiceFact.getCatFact()
                     }
 
                     val imageRequest = async {
-                        image = withContext(Dispatchers.Default) {
-                            catsServiceImg.getCatImage()
-                        }
+                        image = catsServiceImg.getCatImage()
                     }
 
                     awaitAll(factRequest, imageRequest)
