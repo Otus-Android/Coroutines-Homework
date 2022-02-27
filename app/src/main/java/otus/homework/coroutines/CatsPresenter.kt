@@ -9,7 +9,7 @@ class CatsPresenter(
 ) {
 
     private var _catsView: ICatsView? = null
-    private var presenterScope: CoroutineScope = PresenterScope
+    private var presenterScope: CoroutineScope = PresenterScope()
 
     fun onInitComplete() {
         presenterScope.launch {
