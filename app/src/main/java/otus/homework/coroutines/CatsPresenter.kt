@@ -38,6 +38,9 @@ class CatsPresenter(
                     is SocketTimeoutException -> {
                         _catsView?.showResourceString(R.string.socket_timeout_error)
                     }
+                    is CancellationException -> {
+                        throw(ex)
+                    }
                     else -> {
                         CrashMonitor.trackWarning()
                         _catsView?.showErrorText(ex.message)
