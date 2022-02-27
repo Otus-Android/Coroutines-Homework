@@ -18,7 +18,9 @@ class CatsViewModel : ViewModel() {
         get() = catsLiveData
 
     fun requestData() {
-        viewModelScope.launch {
+        viewModelScope.launch(CoroutineExceptionHandler { _, _, ->
+            CrashMonitor.trackWarning()
+        }) {
             try {
                 coroutineScope {
                     var fact: Fact? = null
@@ -43,6 +45,9 @@ class CatsViewModel : ViewModel() {
                 when (ex) {
                     is SocketTimeoutException -> {
                         catsLiveData.value = Result.Error(null, R.string.socket_timeout_error)
+                    }
+                    is CancellationException -> {
+                        throw(ex)
                     }
                     else -> {
                         CrashMonitor.trackWarning()
