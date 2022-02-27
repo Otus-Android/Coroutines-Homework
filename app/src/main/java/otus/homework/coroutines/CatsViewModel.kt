@@ -9,7 +9,6 @@ import java.net.SocketTimeoutException
 
 class CatsViewModel : ViewModel() {
 
-    private var presenterScope: CoroutineScope = viewModelScope
     private val catsLiveData = MutableLiveData<Result>()
 
     lateinit var catsServiceFact: CatsService
@@ -19,7 +18,7 @@ class CatsViewModel : ViewModel() {
         get() = catsLiveData
 
     fun requestData() {
-        presenterScope.launch {
+        viewModelScope.launch {
             try {
                 coroutineScope {
                     var fact: Fact? = null
@@ -56,6 +55,5 @@ class CatsViewModel : ViewModel() {
 
     override fun onCleared() {
         super.onCleared()
-        presenterScope.cancel()
     }
 }
