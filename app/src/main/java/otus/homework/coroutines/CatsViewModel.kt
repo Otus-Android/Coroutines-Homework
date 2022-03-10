@@ -2,8 +2,13 @@ package otus.homework.coroutines
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.Image
+import android.support.v4.app.INotificationSideChannel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
+import otus.homework.coroutines.model.Fact
 import otus.homework.coroutines.model.Result
 import otus.homework.coroutines.tools.CrashMonitor
 import otus.homework.coroutines.services.DiContainer
@@ -22,106 +27,78 @@ interface ICatsPresenter {
 
 class CatsViewModel() : ViewModel(), ICatsPresenter {
 
+    private val catsData = CatsData()
+    private var catView: ICatsView? = null
+        set(value) {
+            field = value
+            viewModelScope.launch {
+                value?.let {
+                    catsData.resultFact?.let {
+                        value.populateFact(it)
+                    }
+                    catsData.resultImage?.let {
+                        value.populateImage(it)
+                    }
+                }
+            }
+        }
     private val diContainer = DiContainer()
 
     private val catsFactService = diContainer.factsService
     private val imagessService = diContainer.imagessService
 
-    private var jobFacts: Job? = null
-    private var jobImages: Job? = null
-
-    //    private var _catsView: ICatsView? = null
-    private val presenterScope = PresenterScope()
-    private val catsData = CatsData()
-
-    class CatsData {
-        private val presenterScope = PresenterScope()
-        var catView: ICatsView? = null
-            set(value) {
-                field = value
-                populateFact()
-                populateImage()
-            }
-
-        //        var fact: String? = null
-//            set(value) {
-//                field = value
-//                populateFact()
-//            }
-        var resultFact: Result.SuccessFact? = null
-            set(value) {
-                field = value
-                populateFact()
-            }
-
-        //        var image: Bitmap? = null
-//            set(value) {
-//                field = value
-//                populateImage()
-//            }
-        var resultImage: Result.SuccessImage? = null
-            set(value) {
-                field = value
-                populateImage()
-            }
-
-        fun populateFact() {
-            presenterScope.launch {
-//                fact?.let { catView?.populateFact(fact!!) }
-                resultFact?.let { catView?.populateResult(resultFact!!) }
-            }
-        }
-
-        fun populateImage() {
-            presenterScope.launch {
-//                image?.let { catView?.populateImage(image!!) }
-                resultImage?.let { catView?.populateResult(resultImage!!) }
-            }
-        }
-
-        fun showToast(text: String) {
-            catView?.showToast(text)
-        }
-
-    }
+    data class CatsData(var resultFact: String? = "", var resultImage: Bitmap? = null)
 
     init {
         doReadThings()
     }
 
-
     override fun doReadThings() {
-        jobFacts = presenterScope.launch {
+        val jobFacts = viewModelScope.launch {
             try {
                 val catFact = catsFactService.getCatFact()
-//                catsData.fact = catFact.text
-                catsData.resultFact = Result.SuccessFact(catFact)
+                catsData.resultFact = catFact.text
             } catch (e: SocketTimeoutException) {
-                catsData.showToast("Не удалось получить ответ от сервера")
+                showToast("Не удалось получить ответ от сервера")
             } catch (exc: Exception) {
                 CrashMonitor.trackWarning(exc.message.toString())
                 val s = if (exc.message != null) exc.message!! else ""
-                catsData.showToast(s)
+                showToast(s)
             }
         }
-        jobImages = presenterScope.launch {
+        val jobImages = viewModelScope.launch {
             try {
                 val catImageSource = imagessService.getCatImageSource()
                 catImageSource?.let {
                     withContext(Dispatchers.IO) {
                         val inputStream = URL(catImageSource.file).openStream()
                         val image = BitmapFactory.decodeStream(inputStream)
-//                        catsData.image = image
-                        catsData.resultImage = Result.SuccessImage(image)
+                        catsData.resultImage = image
                     }
                 }
             } catch (e: SocketTimeoutException) {
-                catsData.showToast("Не удалось получить ответ от сервера")
+                showToast("Не удалось получить ответ от сервера")
             } catch (exc: Exception) {
                 CrashMonitor.trackWarning(exc.message.toString())
                 val s = if (exc.message != null) exc.message!! else ""
-                catsData.showToast(s)
+                showToast(s)
             }
+        }
+        viewModelScope.launch {
+            jobImages.join()
+            jobFacts.join()
+            catsData.resultFact?.let {
+                catView?.populateFact(it)
+            }
+            catsData.resultImage?.let {
+                catView?.populateImage(it)
+            }
+        }
+    }
+
+    private fun showToast(s: String) {
+        viewModelScope.launch {
+            catView?.showToast(s)
         }
     }
 
@@ -129,22 +106,14 @@ class CatsViewModel() : ViewModel(), ICatsPresenter {
     }
 
     override fun attachView(catsView: ICatsView) {
-        catsData.catView = catsView
+        catView = catsView
     }
 
     override fun detachView() {
-        catsData.catView = null
+        catView = null
     }
 
     override fun stop() {
-        jobFacts?.let {
-            if (it.isActive)
-                it.cancel()
-        }
-        jobImages?.let {
-            if (it.isActive)
-                it.cancel()
-        }
     }
 
 }

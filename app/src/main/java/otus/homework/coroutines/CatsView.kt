@@ -39,21 +39,7 @@ class CatsView @JvmOverloads constructor(
         findViewById<ImageView>(R.id.imageView).setImageBitmap(image)
     }
 
-    override suspend fun populateResult(result: Result) {
-        when (result) {
-            is SuccessFact -> {
-                populateFact(result.fact.text)
-            }
-            is SuccessImage -> {
-                populateImage(result.image)
-            }
-            is Error -> {
-                showToast(result.reason)
-            }
-        }
-    }
-
-    override fun showToast(text: String) {
+    override suspend fun showToast(text: String) {
         Toast.makeText(context, text, Toast.LENGTH_LONG).show()
     }
 }
@@ -61,6 +47,5 @@ class CatsView @JvmOverloads constructor(
 interface ICatsView {
     suspend fun populateFact(fact: String)
     suspend fun populateImage(image: Bitmap)
-    suspend fun populateResult(result: Result)
-    fun showToast(text: String)
+    suspend fun showToast(text: String)
 }
