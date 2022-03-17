@@ -6,9 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
-//    lateinit var catsPresenter: CatsPresenter
-//    private val diContainer = DiContainer()
-
     private val catsPresenterModel: CatsViewModel by lazy { ViewModelProvider(this)[CatsViewModel::class.java] }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,22 +13,10 @@ class MainActivity : AppCompatActivity() {
 
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
+        view.setOnReloadAction(catsPresenterModel::doReadThings)
 
-//        catsPresenter = CatsPresenter(this, diContainer.factsService, diContainer.imagessService)
-//        catsPresenter.attachView(view)
-//        catsPresenter.onInitComplete()
-//        view.presenter = catsPresenter
-
-        view.presenter = catsPresenterModel
-        catsPresenterModel.attachView(view)
-        catsPresenterModel.onInitComplete()
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenterModel.detachView()
+        catsPresenterModel.giveMeCatsData {
+            view.populateCatsData(it)
         }
-        catsPresenterModel.stop()
-        super.onStop()
     }
 }

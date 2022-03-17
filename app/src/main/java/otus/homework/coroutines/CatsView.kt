@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.AttributeSet
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -22,30 +23,28 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: ICatsPresenter? = null
-
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.doReadThings()
+    override fun populateCatsData(catsData: CatsViewModel.CatsData) {
+        catsData?.resultFact?.let { findViewById<TextView>(R.id.fact_textView).text = it }
+        catsData?.resultImage?.let {
+            findViewById<ImageView>(R.id.imageView).setImageBitmap(it)
+        }
+        catsData?.errorMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         }
     }
 
-    override suspend fun populateFact(fact: String) {
-        fact.let { findViewById<TextView>(R.id.fact_textView).text = it }
+    override fun onViewRemoved(view: View?) {
+        super.onViewRemoved(view)
     }
 
-    override suspend fun populateImage(image: Bitmap) {
-        findViewById<ImageView>(R.id.imageView).setImageBitmap(image)
-    }
-
-    override suspend fun showToast(text: String) {
-        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+    override fun setOnReloadAction(action: Runnable) {
+        findViewById<Button>(R.id.button).setOnClickListener {
+            action.run()
+        }
     }
 }
 
 interface ICatsView {
-    suspend fun populateFact(fact: String)
-    suspend fun populateImage(image: Bitmap)
-    suspend fun showToast(text: String)
+    fun populateCatsData(catsData: CatsViewModel.CatsData)
+    fun setOnReloadAction(action: Runnable)
 }
