@@ -15,18 +15,14 @@ class CatsPresenter(
         presenterScope.launch {
             try {
                 coroutineScope {
-                    var fact: Fact? = null
-                    var image: Image? = null
                     val factRequest = async {
-                        fact = catsServiceFact.getCatFact()
+                        catsServiceFact.getCatFact()
                     }
-
                     val imageRequest = async {
-                        image = catsServiceImg.getCatImage()
+                        catsServiceImg.getCatImage()
                     }
 
-                    awaitAll(factRequest, imageRequest)
-                    _catsView?.populate(IllustratedFact(image!!, fact!!))
+                    _catsView?.populate(IllustratedFact(imageRequest.await(), factRequest.await()))
                 }
             }
             catch (ex: Exception) {
