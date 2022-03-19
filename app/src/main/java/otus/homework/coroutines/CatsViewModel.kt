@@ -57,8 +57,4 @@ class CatsViewModel : ViewModel() {
             }
         }
     }
-
-    override fun onCleared() {
-        super.onCleared()
-    }
 }
