@@ -13,14 +13,14 @@ class CatsViewModel : ViewModel() {
 
     lateinit var catsServiceFact: CatsService
     lateinit var catsServiceImg: CatsService
-
+    val exceptionHandler = CoroutineExceptionHandler { _, _, ->
+        CrashMonitor.trackWarning()
+    }
     val getObservableData: LiveData<Result>
         get() = catsLiveData
 
     fun requestData() {
-        viewModelScope.launch(CoroutineExceptionHandler { _, _, ->
-            CrashMonitor.trackWarning()
-        }) {
+        viewModelScope.launch(exceptionHandler) {
             try {
                 coroutineScope {
                     var fact: Fact? = null
