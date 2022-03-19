@@ -18,6 +18,7 @@ class CatsPresenter(
                     val factRequest = async {
                         catsServiceFact.getCatFact()
                     }
+
                     val imageRequest = async {
                         catsServiceImg.getCatImage()
                     }
