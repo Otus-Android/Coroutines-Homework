@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(
+        /*catsPresenter = CatsPresenter(
             catFactService = DiContainer.catFactService,
             catPictureService = DiContainer.catPictureService,
             resources = DiContainer.getResources(applicationContext)
@@ -30,17 +30,17 @@ class MainActivity : AppCompatActivity() {
 
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+        catsPresenter.onInitComplete()*/
 
-        /*view.onClick = { catsViewModel.getCats() }
-        catsViewModel.state.observe(this, { view.render(it) })
-        catsViewModel.getCats()*/
+        view.onClick = { catsViewModel.getCats() }
+        catsViewModel.state.observe(this) { view.render(it) }
+        catsViewModel.getCats()
     }
 
     override fun onStop() {
-        if (isFinishing) {
+        /*if (isFinishing) {
             catsPresenter.detachView()
-        }
+        }*/
         super.onStop()
     }
 }
