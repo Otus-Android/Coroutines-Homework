@@ -1,6 +1,7 @@
 package otus.homework.coroutines.utils
 
 
+import android.util.Log
 import com.squareup.picasso.BuildConfig
 
 object CrashMonitor {
@@ -10,7 +11,7 @@ object CrashMonitor {
      */
     fun trackWarning(exception: Throwable) {
         if(BuildConfig.DEBUG) {
-            println("${exception.message}")
+            Log.i("DEBUG", exception.message.toString())
         } else {
             writeException(exception)
         }
