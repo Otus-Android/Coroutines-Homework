@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<otus.homework.coroutines.CatsView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:padding="16dp"
-    android:layout_height="match_parent"
-    tools:context=".presenter.view.MainActivityCatPresenter">
+    android:layout_height="match_parent">
 
     <ImageView
         android:id="@+id/fact_img"
@@ -60,4 +59,4 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-</otus.homework.coroutines.CatsView>
+</androidx.constraintlayout.widget.ConstraintLayout>
