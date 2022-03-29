@@ -33,9 +33,7 @@ class CatsPresenter(
                     _catsView?.populate(CatModel(cats.await(), picture.await()))
 
                 } catch (e: SocketTimeoutException) {
-                    withContext(Dispatchers.Main) {
-                        _catsView?.showToast("Не удалось получить ответ от сервера")
-                    }
+                    _catsView?.showToast("Не удалось получить ответ от сервера")
                 }
             }
         }
@@ -52,6 +50,6 @@ class CatsPresenter(
 
     class PresenterScope : CoroutineScope {
         override val coroutineContext: CoroutineContext =
-            Dispatchers.IO + CoroutineName("CatsCoroutine") + SupervisorJob()
+            Dispatchers.Main + CoroutineName("CatsCoroutine") + SupervisorJob()
     }
 }

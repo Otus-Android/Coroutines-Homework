@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
@@ -22,19 +23,15 @@ class CatsViewModel(
             _catData.postValue(Error(throwable))
             CrashMonitor.trackWarning()
         }) {
-            try {
-                val cats = async {
-                    catsService.getCatFact()
+            val cats = async { catsService.getCatFact() }
+            val picture = async { catsService.getCatPicture() }
+
+            coroutineScope {
+                try {
+                    _catData.postValue(Success(CatModel(cats.await(), picture.await())))
+                } catch (e: SocketTimeoutException) {
+                    _catData.postValue(Error(e))
                 }
-
-                val picture = async {
-                    catsService.getCatPicture()
-                }
-
-                _catData.postValue(Success(CatModel(cats.await(), picture.await())))
-
-            } catch (e: SocketTimeoutException) {
-                _catData.postValue(Error(e))
             }
         }
     }
