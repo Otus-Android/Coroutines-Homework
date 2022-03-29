@@ -1,28 +1,42 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.*
+import java.net.SocketTimeoutException
+import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
     private val catsService: CatsService
 ) {
-
+    private val presenterScope = PresenterScope()
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+        presenterScope.launch(CoroutineExceptionHandler { _, throwable ->
+            presenterScope.launch {
+                withContext(Dispatchers.Main) {
+                    _catsView?.showToast(throwable.message.orEmpty())
                 }
             }
+            CrashMonitor.trackWarning()
+        }) {
+            coroutineScope {
+                try {
+                    val cats = async {
+                        catsService.getCatFact()
+                    }
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
+                    val picture = async {
+                        catsService.getCatPicture()
+                    }
+
+                    _catsView?.populate(CatModel(cats.await(), picture.await()))
+
+                } catch (e: SocketTimeoutException) {
+                    _catsView?.showToast("Не удалось получить ответ от сервера")
+                }
             }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -31,5 +45,11 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+        presenterScope.cancel()
+    }
+
+    class PresenterScope : CoroutineScope {
+        override val coroutineContext: CoroutineContext =
+            Dispatchers.Main + CoroutineName("CatsCoroutine") + SupervisorJob()
     }
 }
