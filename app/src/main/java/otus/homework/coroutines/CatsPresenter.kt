@@ -10,42 +10,21 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
 
-    private var currentRequest: Job? = null
+    private var scope: CoroutineScope = PresenterScope()
+
 
     fun onInitComplete() {
-        currentRequest = PresenterScope().launch {
-            val fact = async { getFact() }
-            val image = async { getRandomImage() }
-            _catsView?.populate(FactModel(fact.await()?.text, image.await()?.file))
+        scope.launch {
+            try {
+                val fact = async { catsService.getCatFact() }
+                val image = async { catsService.getRandomImage() }
+                _catsView?.populate(FactModel(fact.await().text, image.await().file))
+            } catch (ex: java.net.SocketTimeoutException) {
+                CrashMonitor.trackWarning("Не удалось получить ответ от сервера")
+            } catch (ex: Exception) {
+                CrashMonitor.trackWarning(ex.message ?: "Exception")
+            }
         }
-    }
-
-    // Правильно ли я организовал обработку ошибок?
-    private suspend fun getFact(): Fact? {
-        val response = try {
-            withContext(Dispatchers.Default) { catsService.getCatFact() }
-        } catch (ex: java.net.SocketTimeoutException) {
-            CrashMonitor.trackWarning("Не удалось получить ответ от сервера")
-            return null
-        } catch (ex: Exception) {
-            CrashMonitor.trackWarning(ex.message ?: "Exception")
-            return null
-        }
-        return response.getBodyOrNull()
-    }
-
-    private suspend fun getRandomImage(): Image? {
-        val response = try {
-            withContext(Dispatchers.Default) { catsService.getRandomImage() }
-        } catch (ex: java.net.SocketTimeoutException) {
-            CrashMonitor.trackWarning("Не удалось получить ответ от сервера")
-            return null
-        } catch (ex: Exception) {
-            CrashMonitor.trackWarning(ex.message ?: "Exception")
-            return null
-        }
-
-        return response.getBodyOrNull()
     }
 
     fun attachView(catsView: ICatsView) {
@@ -62,7 +41,7 @@ class CatsPresenter(
     }
 
     private fun cancelRequest() {
-        currentRequest?.cancel()
+        scope.cancel()
     }
 }
 

@@ -17,12 +17,15 @@ class MainActivity : AppCompatActivity() {
 
         catsViewModel.catsService = diContainer.service
         view.viewModel = catsViewModel
-        catsViewModel.attachView(view)
         catsViewModel.onInitComplete()
+
+        initObserver()
     }
 
-    override fun onStop() {
-        if (isFinishing) catsViewModel.onViewStop()
-        super.onStop()
+    private fun initObserver(){
+        catsViewModel.fact.observe(this){
+            val view = findViewById<CatsView>(R.id.main)
+            view.populate(it)
+        }
     }
 }
