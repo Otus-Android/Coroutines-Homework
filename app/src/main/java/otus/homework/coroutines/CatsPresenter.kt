@@ -1,8 +1,8 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
+import kotlinx.coroutines.*
 import retrofit2.Response
+import java.lang.Exception
 
 class CatsPresenter(
     private val catsService: CatsService
@@ -10,26 +10,52 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
 
+    private var scope: CoroutineScope = PresenterScope()
+
+
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
+        scope.launch {
+            try {
+                val fact = async { catsService.getCatFact() }
+                val image = async { catsService.getRandomImage() }
+                _catsView?.populate(FactModel(fact.await().text, image.await().file))
+            } catch (ex: java.net.SocketTimeoutException) {
+                CrashMonitor.trackWarning("Не удалось получить ответ от сервера")
+            } catch (ex: Exception) {
+                CrashMonitor.trackWarning(ex.message ?: "Exception")
             }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
 
-    fun detachView() {
+    fun onViewStop() {
+        detachView()
+        cancelRequest()
+    }
+
+    private fun detachView() {
         _catsView = null
     }
+
+    private fun cancelRequest() {
+        scope.cancel()
+    }
 }
+
+//Уместно ли использовать нечто подобное?д
+/**
+ * Return body if [isSuccessful] is true
+ * or [null]
+ **/
+fun <T> Response<T>.getBodyOrNull(): T? {
+    return if (this.isSuccessful) {
+        this.body()
+    } else {
+        CrashMonitor.trackWarning(this.message())
+        null
+    }
+}
+
