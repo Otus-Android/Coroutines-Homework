@@ -1,26 +1,33 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 
-class CatsPresenter(
+class CatsViewModel(
     private val catsService: CatsService
-) : BasePresenter<ICatsView>() {
+) : ViewModel() {
+
+    private val _result = MutableLiveData<Result>()
+    val result: LiveData<Result> = _result
 
     fun onInitComplete() {
-        presenterScope.launch(CoroutineExceptionHandler { _, exception ->
+        viewModelScope.launch(CoroutineExceptionHandler { _, exception ->
             CrashMonitor.trackWarning()
         }) {
             try {
-                view?.populate(
+                _result.value = Result.Success(
                     Cat(
                         fact = catsService.getCatFact(),
                         image = catsService.getCatImage()
                     )
                 )
             } catch (exception: UnknownHostException) { //SocketTimeoutException
-                view?.showNoConnectivityMessage()
+                _result.value = Result.Error
             }
         }
     }
