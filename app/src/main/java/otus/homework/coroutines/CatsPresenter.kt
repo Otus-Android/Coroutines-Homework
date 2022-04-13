@@ -1,28 +1,23 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val coroutineScope: CoroutineScope
 ) {
 
     private var _catsView: ICatsView? = null
+    private var _initJob: Job? = null
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
-            }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        _initJob = coroutineScope.launch {
+            getFact()
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -30,6 +25,34 @@ class CatsPresenter(
     }
 
     fun detachView() {
+        _initJob?.cancel()
         _catsView = null
     }
+
+    private suspend fun getFact() {
+        runCatching { catsService.getCatFact() }
+            .onSuccess { _catsView?.populate(it) }
+            .onFailure(::handleGetFactErrors)
+    }
+
+    private fun handleGetFactErrors(throwable: Throwable) {
+        checkCancellationException(throwable)
+
+        if (throwable is SocketTimeoutException) {
+            _catsView?.showError(ICatsView.Error.ServerConnectionError)
+            return
+        }
+
+        CrashMonitor.trackWarning()
+        throwable.message?.let { message ->
+            _catsView?.showError(ICatsView.Error.UnknownError(message))
+        }
+    }
+
+    private fun checkCancellationException(throwable: Throwable) {
+        if (throwable is CancellationException) {
+            throw throwable
+        }
+    }
+
 }

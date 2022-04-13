@@ -12,5 +12,9 @@ class DiContainer {
             .build()
     }
 
+    val presenterScope by lazy(LazyThreadSafetyMode.NONE) {
+        PresenterScope()
+    }
+
     val service by lazy { retrofit.create(CatsService::class.java) }
 }
