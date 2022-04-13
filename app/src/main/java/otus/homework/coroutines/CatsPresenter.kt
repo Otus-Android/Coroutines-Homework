@@ -1,9 +1,6 @@
 package otus.homework.coroutines
 
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -12,11 +9,21 @@ class CatsPresenter(
 ) {
 
     private var _catsView: ICatsView? = null
-    private var _initJob: Job? = null
+    private var _refreshJob: Job? = null
 
     fun onInitComplete() {
-        _initJob = coroutineScope.launch {
-            getFact()
+        _refreshJob = coroutineScope.launch {
+            val getFactDeferred = async { getFact() }
+            val getImageDeferred = async { getRandomImage() }
+
+            val fact = getFactDeferred.await()
+            val image = getImageDeferred.await()
+
+            val catsViewState = CatsViewState(
+                fact = fact,
+                image = image
+            )
+            _catsView?.populate(catsViewState)
         }
     }
 
@@ -25,17 +32,21 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        _initJob?.cancel()
+        _refreshJob?.cancel()
         _catsView = null
     }
 
-    private suspend fun getFact() {
+    private suspend fun getFact() =
         runCatching { catsService.getCatFact() }
-            .onSuccess { _catsView?.populate(it) }
-            .onFailure(::handleGetFactErrors)
-    }
+            .onFailure(::handleServerErrors)
+            .getOrNull()
 
-    private fun handleGetFactErrors(throwable: Throwable) {
+    private suspend fun getRandomImage() =
+        runCatching { catsService.getRandomImage() }
+            .onFailure(::handleServerErrors)
+            .getOrNull()
+
+    private fun handleServerErrors(throwable: Throwable) {
         checkCancellationException(throwable)
 
         if (throwable is SocketTimeoutException) {
