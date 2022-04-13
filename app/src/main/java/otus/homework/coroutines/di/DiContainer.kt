@@ -1,9 +1,11 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.di
 
+import otus.homework.coroutines.CatsService
+import otus.homework.coroutines.presentation.PresenterScope
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class DiContainer {
+object DiContainer {
 
     private val retrofit by lazy {
         Retrofit.Builder()
@@ -16,5 +18,5 @@ class DiContainer {
         PresenterScope()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+    val service: CatsService by lazy { retrofit.create(CatsService::class.java) }
 }

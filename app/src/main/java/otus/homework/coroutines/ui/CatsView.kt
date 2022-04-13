@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.ui
 
 import android.content.Context
 import android.util.AttributeSet
@@ -8,6 +8,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import otus.homework.coroutines.R
+import otus.homework.coroutines.presentation.CatsPresenter
+import otus.homework.coroutines.presentation.CatsState
+import otus.homework.coroutines.presentation.ErrorType
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -24,16 +28,17 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(state: CatsViewState) {
+    override fun populate(state: CatsState) {
         findViewById<TextView>(R.id.fact_textView).text = state.fact?.text ?: ""
         val imageView = findViewById<ImageView>(R.id.image)
         Picasso.get().load(state.image?.url).into(imageView)
     }
 
-    override fun showError(error: ICatsView.Error) {
+    override fun showError(error: ErrorType) {
         val message = when (error) {
-            ICatsView.Error.ServerConnectionError -> context.getString(R.string.connection_error)
-            is ICatsView.Error.UnknownError -> error.message
+            ErrorType.ServerConnectionError -> context.getString(R.string.connection_error)
+            is ErrorType.OccurredException -> error.message
+            ErrorType.UnknownError -> return
         }
 
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -42,11 +47,7 @@ class CatsView @JvmOverloads constructor(
 }
 
 interface ICatsView {
-    fun populate(state: CatsViewState)
-    fun showError(error: Error)
+    fun populate(state: CatsState)
+    fun showError(error: ErrorType)
 
-    sealed interface Error {
-        object ServerConnectionError : Error
-        class UnknownError(val message: String) : Error
-    }
 }

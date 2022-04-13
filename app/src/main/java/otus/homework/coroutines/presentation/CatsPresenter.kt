@@ -1,6 +1,8 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation
 
 import kotlinx.coroutines.*
+import otus.homework.coroutines.*
+import otus.homework.coroutines.ui.ICatsView
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -19,7 +21,7 @@ class CatsPresenter(
             val fact = getFactDeferred.await()
             val image = getImageDeferred.await()
 
-            val catsViewState = CatsViewState(
+            val catsViewState = CatsState(
                 fact = fact,
                 image = image
             )
@@ -50,13 +52,13 @@ class CatsPresenter(
         checkCancellationException(throwable)
 
         if (throwable is SocketTimeoutException) {
-            _catsView?.showError(ICatsView.Error.ServerConnectionError)
+            _catsView?.showError(ErrorType.ServerConnectionError)
             return
         }
 
         CrashMonitor.trackWarning()
         throwable.message?.let { message ->
-            _catsView?.showError(ICatsView.Error.UnknownError(message))
+            _catsView?.showError(ErrorType.OccurredException(message))
         }
     }
 
