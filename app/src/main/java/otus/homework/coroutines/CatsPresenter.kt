@@ -1,10 +1,8 @@
 package otus.homework.coroutines
 
-import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
@@ -22,7 +20,6 @@ class CatsPresenter(
     }
 
     private suspend fun getFact() {
-        Log.i("myDebug", "getFact")
         try {
             val fact = catsService.getCatFact()
             _catsView?.populate(fact)
