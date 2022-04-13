@@ -1,35 +1,59 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import android.util.Log
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val crashMonitor: CrashAnalyticManager,
+    private val catsService: CatsService,
+    private val scope: CoroutineScope
 ) {
-
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+        scope.launch {
+            getFact()
+        }
+    }
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
+    private suspend fun getFact() {
+        Log.i("myDebug", "getFact")
+        try {
+            val fact = catsService.getCatFact()
+            _catsView?.populate(fact)
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: SocketTimeoutException) {
+            _catsView?.showServerError()
+        } catch (exception: Exception) {
+            crashMonitor.trackWarning()
+            exception.message?.let {
+                _catsView?.showDefaultError(message = it)
             }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
 
+    fun onStop() {
+        cancelJobs()
+    }
+
     fun detachView() {
+        cancelJobs()
         _catsView = null
+    }
+
+    private fun cancelJobs() {
+        scope.coroutineContext[Job]?.children?.forEach {
+            it.cancel()
+        }
     }
 }

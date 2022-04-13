@@ -1,5 +1,8 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.di
 
+import otus.homework.coroutines.CatsService
+import otus.homework.coroutines.CrashAnalyticManager
+import otus.homework.coroutines.CrashMonitor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -13,4 +16,6 @@ class DiContainer {
     }
 
     val service by lazy { retrofit.create(CatsService::class.java) }
+
+    val crashAnalyticManager: CrashAnalyticManager = CrashMonitor
 }
