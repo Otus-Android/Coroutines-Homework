@@ -1,16 +1,17 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import otus.homework.coroutines.di.DiContainer
 import otus.homework.coroutines.di.MainActivityScreenComponent
 import otus.homework.coroutines.di.MainActivityScreenComponentImpl
+import otus.homework.coroutines.di.MainActivityScreenDependencies
 
 class MainActivity : AppCompatActivity() {
 
-    private val diContainer = DiContainer()
+    private val mainActivityScreenDependencies: MainActivityScreenDependencies = DiContainer()
     private val screenComponent: MainActivityScreenComponent =
-        MainActivityScreenComponentImpl.create(diContainer)
+        MainActivityScreenComponentImpl.create(mainActivityScreenDependencies)
 
     private val catsPresenter: CatsPresenter by lazy { screenComponent.providePresenter() }
 

@@ -6,7 +6,7 @@ import otus.homework.coroutines.CrashMonitor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class DiContainer {
+class DiContainer : MainActivityScreenDependencies {
 
     private val retrofit by lazy {
         Retrofit.Builder()
@@ -15,7 +15,7 @@ class DiContainer {
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+    override val service: CatsService by lazy { retrofit.create(CatsService::class.java) }
 
-    val crashAnalyticManager: CrashAnalyticManager = CrashMonitor
+    override val crashAnalyticManager: CrashAnalyticManager = CrashMonitor
 }

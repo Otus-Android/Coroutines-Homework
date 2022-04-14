@@ -9,8 +9,9 @@ import otus.homework.coroutines.CatsService
 import otus.homework.coroutines.CrashAnalyticManager
 
 
-class MainActivityScreenModule(private val diContainer: DiContainer) {
-
+class MainActivityScreenModule(
+    private val mainActivityScreenDependencies: MainActivityScreenDependencies
+) {
     private fun provideCoroutineDispatcher(): CoroutineDispatcher = Dispatchers.Main
 
     private fun provideCoroutineName(): CoroutineName = CoroutineName("CatsCoroutine")
@@ -21,14 +22,19 @@ class MainActivityScreenModule(private val diContainer: DiContainer) {
     ): CoroutineScope = CoroutineScope(dispatcher + coroutineName)
 
     fun providePresenter(
-        crashMonitor: CrashAnalyticManager = diContainer.crashAnalyticManager,
-        catsService: CatsService = diContainer.service,
+        crashMonitor: CrashAnalyticManager = mainActivityScreenDependencies.crashAnalyticManager,
+        catsService: CatsService = mainActivityScreenDependencies.service,
         coroutineScope: CoroutineScope = provideCoroutineScope()
     ): CatsPresenter = CatsPresenter(
         crashMonitor = crashMonitor,
         catsService = catsService,
         scope = coroutineScope
     )
+}
+
+interface MainActivityScreenDependencies {
+    val service: CatsService
+    val crashAnalyticManager: CrashAnalyticManager
 }
 
 interface MainActivityScreenComponent {
@@ -43,8 +49,10 @@ class MainActivityScreenComponentImpl(
     }
 
     companion object Factory {
-        fun create(diContainer: DiContainer): MainActivityScreenComponent {
-            val mainActivityScreenModule = MainActivityScreenModule(diContainer)
+        fun create(
+            mainActivityScreenDependencies: MainActivityScreenDependencies
+        ): MainActivityScreenComponent {
+            val mainActivityScreenModule = MainActivityScreenModule(mainActivityScreenDependencies)
             return MainActivityScreenComponentImpl(
                 mainActivityScreenModule = mainActivityScreenModule
             )
