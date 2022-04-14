@@ -22,7 +22,8 @@ class CatsPresenter(
     fun onInitComplete() {
         scope.launch {
             exceptionHandler {
-                getFactWithImage()
+                val uiFactEntity = getFactWithImage()
+                _catsView?.populate(uiFactEntity = uiFactEntity)
             }
         }
     }
@@ -47,9 +48,7 @@ class CatsPresenter(
         val factText = catFact.await().text
         val imageUrl = randomCatImage.await().imageUrl
 
-        val uiFactEntity = UiFactEntity(fact = factText, imageUrl = imageUrl)
-
-        _catsView?.populate(uiFactEntity = uiFactEntity)
+        return@coroutineScope UiFactEntity(fact = factText, imageUrl = imageUrl)
     }
 
     private suspend fun exceptionHandler(callback: suspend () -> Unit) {
