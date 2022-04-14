@@ -15,7 +15,10 @@ class CatsPresenter(
 
     fun onInitComplete() {
         scope.launch {
-            getFact()
+            exceptionHandler {
+                val fact = getFact()
+                _catsView?.populate(fact)
+            }
         }
     }
 
@@ -32,12 +35,7 @@ class CatsPresenter(
         _catsView = null
     }
 
-    private suspend fun getFact() {
-        exceptionHandler {
-            val fact = catsService.getCatFact()
-            _catsView?.populate(fact)
-        }
-    }
+    private suspend fun getFact(): Fact = catsService.getCatFact()
 
     private suspend fun exceptionHandler(callback: suspend () -> Unit) {
         try {
