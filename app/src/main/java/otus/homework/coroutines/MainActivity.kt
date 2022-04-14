@@ -24,7 +24,6 @@ class MainActivity : AppCompatActivity() {
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
-
     }
 
     override fun onStop() {
