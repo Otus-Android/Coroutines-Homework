@@ -3,7 +3,6 @@ package otus.homework.coroutines.presentation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.CrashMonitor
-import otus.homework.coroutines.ICatsView
 import otus.homework.coroutines.data.CatsRepo
 import java.net.SocketTimeoutException
 
@@ -17,7 +16,7 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                _catsView?.populate(catsRepo.getCatsFactsWithPhoto())
+                _catsView?.displayData(catsRepo.getCatsFactsWithPhoto())
             } catch (e: Exception) {
                 when (e) {
                     is SocketTimeoutException -> {
