@@ -19,22 +19,6 @@ class CatsPresenter(
         }
     }
 
-    private suspend fun getFact() {
-        try {
-            val fact = catsService.getCatFact()
-            _catsView?.populate(fact)
-        } catch (exception: CancellationException) {
-            throw exception
-        } catch (exception: SocketTimeoutException) {
-            _catsView?.showServerError()
-        } catch (exception: Exception) {
-            crashMonitor.trackWarning()
-            exception.message?.let {
-                _catsView?.showDefaultError(message = it)
-            }
-        }
-    }
-
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
@@ -46,6 +30,28 @@ class CatsPresenter(
     fun detachView() {
         cancelJobs()
         _catsView = null
+    }
+
+    private suspend fun getFact() {
+        exceptionHandler {
+            val fact = catsService.getCatFact()
+            _catsView?.populate(fact)
+        }
+    }
+
+    private suspend fun exceptionHandler(callback: suspend () -> Unit) {
+        try {
+            callback.invoke()
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (exception: SocketTimeoutException) {
+            _catsView?.showServerError()
+        } catch (exception: Exception) {
+            crashMonitor.trackWarning()
+            exception.message?.let {
+                _catsView?.showDefaultError(message = it)
+            }
+        }
     }
 
     private fun cancelJobs() {
