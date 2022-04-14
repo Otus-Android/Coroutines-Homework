@@ -1,8 +1,8 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.data
 
 import retrofit2.http.GET
 
-interface CatsService {
+interface CatsFactsService {
 
     @GET("random?animal_type=cat")
     suspend fun getCatFact(): Fact

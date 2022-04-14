@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation
 
 sealed class CatsError(val message: String) {
     companion object {
