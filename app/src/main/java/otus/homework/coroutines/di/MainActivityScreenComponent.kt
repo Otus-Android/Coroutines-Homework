@@ -5,8 +5,9 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import otus.homework.coroutines.CatsPresenter
-import otus.homework.coroutines.CatsService
 import otus.homework.coroutines.CrashAnalyticManager
+import otus.homework.coroutines.network.services.CatsService
+import otus.homework.coroutines.network.services.RandomCatImageService
 
 
 class MainActivityScreenModule(
@@ -23,17 +24,21 @@ class MainActivityScreenModule(
 
     fun providePresenter(
         crashMonitor: CrashAnalyticManager = mainActivityScreenDependencies.crashAnalyticManager,
-        catsService: CatsService = mainActivityScreenDependencies.service,
+        catsService: CatsService = mainActivityScreenDependencies.catsService,
+        randomCatImageService: RandomCatImageService =
+            mainActivityScreenDependencies.randomCatImageService,
         coroutineScope: CoroutineScope = provideCoroutineScope()
     ): CatsPresenter = CatsPresenter(
         crashMonitor = crashMonitor,
         catsService = catsService,
+        randomCatImageService = randomCatImageService,
         scope = coroutineScope
     )
 }
 
 interface MainActivityScreenDependencies {
-    val service: CatsService
+    val catsService: CatsService
+    val randomCatImageService: RandomCatImageService
     val crashAnalyticManager: CrashAnalyticManager
 }
 
