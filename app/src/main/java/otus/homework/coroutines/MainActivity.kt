@@ -1,7 +1,9 @@
 package otus.homework.coroutines
 
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import otus.homework.coroutines.di.DiContainer
 import otus.homework.coroutines.di.MainActivityScreenComponent
 import otus.homework.coroutines.di.MainActivityScreenComponentImpl
@@ -13,7 +15,11 @@ class MainActivity : AppCompatActivity() {
     private val screenComponent: MainActivityScreenComponent =
         MainActivityScreenComponentImpl.create(mainActivityScreenDependencies)
 
-    private val catsPresenter: CatsPresenter by lazy { screenComponent.providePresenter() }
+    private val factoryProducer: ViewModelProvider.Factory by lazy {
+        screenComponent.provideViewModelFactory()
+    }
+
+    private val viewModel: CatsViewModel by viewModels { factoryProducer }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,22 +27,17 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+        view.viewModel = viewModel
+        viewModel.onInitComplete()
+
+        viewModel.fact.observe(this) { result ->
+            view.render(result)
+        }
     }
 
     override fun onStop() {
-        catsPresenter.onStop()
+        viewModel.onStop()
 
-        if (isFinishing) {
-            catsPresenter.detachView()
-        }
         super.onStop()
-    }
-
-    override fun onDestroy() {
-        catsPresenter.detachView()
-        super.onDestroy()
     }
 }

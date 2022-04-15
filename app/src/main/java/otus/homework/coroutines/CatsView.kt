@@ -20,7 +20,7 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
+    var viewModel: CatsViewModel? = null
 
     private var button: Button? = null
     private var tvFact: TextView? = null
@@ -46,12 +46,28 @@ class CatsView @JvmOverloads constructor(
                 ivCatImage?.setImageDrawable(null)
                 tvFact?.text = ""
 
-                presenter?.onInitComplete()
+                viewModel?.onInitComplete()
             }
         }
     }
 
-    override fun populate(uiFactEntity: UiFactEntity) {
+    override fun render(result: Result<UiFactEntity>) {
+        when (result) {
+            is ServerError -> {
+                showServerError()
+            }
+            is OtherError -> {
+                val errorMessage = result.errorMessage
+                    ?: context.getString(R.string.default_error_message)
+                showDefaultError(message = errorMessage)
+            }
+            is Success<UiFactEntity> -> {
+                populate(result.result)
+            }
+        }
+    }
+
+    private fun populate(uiFactEntity: UiFactEntity) {
         tvFact?.text = uiFactEntity.fact
 
         Picasso.get()
@@ -61,7 +77,7 @@ class CatsView @JvmOverloads constructor(
             .into(ivCatImage, imageLoadingCallback)
     }
 
-    override fun showServerError() {
+    private fun showServerError() {
         progressBar?.visibility = View.GONE
 
         val serverErrorMessage = context.getString(R.string.server_error_message)
@@ -70,7 +86,7 @@ class CatsView @JvmOverloads constructor(
         toast.show()
     }
 
-    override fun showDefaultError(message: String) {
+    private fun showDefaultError(message: String) {
         progressBar?.visibility = View.GONE
 
         val toast = Toast.makeText(context, message, Toast.LENGTH_SHORT)
@@ -93,10 +109,5 @@ class CatsView @JvmOverloads constructor(
 }
 
 interface ICatsView {
-
-    fun populate(uiFactEntity: UiFactEntity)
-
-    fun showServerError()
-
-    fun showDefaultError(message: String)
+    fun render(result: Result<UiFactEntity>)
 }

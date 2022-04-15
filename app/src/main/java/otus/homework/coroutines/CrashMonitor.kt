@@ -1,14 +1,14 @@
 package otus.homework.coroutines
 
 interface CrashAnalyticManager {
-    fun trackWarning()
+    fun trackWarning(exception: Throwable)
 }
 
-object CrashMonitor: CrashAnalyticManager {
+object CrashMonitor : CrashAnalyticManager {
 
     /**
      * Pretend this is Crashlytics/AppCenter
      */
-    override fun trackWarning() {
+    override fun trackWarning(exception: Throwable) {
     }
 }
