@@ -1,35 +1,75 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import otus.homework.coroutines.network.services.CatsService
+import otus.homework.coroutines.network.services.RandomCatImageService
+import otus.homework.coroutines.uientities.UiFactEntity
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val crashMonitor: CrashAnalyticManager,
+    private val catsService: CatsService,
+    private val randomCatImageService: RandomCatImageService,
+    private val scope: CoroutineScope
 ) {
-
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
+        scope.launch {
+            exceptionHandler {
+                val uiFactEntity = getFactWithImage()
+                _catsView?.populate(uiFactEntity = uiFactEntity)
             }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
 
+    fun onStop() {
+        cancelJobs()
+    }
+
     fun detachView() {
+        cancelJobs()
         _catsView = null
+    }
+
+    private suspend fun getFactWithImage() = coroutineScope {
+        val catFact = async { catsService.getCatFact() }
+        val randomCatImage = async { randomCatImageService.getRandomCatImage() }
+
+        val factText = catFact.await().text
+        val imageUrl = randomCatImage.await().imageUrl
+
+        return@coroutineScope UiFactEntity(fact = factText, imageUrl = imageUrl)
+    }
+
+    private suspend fun exceptionHandler(callback: suspend () -> Unit) {
+        try {
+            callback.invoke()
+        } catch (exception: CancellationException) {
+            exception.printStackTrace()
+            throw exception
+        } catch (exception: SocketTimeoutException) {
+            exception.printStackTrace()
+            _catsView?.showServerError()
+        } catch (exception: Exception) {
+            exception.printStackTrace()
+            crashMonitor.trackWarning(exception = exception)
+            exception.message?.let {
+                _catsView?.showDefaultError(message = it)
+            }
+        }
+    }
+
+    private fun cancelJobs() {
+        scope.coroutineContext.cancelChildren()
     }
 }
