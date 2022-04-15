@@ -30,7 +30,7 @@ class CatsViewModel(
     val fact: LiveData<Result<UiFactEntity>> = _fact
 
     override fun onCleared() {
-        viewModelScope.coroutineContext.cancelChildren()
+        cancelJobs()
         super.onCleared()
     }
 
@@ -45,7 +45,7 @@ class CatsViewModel(
     }
 
     fun onStop() {
-        viewModelScope.coroutineContext.cancelChildren()
+        cancelJobs()
     }
 
     private suspend fun getFactWithImage(): Result<UiFactEntity> = coroutineScope {
@@ -68,5 +68,9 @@ class CatsViewModel(
             exception.printStackTrace()
             ServerError
         }
+    }
+
+    private fun cancelJobs() {
+        viewModelScope.coroutineContext.cancelChildren()
     }
 }
