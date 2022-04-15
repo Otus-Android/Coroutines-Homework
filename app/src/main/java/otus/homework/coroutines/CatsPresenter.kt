@@ -2,7 +2,7 @@ package otus.homework.coroutines
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
@@ -45,7 +45,7 @@ class CatsPresenter(
         } catch (exception: SocketTimeoutException) {
             _catsView?.showServerError()
         } catch (exception: Exception) {
-            crashMonitor.trackWarning()
+            crashMonitor.trackWarning(exception = exception)
             exception.message?.let {
                 _catsView?.showDefaultError(message = it)
             }
@@ -53,8 +53,6 @@ class CatsPresenter(
     }
 
     private fun cancelJobs() {
-        scope.coroutineContext[Job]?.children?.forEach {
-            it.cancel()
-        }
+        scope.coroutineContext.cancelChildren()
     }
 }
