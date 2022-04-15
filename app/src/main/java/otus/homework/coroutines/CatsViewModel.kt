@@ -36,11 +36,7 @@ class CatsViewModel(
 
     fun onInitComplete() {
         viewModelScope.launch(handler) {
-            val result = exceptionHandler {
-                getFactWithImage()
-            }
-
-            _fact.value = result
+            _fact.value = getFactWithImage()
         }
     }
 
@@ -48,17 +44,19 @@ class CatsViewModel(
         cancelJobs()
     }
 
-    private suspend fun getFactWithImage(): Result<UiFactEntity> = coroutineScope {
-        val catFact = async { catsService.getCatFact() }
-        val randomCatImage = async { randomCatImageService.getRandomCatImage() }
+    private suspend fun getFactWithImage(): Result<UiFactEntity> = exceptionHandler {
+        coroutineScope {
+            val catFact = async { catsService.getCatFact() }
+            val randomCatImage = async { randomCatImageService.getRandomCatImage() }
 
-        val factText = catFact.await().text
+            val factText = catFact.await().text
 
-        val imageUrl = randomCatImage.await().imageUrl
+            val imageUrl = randomCatImage.await().imageUrl
 
-        val result = UiFactEntity(fact = factText, imageUrl = imageUrl)
+            val result = UiFactEntity(fact = factText, imageUrl = imageUrl)
 
-        return@coroutineScope Success(result = result)
+            return@coroutineScope Success(result = result)
+        }
     }
 
     private suspend fun <T> exceptionHandler(callback: suspend () -> Result<T>): Result<T> {
