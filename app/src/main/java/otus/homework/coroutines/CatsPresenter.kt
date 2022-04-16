@@ -1,28 +1,19 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.*
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val presenterScope: CoroutineScope
 ) {
-
     private var _catsView: ICatsView? = null
+    private val catsView get() = checkNotNull(_catsView)
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
-            }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        presenterScope.launch {
+            loadData()
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -32,4 +23,33 @@ class CatsPresenter(
     fun detachView() {
         _catsView = null
     }
+
+    fun stop() {
+        presenterScope.cancel()
+    }
+
+    private suspend fun loadData() =
+        try {
+            coroutineScope {
+                val fact = async {
+                    catsService.getCatFact()
+                }
+
+                val image = async {
+                    catsService.getCatImage()
+                }
+
+                val state = CatUiState(fact.await(), image.await())
+
+                catsView.populate(state)
+            }
+        } catch (e: CancellationException) {
+            catsView.showMessage("Отменено")
+            throw e
+        } catch (timeoutException: SocketTimeoutException) {
+            catsView.showMessage("Не удалось получить ответ от сервера")
+        } catch (exception: Exception) {
+            catsView.showMessage("Упс, произошла ошибка: ${exception.message}")
+            CrashMonitor.trackWarning(exception)
+        }
 }
