@@ -1,6 +1,7 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -22,7 +23,7 @@ class CatsPresenter(
         scope.launch {
             supervisorScope {
                 try {
-                    val catFactResponse = async { catsService.getCatFact() }
+                    val catFactResponse = async(Dispatchers.IO) { catsService.getCatFact() }
                     _catsView?.populate(catFactResponse.await())
                 } catch (e: SocketTimeoutException) {
                     _catsView?.showErrorToast(R.string.network_error)
