@@ -11,6 +11,7 @@ class DiContainer {
         private const val FACT_SERVICE_URL = "https://cat-fact.herokuapp.com/facts/"
         private const val IMAGE_SERVICE_URL = "https://aws.random.cat/"
     }
+
     private fun createRetrofitClient(url: String): Retrofit {
         return Retrofit.Builder()
             .baseUrl(url)

@@ -10,7 +10,6 @@ import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.network.dto.CatData
-import otus.homework.coroutines.network.dto.CatFact
 
 class CatsView @JvmOverloads constructor(
     context: Context,

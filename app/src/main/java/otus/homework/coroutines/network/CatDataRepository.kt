@@ -4,7 +4,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import otus.homework.coroutines.network.dto.CatData
-import otus.homework.coroutines.network.dto.CatImage
 import otus.homework.coroutines.network.services.FactService
 import otus.homework.coroutines.network.services.ImageService
 

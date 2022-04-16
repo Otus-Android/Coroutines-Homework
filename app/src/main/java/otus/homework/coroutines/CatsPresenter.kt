@@ -31,7 +31,6 @@ class CatsPresenter(
         }
     }
 
-
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
