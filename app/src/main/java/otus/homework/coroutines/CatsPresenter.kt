@@ -1,19 +1,14 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.lang.Exception
+import otus.homework.coroutines.network.CatDataRepository
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catDataRepository: CatDataRepository
 ) {
 
     private var _catsView: ICatsView? = null
@@ -23,8 +18,8 @@ class CatsPresenter(
         scope.launch {
             supervisorScope {
                 try {
-                    val catFactResponse = async(Dispatchers.IO) { catsService.getCatFact() }
-                    _catsView?.populate(catFactResponse.await())
+                    val catData = catDataRepository.request()
+                    _catsView?.populate(catData)
                 } catch (e: SocketTimeoutException) {
                     _catsView?.showErrorToast(R.string.network_error)
                 } catch (e: CancellationException) {
@@ -35,6 +30,7 @@ class CatsPresenter(
             }
         }
     }
+
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
