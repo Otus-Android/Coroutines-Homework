@@ -2,9 +2,7 @@ package otus.homework.coroutines.presentation
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewTreeLifecycleOwner
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.R
 
@@ -23,11 +21,13 @@ class MainActivity : AppCompatActivity() {
         view.viewModel = viewModel
 
         lifecycleScope.launch {
-            viewModel.catResultFlow.collect { result ->
-                when (result) {
-                    is Result.Loading -> view.displayLoading()
-                    is Result.Error -> view.displayError(result.error)
-                    is Result.Success -> view.displayData(result.data)
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.catResultFlow.collect { result ->
+                    when (result) {
+                        is Result.Loading -> view.displayLoading()
+                        is Result.Error -> view.displayError(result.error)
+                        is Result.Success -> view.displayData(result.data)
+                    }
                 }
             }
         }
