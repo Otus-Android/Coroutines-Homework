@@ -5,6 +5,6 @@ object CrashMonitor {
     /**
      * Pretend this is Crashlytics/AppCenter
      */
-    fun trackWarning() {
-    }
+    fun trackWarning() = Unit
+    fun trackException(e: Throwable) = println("Log error: ${e.message}")
 }
