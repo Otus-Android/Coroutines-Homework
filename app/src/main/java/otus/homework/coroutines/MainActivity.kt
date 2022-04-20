@@ -47,9 +47,8 @@ class MainActivity : AppCompatActivity() {
         if (it is Success<*>){
             findViewById<TextView>(R.id.fact_textView).text = it.text
             if (it.data is String ){
-                val data = it.data as String
-                if (data.isNotEmpty())
-                    Picasso.get().load(data).into(findViewById<ImageView>(R.id.fact_imageView))
+                if ((it.data as String).isNotEmpty())
+                    Picasso.get().load(it.data as String).into(findViewById<ImageView>(R.id.fact_imageView))
             }
         }
         else Toast.makeText( this, it.text, Toast.LENGTH_LONG).show()
