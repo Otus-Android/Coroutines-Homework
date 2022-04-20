@@ -1,13 +1,11 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catsViewService: CatsViewService
 ) {
 
     private var _catsView: ICatsView? = null
@@ -18,19 +16,33 @@ class CatsPresenter(
 
         presenterScope.launch {
 
+            val fact = Fact("", false, "","", "", true, "", "","")
             try {
-                val response = catsService.getCatFact()
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+
+                val job1 = async {
+
+                        val response = catsService.getCatFact()
+                        if (response.isSuccessful && response.body() != null) {
+                            fact.text = response.body()!!.text
+                        }
+                        else _catsView?.toast("Сервис фактов отвечает неправильно")
                 }
-            }
-            catch(error: SocketTimeoutException){
+
+                val job2 = async {
+                        val responseView = catsViewService.getCatView()
+                        if (responseView.isSuccessful && responseView.body() != null) {
+                            fact.source = responseView.body()!!.file
+                        } else _catsView?.toast("Сервис картинок отвечает неправильно")
+                }
+                job1.await()
+                job2.await()
+            } catch (error: SocketTimeoutException) {
                 _catsView?.toast("Не удалось получить ответ от сервера")
-            }
-            catch(error: Exception){
+            } catch (error: Exception) {
                 CrashMonitor.trackWarning()
                 _catsView?.toast(error.message.toString())
             }
+            _catsView?.populate(fact)
         }
     }
 
