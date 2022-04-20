@@ -1,10 +1,12 @@
 package otus.homework.coroutines
 
-object CrashMonitor {
+import android.util.Log
 
+object CrashMonitor {
     /**
      * Pretend this is Crashlytics/AppCenter
      */
-    fun trackWarning() {
+    fun trackWarning(t:Throwable) {
+        Log.e("CrashMonitor", t.message?:"Error occurred")
     }
 }
