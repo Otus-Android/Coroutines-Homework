@@ -1,34 +1,46 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.lang.Exception
+import otus.homework.coroutines.api.CatFactService
+import otus.homework.coroutines.api.CatPhotoService
+import otus.homework.coroutines.data.CatDTO
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catFactService: CatFactService,
+    private val catPhotoService: CatPhotoService
 ) {
-    private val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
+    private val presenterScope =
+        CoroutineScope(Dispatchers.Main + SupervisorJob() + CoroutineName("CatsCoroutine"))
 
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        presenterScope.launch {
-            try {
-                val response = catsService.getCatFact()
-                _catsView?.populate(response)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: SocketTimeoutException) {
-                _catsView?.showServerResponseError()
-            } catch (e: Exception) {
-                e.message?.let { errorMessage ->
-                    _catsView?.showError(errorMessage)
-                }
-                CrashMonitor.trackWarning()
+        presenterScope.launch(exceptionHandler) {
+            val downloadFactJob = async {
+                catFactService.getCatFact()
             }
+
+            val downloadPhotoJob = async {
+                catPhotoService.getCatPhoto()
+            }
+
+            val catDTO = CatDTO(
+                photo = downloadPhotoJob.await(),
+                fact = downloadFactJob.await()
+            )
+            _catsView?.populate(catDTO)
+        }
+    }
+
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        if (throwable is SocketTimeoutException) {
+            _catsView?.showServerResponseError()
+        } else {
+            throwable.message?.let { errorMessage ->
+                _catsView?.showError(errorMessage)
+            }
+            CrashMonitor.trackWarning()
         }
     }
 
