@@ -16,11 +16,22 @@ class CatsPresenter(
         job = presenterScope.launch {
             supervisorScope {
                 try {
-                    val result = async(Dispatchers.IO) {
+                    val fact = async(Dispatchers.IO) {
                         catsService.getCatFact()
                     }
 
-                    _catsView?.populate(result.await())
+                    val image = async(Dispatchers.IO) {
+                        catsService.getCatImage()
+                    }
+
+                   val result  = awaitAll(fact, image)
+
+                    if (result.size == 2) {
+                        val factAndImage = FactAndImage(result[0] as Fact?, result[1] as Image?)
+                        _catsView?.populate(factAndImage)
+                    } else if (result[0] is Throwable) {
+                        throw result[0] as Throwable
+                    }
 
                 } catch (exception: Exception) {
                     when (exception) {
