@@ -1,22 +1,28 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.viewmodel
 
-import kotlinx.coroutines.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.api.CatFactService
 import otus.homework.coroutines.api.CatPhotoService
 import otus.homework.coroutines.data.CatDTO
 import java.net.SocketTimeoutException
 
-class CatsPresenter(
+class CatsViewModel(
     private val catFactService: CatFactService,
     private val catPhotoService: CatPhotoService
-) {
-    private val presenterScope =
-        CoroutineScope(Dispatchers.Main + SupervisorJob() + CoroutineName("CatsCoroutine"))
+) : ViewModel() {
 
-    private var _catsView: ICatsView? = null
+    private val _catData = MutableStateFlow<Result<CatDTO>?>(null)
+    val catData: StateFlow<Result<CatDTO>?> = _catData
 
     fun onInitComplete() {
-        presenterScope.launch(exceptionHandler) {
+        viewModelScope.launch(exceptionHandler) {
             val downloadFactJob = async {
                 catFactService.getCatFact()
             }
@@ -29,27 +35,18 @@ class CatsPresenter(
                 photo = downloadPhotoJob.await(),
                 fact = downloadFactJob.await()
             )
-            _catsView?.populate(catDTO)
+            _catData.value = Result.Success(catDTO)
         }
     }
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         if (throwable is SocketTimeoutException) {
-            _catsView?.showServerResponseError()
+            _catData.value = Result.Error("Не удалось получить ответ от сервера")
         } else {
             throwable.message?.let { errorMessage ->
-                _catsView?.showError(errorMessage)
+                _catData.value = Result.Error(errorMessage)
             }
             CrashMonitor.trackWarning()
         }
-    }
-
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
-
-    fun detachView() {
-        presenterScope.cancel()
-        _catsView = null
     }
 }
