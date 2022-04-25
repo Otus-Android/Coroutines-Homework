@@ -14,8 +14,8 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
             CrashMonitor.trackWarning(throwable)
         }
 
-    private val _facts: MutableLiveData<Result> = MutableLiveData<Result>()
-    val facts: LiveData<Result>
+    private val _facts: MutableLiveData<Result<FactAndImage>> = MutableLiveData<Result<FactAndImage>>()
+    val facts: LiveData<Result<FactAndImage>>
         get() {
             return _facts
         }
@@ -25,11 +25,11 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
         viewModelScope.launch(exceptionHandler + CoroutineName("ViewModel")) {
             supervisorScope {
                 try {
-                    val fact = async(Dispatchers.IO) {
+                    val fact = async {
                         catsService.getCatFact()
                     }
 
-                    val image = async(Dispatchers.IO) {
+                    val image = async {
                         catsService.getCatImage()
                     }
 

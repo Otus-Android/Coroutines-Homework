@@ -10,17 +10,16 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
     private val presenterScope = PresenterScope()
-    private lateinit var job: Job
 
     fun onInitComplete() {
-        job = presenterScope.launch {
+        presenterScope.launch {
             supervisorScope {
                 try {
-                    val fact = async(Dispatchers.IO) {
+                    val fact = async {
                         catsService.getCatFact()
                     }
 
-                    val image = async(Dispatchers.IO) {
+                    val image = async {
                         catsService.getCatImage()
                     }
 
@@ -52,8 +51,8 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        if (job.isActive) {
-            job.cancel()
+        if (presenterScope.isActive) {
+            presenterScope.cancel()
         }
         _catsView = null
     }

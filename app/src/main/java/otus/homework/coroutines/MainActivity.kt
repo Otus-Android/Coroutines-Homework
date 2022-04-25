@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
                 is Error -> {
                     view.showError(result.error)
                 }
-                is Success -> {
+                is Success<FactAndImage> -> {
                     view.populate(result.fact)
                 }
             }
