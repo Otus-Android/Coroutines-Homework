@@ -1,28 +1,49 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.*
+import java.lang.IllegalArgumentException
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
     private val catsService: CatsService
 ) {
 
     private var _catsView: ICatsView? = null
+    private val presenterScope = PresenterScope()
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+        presenterScope.launch {
+            supervisorScope {
+                try {
+                    val fact = async {
+                        catsService.getCatFact()
+                    }
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+                    val image = async {
+                        catsService.getCatImage()
+                    }
+
+                   val result  = awaitAll(fact, image)
+
+                    if (result.size == 2) {
+                        val factAndImage = FactAndImage(result[0] as Fact?, result[1] as Image?)
+                        _catsView?.populate(factAndImage)
+                    } else if (result[0] is Throwable) {
+                        throw result[0] as Throwable
+                    }
+
+                } catch (exception: Exception) {
+                    when (exception) {
+                        is CancellationException -> throw exception
+                        is SocketTimeoutException -> _catsView?.showError("Не удалось получить ответ от сервера")
+                        else -> {
+                            CrashMonitor.trackWarning(exception)
+                            _catsView?.showError(exception.message)
+                        }
+                    }
                 }
             }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -30,6 +51,9 @@ class CatsPresenter(
     }
 
     fun detachView() {
+        if (presenterScope.isActive) {
+            presenterScope.cancel()
+        }
         _catsView = null
     }
 }
