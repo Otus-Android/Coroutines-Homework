@@ -2,12 +2,16 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.lifecycle.ViewModelProvider
+import com.squareup.picasso.Picasso
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
-
-    private val diContainer = DiContainer()
+    private lateinit var catsModel: CatsModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -15,16 +19,30 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+        catsModel = ViewModelProvider(this)[CatsModel::class.java]
+
+        catsModel.state.observe(this){
+            showState(it)
+        }
+
+        findViewById<Button>(R.id.button).setOnClickListener {
+            catsModel.getFileViewAndText()
+        }
+
+        catsModel.getFileViewAndText()
     }
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+    private fun showState( it: Result<*> ){
+        if (it is Success<*>) {
+            if (it.data is Fact) {
+                val fact = it.data as Fact
+                findViewById<TextView>(R.id.fact_textView).text = fact.text
+                if (fact.source.isNotEmpty())
+                    Picasso.get().load(fact.source)
+                        .into(findViewById<ImageView>(R.id.fact_imageView))
+
+            }
         }
-        super.onStop()
+        else Toast.makeText( this, it.data.toString(), Toast.LENGTH_LONG).show()
     }
 }

@@ -10,9 +10,9 @@ data class Fact(
 	@field:SerializedName("_id")
 	val id: String,
 	@field:SerializedName("text")
-	val text: String,
+	var text: String,
 	@field:SerializedName("source")
-	val source: String,
+	var source: String,
 	@field:SerializedName("used")
 	val used: Boolean,
 	@field:SerializedName("type")
@@ -22,3 +22,12 @@ data class Fact(
 	@field:SerializedName("updatedAt")
 	val updatedAt: String
 )
+
+data class ViewCat(
+	@field:SerializedName("file")
+	val file: String
+)
+
+fun FactShort(text: String, source: String): Fact {
+	return Fact(createdAt = "", deleted = false, id = "", text = text, source = source, type = "", updatedAt = "", used = false, user = ""  )
+}
