@@ -1,9 +1,7 @@
 package otus.homework.coroutines
 
-sealed class Result(open val text: String)
+sealed class Result<T>(open val data: T)
 
-data class Success<T>(override var text: String, var data: T): Result(text)
+data class Success<T>(override var data: T): Result<T>(data)
 
-data class Error(override val text: String): Result(text){
-
-}
+data class Error<String>(override val data: String): Result<String>(data)

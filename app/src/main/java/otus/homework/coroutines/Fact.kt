@@ -27,3 +27,7 @@ data class ViewCat(
 	@field:SerializedName("file")
 	val file: String
 )
+
+fun FactShort(text: String, source: String): Fact {
+	return Fact(createdAt = "", deleted = false, id = "", text = text, source = source, type = "", updatedAt = "", used = false, user = ""  )
+}
