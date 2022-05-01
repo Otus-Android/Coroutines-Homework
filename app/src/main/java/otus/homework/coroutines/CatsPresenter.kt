@@ -6,7 +6,8 @@ import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsTextService: CatsService,
+    private val catsImageService: CatsImageService
 ) {
 
     private var _catsView: ICatsView? = null
@@ -15,8 +16,9 @@ class CatsPresenter(
     fun onInitComplete() {
         scope.launch {
             try {
-                val cats = async (Dispatchers.IO) { catsService.getCatFact() }
-                _catsView?.populate(cats.await())
+                val catsText = async (Dispatchers.IO) { catsTextService.getCatFact() }
+                val catsImage = async (Dispatchers.IO) { catsImageService.getCatImage() }
+                _catsView?.populate(CatsData.create(catsText.await(), catsImage.await()))
             } catch (e: SocketTimeoutException) {
                 _catsView?.showErrorMessage("Не удалось получить ответ от сервера")
             } catch (e: Exception) {
