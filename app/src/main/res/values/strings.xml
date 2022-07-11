@@ -1,4 +1,5 @@
 <resources>
-    <string name="app_name">Cat Facts </string>
-    <string name="more_facts">More Facts</string>
+    <string name="app_name">Cats</string>
+    <string name="more_facts">More cats</string>
+    <string name="socket_timeout_ex_message">Не удалось получить ответ от сервера.</string>
 </resources>

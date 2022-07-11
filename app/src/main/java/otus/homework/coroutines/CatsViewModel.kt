@@ -1,46 +1,48 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
-class CatsPresenter(
+class CatsViewModel(
     private val catsService: CatsService,
     private val catsImageService: CatsService
-) {
+) : ViewModel() {
 
     private var _catsView: ICatsView? = null
-    private var presenterScope: CoroutineScope = CatsCoroutineScope
+    private var presenterScope: CoroutineScope = viewModelScope
+    private val catsLiveData = MutableLiveData<Result>()
+    val getCatsLiveData: LiveData<Result>
+        get() = catsLiveData
 
     fun onInitComplete() {
-        presenterScope.launch {
+
+        presenterScope.launch(CoroutineExceptionHandler { _, _ ->
+            CrashMonitor.trackWarning()
+        }) {
             try {
                 val factResponse =
                     withContext(Dispatchers.Default) { catsService.getCatFact() }
                 val imageResponse =
                     withContext(Dispatchers.Default) { catsImageService.getCatImage() }
 
-                _catsView?.populate(FactAndImage(factResponse.text, imageResponse.file))
+                catsLiveData.value =
+                    Result.Success(FactAndImage(factResponse.text, imageResponse.file))
 
             } catch (ex: Exception) {
                 when (ex) {
                     is SocketTimeoutException -> {
-                        _catsView?.showMessageResource(R.string.socket_timeout_ex_message)
+                        Result.Error(null, R.string.socket_timeout_ex_message)
                     }
                     else -> {
                         CrashMonitor.trackWarning()
-                        _catsView?.showMessage(ex.message ?: "")
+                        Result.Error(ex.message ?: "", null)
                     }
                 }
             }
         }
-    }
-
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
-
-    fun detachView() {
-        _catsView = null
-        presenterScope.cancel()
     }
 }
