@@ -29,10 +29,14 @@ class CatsViewModel(
   fun getCatData() {
     viewModelScope.launch(CoroutineExceptionHandler { _, _ -> CrashMonitor::trackWarning }) {
       try {
-        val catFact = async { catFactsService.getCatFact() }.await()
-        val catImageUri = async(this.coroutineContext) { catImagesService.getCatImageUri().catImageUri }.await()
+        val catFact = async {
+          catFactsService.getCatFact()
+        }
+        val catImageUri = async {
+          catImagesService.getCatImageUri().catImageUri
+        }
 
-        _catLiveData.value = Success(CatData(catFact.text, catImageUri))
+        _catLiveData.value = Success(CatData(catFact.await().text, catImageUri.await()))
       } catch (e: Exception) {
         when (e) {
           is SocketTimeoutException -> {
