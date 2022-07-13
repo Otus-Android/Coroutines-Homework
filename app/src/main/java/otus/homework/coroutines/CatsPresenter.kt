@@ -1,28 +1,46 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.*
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsServiceFact: CatsService,
+    private val catsServiceImg: CatsService
 ) {
 
     private var _catsView: ICatsView? = null
+    private var presenterScope: CoroutineScope = PresenterScope()
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+        presenterScope.launch {
+            try {
+                coroutineScope {
+                    val factRequest = async {
+                        catsServiceFact.getCatFact()
+                    }
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+                    val imageRequest = async {
+                        catsServiceImg.getCatImage()
+                    }
+
+                    _catsView?.populate(IllustratedFact(imageRequest.await(), factRequest.await()))
                 }
             }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
+            catch (ex: Exception) {
+                when (ex) {
+                    is SocketTimeoutException -> {
+                        _catsView?.showResourceString(R.string.socket_timeout_error)
+                    }
+                    is CancellationException -> {
+                        throw(ex)
+                    }
+                    else -> {
+                        CrashMonitor.trackWarning()
+                        _catsView?.showErrorText(ex.message)
+                    }
+                }
             }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -31,5 +49,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+        presenterScope.cancel()
     }
 }
