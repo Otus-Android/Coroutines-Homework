@@ -28,7 +28,7 @@ class CatsPresenter(
             } catch (e: SocketTimeoutException) {
                 _catsView?.showServerResponseError()
             } catch (e: Exception) {
-                CrashMonitor.trackWarning()
+                CrashMonitor.trackWarning(e)
                 e.message?.let {
                     _catsView?.showError(it)
                 }
