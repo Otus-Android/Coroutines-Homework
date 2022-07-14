@@ -1,28 +1,42 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import android.util.Log
+import kotlinx.coroutines.*
+import java.net.SocketTimeoutException
+import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
     private val catsService: CatsService
 ) {
 
     private var _catsView: ICatsView? = null
+    private val presenterScope = PresenterScope()
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+        presenterScope.launch(CoroutineExceptionHandler { coroutineContext, throwable ->
+            //Обрабатываем непредвиденную ошибку
+            CrashMonitor.trackWarning(throwable)
+            _catsView?.showToast(throwable.message ?: throwable.toString())
+        }
+        ) {
+            try {
+                val response = catsService.getCatFact()
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
                 if (response.isSuccessful && response.body() != null) {
+                    Log.e("CatsPresenter", "Success!!!")
                     _catsView?.populate(response.body()!!)
                 }
+                else {
+                    throw Exception(if (response.body() == null) "Incorrect data from server" else response.message())
+                }
             }
+            //Обрабатываем определённые ошибки
+            catch (e: SocketTimeoutException) {
+                Log.e("CatsPresenter", "Error: $e")
+                _catsView?.showToast("Не удалось получить ответ от сервера")
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
             }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -32,4 +46,15 @@ class CatsPresenter(
     fun detachView() {
         _catsView = null
     }
+
+    fun cancelRequests() {
+        presenterScope.cancel()
+    }
+
+}
+
+class PresenterScope : CoroutineScope {
+    override val coroutineContext: CoroutineContext
+        get() = Job() + Dispatchers.Main + CoroutineName("CatsCoroutine")
+
 }
