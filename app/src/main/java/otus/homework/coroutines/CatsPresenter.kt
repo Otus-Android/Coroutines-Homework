@@ -6,7 +6,8 @@ import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catPictureService: CatPictureService,
 ) {
 
     private var _catsView: ICatsView? = null
@@ -20,14 +21,42 @@ class CatsPresenter(
         }
         ) {
             try {
-                val response = catsService.getCatFact()
+                //Запускаем запросы одновременно
+                val deferredFact = async { catsService.getCatFact() }
+                val deferredPicture = async { catPictureService.getCatPicture() }
 
-                if (response.isSuccessful && response.body() != null) {
-                    Log.e("CatsPresenter", "Success!!!")
-                    _catsView?.populate(response.body()!!)
-                }
-                else {
-                    throw Exception(if (response.body() == null) "Incorrect data from server" else response.message())
+                //Ждём выполнение всех запросов
+                val responseFact = deferredFact.await()
+                val responsePicture = deferredPicture.await()
+
+                if (
+                    responseFact.isSuccessful
+                    && responseFact.body() != null
+
+                    && responsePicture.isSuccessful
+                    && responsePicture.body() != null
+                    && (responsePicture.body() as Picture).url.isNotEmpty()
+                ) {
+                    Log.e("CatsPresenter", "requests success!!!")
+                    val fact = responseFact.body() as Fact
+                    val picture = responsePicture.body() as Picture
+                    _catsView?.populate(CatViewModel(fact.text, picture.url))
+                } else {
+                    throw Exception(
+                        if (responseFact.body() == null || responsePicture.body() == null) {
+                            "Incorrect data from server"
+                        }
+                        else {
+                            if (!responseFact.isSuccessful && responsePicture.isSuccessful) {
+                                responseFact.message()
+                            }
+                            else if (responseFact.isSuccessful && !responsePicture.isSuccessful) {
+                                responsePicture.message()
+                            }
+                            else {
+                                responseFact.message() + " " + responsePicture.message()
+                            }
+                        })
                 }
             }
             //Обрабатываем определённые ошибки
