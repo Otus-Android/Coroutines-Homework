@@ -15,17 +15,17 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var vm: CatsVm? = null
     private val picasso by lazy { Picasso.get() }
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            vm?.onInitComplete()
         }
     }
 
-    override fun populate(model: CatViewModel) {
+    override fun populate(model: CatsModel) {
         findViewById<TextView>(R.id.fact_textView).text = model.fact
         model.pictureUrl.let { url ->
             picasso
@@ -44,6 +44,6 @@ class CatsView @JvmOverloads constructor(
 }
 
 interface ICatsView {
-    fun populate(model: CatViewModel)
+    fun populate(model: CatsModel)
     fun showToast(text: String)
 }

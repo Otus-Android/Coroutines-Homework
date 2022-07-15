@@ -1,13 +1,16 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
-
     private val diContainer = DiContainer()
+
+    private val catsVM: CatsVm by viewModels {
+        CatsVm.CatsVmProviderFactory(diContainer)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -15,17 +18,19 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service, diContainer.servicePicture)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-    }
+        view.vm = catsVM
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+        catsVM.showToast.observe(this) { text ->
+            text.takeIf { it.isNotEmpty() }?.let {
+                view.showToast(it)
+                catsVM.resetToast()
+            }
         }
-        catsPresenter.cancelRequests()
-        super.onStop()
+
+        catsVM.catsData.observe(this) { catsModel ->
+            catsModel?.let {
+                view.populate(it)
+            }
+        }
     }
 }
