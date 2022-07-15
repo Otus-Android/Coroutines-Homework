@@ -1,26 +1,40 @@
 package otus.homework.coroutines
 
 import android.util.Log
-import kotlinx.coroutines.*
+import androidx.lifecycle.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
-import kotlin.coroutines.CoroutineContext
 
-//Не используется
-class CatsPresenter(
+class CatsVm(
     private val catsService: CatsService,
     private val catPictureService: CatPictureService,
-) {
+) : ViewModel() {
 
-    private var _catsView: ICatsView? = null
-    private val presenterScope = PresenterScope()
+    init {
+        onInitComplete()
+    }
+
+    private val _showToast: MutableLiveData<String> = MutableLiveData("")
+    val showToast: LiveData<String> = _showToast
+    fun resetToast() {
+        _showToast.postValue("")
+    }
+
+    private val _catsData: MutableLiveData<CatsModel?> = MutableLiveData()
+    val catsData: LiveData<CatsModel?> = _catsData
+
 
     fun onInitComplete() {
-        presenterScope.launch(CoroutineExceptionHandler { coroutineContext, throwable ->
+        viewModelScope.launch(CoroutineExceptionHandler { coroutineContext, throwable ->
             //Обрабатываем непредвиденную ошибку
             CrashMonitor.trackWarning(throwable)
-            _catsView?.showToast(throwable.message ?: throwable.toString())
+            changeUI(Error(throwable.message ?: throwable.toString()))
         }
         ) {
+            lateinit var result: Result
+
             try {
                 //Запускаем запросы одновременно
                 val deferredFact = async { catsService.getCatFact() }
@@ -30,6 +44,7 @@ class CatsPresenter(
                 val responseFact = deferredFact.await()
                 val responsePicture = deferredPicture.await()
 
+                //Анализируем ответы
                 if (
                     responseFact.isSuccessful
                     && responseFact.body() != null
@@ -38,10 +53,10 @@ class CatsPresenter(
                     && responsePicture.body() != null
                     && (responsePicture.body() as Picture).url.isNotEmpty()
                 ) {
-                    Log.e("CatsPresenter", "requests success!!!")
+                    Log.e("CatsVm", "requests success!!!")
                     val fact = responseFact.body() as Fact
                     val picture = responsePicture.body() as Picture
-                    _catsView?.populate(CatsModel(fact.text, picture.url))
+                    result = Success(CatsModel(fact.text, picture.url))
                 } else {
                     throw Exception(
                         if (responseFact.body() == null || responsePicture.body() == null) {
@@ -62,29 +77,29 @@ class CatsPresenter(
             }
             //Обрабатываем определённые ошибки
             catch (e: SocketTimeoutException) {
-                Log.e("CatsPresenter", "Error: $e")
-                _catsView?.showToast("Не удалось получить ответ от сервера")
+                Log.e("CatsVm", "Error: $e")
+                result = Error("Не удалось получить ответ от сервера")
+            }
 
+            changeUI(result)
+        }
+    }
+
+    private fun changeUI(result: Result) {
+        when (result) {
+            is Error -> {
+                _showToast.postValue(result.message)
+            }
+            is Success<*> -> {
+                when (result.data) {
+                    is CatsModel -> _catsData.postValue(result.data)
+                }
             }
         }
     }
 
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
+    class CatsVmProviderFactory(private val diContainer: DiContainer): ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T =
+            CatsVm(diContainer.service, diContainer.servicePicture) as T
     }
-
-    fun detachView() {
-        _catsView = null
-    }
-
-    fun cancelRequests() {
-        presenterScope.cancel()
-    }
-
-}
-
-class PresenterScope : CoroutineScope {
-    override val coroutineContext: CoroutineContext
-        get() = Job() + Dispatchers.Main + CoroutineName("CatsCoroutine")
-
 }
