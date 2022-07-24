@@ -15,8 +15,14 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                val catFact = catsService.getCatFact()
-                _catsView?.populate(catFact)
+                val catFact = async { catsService.getCatFact() }
+                val catPhoto = async { catsService.getRandomCatPhoto() }
+
+                val newState = CatsViewState(
+                    fact = catFact.await().text,
+                    fileUrl = catPhoto.await().file
+                )
+                _catsView?.populate(newState)
             } catch (e: SocketTimeoutException) {
                 _catsView?.showMessage("Не удалось получить ответ от сервером")
             } catch (e: Exception) {
