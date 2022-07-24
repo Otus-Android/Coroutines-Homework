@@ -8,7 +8,6 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var catsPresenter: CatsPresenter
 
-    @Suppress("UNCHECKED_CAST")
     private val viewModel: CatsViewModel by viewModels {
         CatsViewModel.CatsViewModelProviderFactory(
             catsService = diContainer.service
