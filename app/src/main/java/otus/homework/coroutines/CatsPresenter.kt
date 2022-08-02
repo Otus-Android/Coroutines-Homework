@@ -17,7 +17,6 @@ class CatsPresenter(
         presenterScope.launch(CoroutineExceptionHandler { coroutineContext, throwable ->
             //Обрабатываем непредвиденную ошибку
             CrashMonitor.trackWarning(throwable)
-            _catsView?.showToast(throwable.message ?: throwable.toString())
         }
         ) {
             try {
@@ -26,38 +25,11 @@ class CatsPresenter(
                 val deferredPicture = async { catPictureService.getCatPicture() }
 
                 //Ждём выполнение всех запросов
-                val responseFact = deferredFact.await()
-                val responsePicture = deferredPicture.await()
+                val fact = deferredFact.await()
+                val picture = deferredPicture.await()
 
-                if (
-                    responseFact.isSuccessful
-                    && responseFact.body() != null
-
-                    && responsePicture.isSuccessful
-                    && responsePicture.body() != null
-                    && (responsePicture.body() as Picture).url.isNotEmpty()
-                ) {
-                    Log.e("CatsPresenter", "requests success!!!")
-                    val fact = responseFact.body() as Fact
-                    val picture = responsePicture.body() as Picture
-                    _catsView?.populate(CatViewModel(fact.text, picture.url))
-                } else {
-                    throw Exception(
-                        if (responseFact.body() == null || responsePicture.body() == null) {
-                            "Incorrect data from server"
-                        }
-                        else {
-                            if (!responseFact.isSuccessful && responsePicture.isSuccessful) {
-                                responseFact.message()
-                            }
-                            else if (responseFact.isSuccessful && !responsePicture.isSuccessful) {
-                                responsePicture.message()
-                            }
-                            else {
-                                responseFact.message() + " " + responsePicture.message()
-                            }
-                        })
-                }
+                Log.e("CatsPresenter", "requests success!!!")
+                _catsView?.populate(CatViewModel(fact.text, picture.url))
             }
             //Обрабатываем определённые ошибки
             catch (e: SocketTimeoutException) {
