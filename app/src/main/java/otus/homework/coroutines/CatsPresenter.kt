@@ -1,29 +1,57 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catsPhotoService: CatsPhotoService
 ) {
 
     private var _catsView: ICatsView? = null
+    private val scope =
+        CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine") + SupervisorJob())
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+        scope.launch {
+            runCatching {
+                loadData()
+            }
+                .onFailure {
+                    CrashMonitor.trackWarning()
+                    when (it) {
+                        is SocketTimeoutException -> {
+                            _catsView?.showToast(null)
+                        }
+                        is CancellationException -> {
+                            CrashMonitor.trackWarning()
+                            _catsView?.showToast(it.message)
+                        }
+                        else -> {
+                            CrashMonitor.trackWarning()
+                            _catsView?.showToast(it.message)
+                        }
+                    }
                 }
-            }
+                .onSuccess {
+                    _catsView?.populate(it)
+                }
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        }
     }
+
+    private suspend fun loadData() =
+        CatsViewState(
+            fact = catsService.getCatFact(),
+            photo = catsPhotoService.getCatPhoto()
+        )
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
@@ -31,5 +59,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+        scope.cancel()
     }
 }
