@@ -1,6 +1,9 @@
 package otus.homework.coroutines.presentation
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.ICatsView
 import otus.homework.coroutines.network.CatImageService
@@ -18,14 +21,19 @@ class CatsPresenter(
     fun onInitComplete() {
         scope.launch(CoroutineExceptionHandler { _, throwable ->
             CrashMonitor.trackWarning()
-            _catsView?.showError(throwable.message)
+            //_catsView?.showError(throwable.message)
         }) {
 
-            val catImageDeferred = async(Job()) {
-                catImageService.getCatImage()
+            val catImageDeferred = async() {
+                try {
+                    catImageService.getCatImage()
+                } catch (e: Exception) {
+                    _catsView?.showError("Не удалось получить ответ от сервера")
+                    null
+                }
             }
 
-            val catFactDeferred = async(Job()) {
+            val catFactDeferred = async() {
                 try {
                     catsService.getCatFact()
                 } catch (e: SocketTimeoutException) {
