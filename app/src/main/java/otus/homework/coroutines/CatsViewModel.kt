@@ -1,35 +1,44 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import otus.homework.coroutines.api.CatsService
-import otus.homework.coroutines.api.ImagesService
 import otus.homework.coroutines.models.Content
 import java.net.SocketTimeoutException
 
 class CatsViewModel : ViewModel() {
 
+    private val _result = MutableLiveData<Result>()
+    val result: LiveData<Result> = _result
+
     private var _catsView: ICatsView? = null
 
-    private val catsService: CatsService = DiContainer("https://cat-fact.herokuapp.com/facts/").factService
-    private val imagesService: ImagesService = DiContainer("https://aws.random.cat/").imageService
+    private val diContainer = DiContainer()
 
     fun onInitComplete() {
         viewModelScope.launch(CoroutineExceptionHandler { _, throwable ->
-            renderView(Result.Error(throwable))
+            CrashMonitor.trackWarning(throwable.message.orEmpty())
         }) {
-            val fact = withContext(Dispatchers.IO) {
-                catsService.getCatFact()
+            try {
+                val fact = async {
+                    diContainer.factService.getCatFact()
+                }
+                val image = async {
+                    diContainer.imageService.getCatImage()
+                }
+                _result.value = Result.Success(Content(fact.await(), image.await()))
+            } catch (e: SocketTimeoutException) {
+                _catsView?.showToast("Не удалось получить ответ от сервера")
+            } catch (e: CancellationException) {
+                CrashMonitor.trackWarning(e.message.orEmpty())
+            } catch (e: Exception) {
+                _result.value = Result.Error(e)
             }
-            val image = withContext(Dispatchers.IO) {
-                imagesService.getCatImage()
-            }
-            renderView(Result.Success(Content(fact, image)))
         }
 
     }
@@ -40,32 +49,5 @@ class CatsViewModel : ViewModel() {
 
     fun detachView() {
         _catsView = null
-        viewModelScope.cancel()
-    }
-
-    private fun renderView(result: Result) {
-        when (result) {
-            is Result.Success<*> -> {
-                if ((result.content is Content)) {
-                    _catsView?.populate(
-                        Content(
-                            fact = result.content.fact,
-                            image = result.content.image
-                        )
-                    )
-
-                }
-            }
-            is Result.Error -> {
-                when (result.throwable) {
-                    is SocketTimeoutException -> {
-                        _catsView?.showToast("Не удалось получить ответ от сервера")
-                    }
-                    else -> {
-                        _catsView?.showToast(result.throwable.message.orEmpty())
-                    }
-                }
-            }
-        }
     }
 }

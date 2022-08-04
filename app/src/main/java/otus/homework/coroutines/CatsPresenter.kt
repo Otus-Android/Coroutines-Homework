@@ -1,9 +1,9 @@
 package otus.homework.coroutines
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import otus.homework.coroutines.api.CatsService
 import otus.homework.coroutines.api.ImagesService
 import otus.homework.coroutines.models.Content
@@ -16,19 +16,27 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
     private val scope = PresenterScope()
+    private var job: Job? = null
 
     fun onInitComplete() {
-        scope.launch {
+        job = scope.launch {
             try {
-                val fact = withContext(Dispatchers.IO) {
+                val fact = async {
                     catsService.getCatFact()
                 }
-                val image = withContext(Dispatchers.IO) {
+                val image = async {
                     imagesService.getCatImage()
                 }
-                _catsView?.populate(Content(fact = fact, image = image))
+                _catsView?.populate(
+                    Content(
+                        fact = fact.await(),
+                        image = image.await()
+                    )
+                )
             } catch (e: SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
+            } catch (e: CancellationException) {
+                CrashMonitor.trackWarning(e.message.orEmpty())
             } catch (e: Exception) {
                 val message = e.message.orEmpty()
                 CrashMonitor.trackWarning(message)
@@ -43,6 +51,10 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        scope.cancel()
+        job?.let { job ->
+            if (job.isActive) {
+                job.cancel()
+            }
+        }
     }
 }

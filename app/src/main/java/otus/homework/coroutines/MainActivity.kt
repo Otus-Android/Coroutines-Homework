@@ -18,16 +18,15 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this)[CatsViewModel::class.java]
 
-        val diContainerFact = DiContainer("https://cat-fact.herokuapp.com/facts/")
-        val diContainerImage = DiContainer("https://aws.random.cat/")
+        val diContainer = DiContainer()
 
-        findViewById<Button>(R.id.button).setOnClickListener{
+        findViewById<Button>(R.id.button).setOnClickListener {
             viewModel.onInitComplete()
         }
 
         catsPresenter = CatsPresenter(
-            catsService = diContainerFact.factService,
-            imagesService = diContainerImage.imageService,
+            catsService = diContainer.factService,
+            imagesService = diContainer.imageService
         )
 
         view.presenter = catsPresenter
@@ -36,7 +35,16 @@ class MainActivity : AppCompatActivity() {
         viewModel.attachView(view)
         viewModel.onInitComplete()
 
-
+        viewModel.result.observe(this) { result ->
+            when (result) {
+                is Result.Success -> {
+                    view.populate(result.content)
+                }
+                is Result.Error -> {
+                    view.showToast(result.throwable.message.orEmpty())
+                }
+            }
+        }
     }
 
     override fun onStop() {
