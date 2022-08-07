@@ -8,6 +8,6 @@ object CrashMonitor {
    * Pretend this is Crashlytics/AppCenter
    */
   fun trackWarning(throwable: Throwable) {
-    Log.d("asdf", "trackWarning $throwable")
+    Log.d("errors", throwable.toString())
   }
 }
