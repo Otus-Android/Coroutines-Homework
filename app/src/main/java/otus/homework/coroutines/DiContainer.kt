@@ -5,12 +5,23 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class DiContainer {
 
-    private val retrofit by lazy {
-        Retrofit.Builder()
-            .baseUrl("https://cat-fact.herokuapp.com/facts/")
+    companion object {
+        private const val FACT_SERVICE_URL = "https://cat-fact.herokuapp.com/facts/"
+        private const val IMAGE_SERVICE_URL = "https://aws.random.cat/"
+    }
+
+    private fun createRetrofitClient(url: String): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(url)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+    val factService: FactService by lazy {
+        createRetrofitClient(FACT_SERVICE_URL).create(FactService::class.java)
+    }
+
+    val imageService: ImageService by lazy {
+        createRetrofitClient(IMAGE_SERVICE_URL).create(ImageService::class.java)
+    }
 }
