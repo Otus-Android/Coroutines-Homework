@@ -5,9 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.api.CatFactsService
 import otus.homework.coroutines.api.CatImagesService
@@ -19,6 +19,21 @@ class CatsViewModel(
   private val catImagesService: CatImagesService,
 ) : ViewModel() {
 
+  private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+    CrashMonitor.trackWarning(throwable)
+    when (throwable) {
+      is CancellationException -> {
+        throw throwable
+      }
+      is SocketTimeoutException -> {
+        _catLiveData.value = Error("Не удалось получить ответ от сервера")
+      }
+      else -> {
+        _catLiveData.value = Error("${throwable.message}")
+      }
+    }
+  }
+
   private val _catLiveData: MutableLiveData<Result<CatData>> = MutableLiveData()
   val catLiveData: LiveData<Result<CatData>> = _catLiveData
 
@@ -27,34 +42,16 @@ class CatsViewModel(
   }
 
   fun getCatData() {
-    viewModelScope.launch(CoroutineExceptionHandler { _, _ -> CrashMonitor::trackWarning }) {
-      try {
-        val catFact = async {
-          catFactsService.getCatFact()
-        }
-        val catImageUri = async {
-          catImagesService.getCatImageUri().catImageUri
-        }
-
-        _catLiveData.value = Success(CatData(catFact.await().text, catImageUri.await()))
-      } catch (e: Exception) {
-        when (e) {
-          is SocketTimeoutException -> {
-            _catLiveData.value = Error("Не удалось получить ответ от сервера")
-          }
-          else -> {
-            _catLiveData.value = Error("${e.message}")
-          }
-        }
+    viewModelScope.launch(coroutineExceptionHandler) {
+      val catFact = async {
+        catFactsService.getCatFact()
       }
+      val catImageUri = async {
+        catImagesService.getCatImageUri().catImageUri
+      }
+      _catLiveData.value = Success(CatData(catFact.await().text, catImageUri.await()))
     }
   }
-
-  override fun onCleared() {
-    super.onCleared()
-    viewModelScope.cancel()
-  }
-
 }
 
 class CatsViewModelFactory(
