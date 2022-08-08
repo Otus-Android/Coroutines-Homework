@@ -3,8 +3,8 @@ package otus.homework.coroutines
 import retrofit2.http.GET
 import retrofit2.http.Url
 
-interface CatsService {
+interface CatsImageService {
 
     @GET
-    suspend fun getCatFact(@Url loginUrl: String) : Fact
+    suspend fun getCatImage(@Url loginUrl: String) : Image
 }

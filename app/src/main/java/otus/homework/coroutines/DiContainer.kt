@@ -7,10 +7,11 @@ class DiContainer {
 
     private val retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://cat-fact.herokuapp.com/facts/")
+            .baseUrl("https://localhost")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+    val service: CatsService by lazy { retrofit.create(CatsService::class.java) }
+    val imageService: CatsImageService by lazy { retrofit.create(CatsImageService::class.java) }
 }
