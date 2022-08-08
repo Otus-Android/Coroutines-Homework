@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import androidx.annotation.StringRes
 import com.google.gson.annotations.SerializedName
 
 data class Fact(
@@ -22,3 +23,20 @@ data class Fact(
 	@field:SerializedName("updatedAt")
 	val updatedAt: String
 )
+
+data class Message(@StringRes val stringId: Int)
+
+data class Photo(
+	@SerializedName("file")
+	val file: String
+)
+
+data class CatsData(
+	val fact: Fact,
+	val photo: Photo
+)
+
+sealed class Result<out R> {
+	data class Success<out R>(val data: R) : Result<R>()
+	data class Error(val throwable: Throwable) : Result<Nothing>()
+}
