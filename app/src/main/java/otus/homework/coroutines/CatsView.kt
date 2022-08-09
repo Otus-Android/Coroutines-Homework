@@ -16,30 +16,38 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var catsViewModel: CatsViewModel? = null
+    var onClick: (() -> Unit)? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            catsViewModel?.onInitComplete()
+            onClick?.invoke()
         }
     }
 
-    override fun populate(model: CatsInfo) {
+    override fun handleNewState(result: Result<CatsInfo>) {
+        when (result) {
+            is Error -> displayErrorMessage(result.message)
+            is Success -> populate(result.model)
+        }
+    }
+
+    private fun populate(model: CatsInfo) {
         findViewById<TextView>(R.id.fact_textView).text = model.fact
         findViewById<ImageView>(R.id.cat_imageView).also {
-            Picasso.get().load(model.image).into(it)
+            Picasso.get()
+                .load(model.image)
+                .placeholder(R.drawable.ic_launcher_foreground)
+                .into(it)
         }
     }
 
-    override fun displayErrorMessage(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    private fun displayErrorMessage(message: String?) {
+        val errorMessage = message ?: resources.getString(R.string.default_error_message)
+        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
     }
 }
 
 interface ICatsView {
-
-    fun populate(model: CatsInfo)
-
-    fun displayErrorMessage(message: String)
+    fun handleNewState(result: Result<CatsInfo>)
 }

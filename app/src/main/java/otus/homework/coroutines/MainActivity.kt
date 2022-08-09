@@ -13,19 +13,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
-        setContentView(view)
+        val catsView = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
+        setContentView(catsView)
 
         catsViewModel = ViewModelProvider(this, Factory(diContainer.service))[CatsViewModel::class.java]
-        view.catsViewModel = catsViewModel
-        catsViewModel.attachView(view)
-        catsViewModel.onInitComplete()
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            catsViewModel.detachView()
+        catsViewModel.state.observe(this) { result ->
+            catsView.handleNewState(result)
         }
-        super.onStop()
+        catsView.onClick = { catsViewModel.requestCatsInfo() }
+
+        catsViewModel.requestCatsInfo()
     }
 }
