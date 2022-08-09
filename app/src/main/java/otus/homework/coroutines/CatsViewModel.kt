@@ -1,24 +1,27 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import otus.homework.coroutines.models.CatsImage
 import otus.homework.coroutines.models.CatsInfo
-import java.lang.RuntimeException
 import java.net.SocketTimeoutException
 
-class CatsPresenter(
-    private val catsService: CatsService
-) {
 
-    private val coroutineScope = PresenterScope()
+class CatsViewModel constructor(
+    private val catsService: CatsService
+) : ViewModel() {
 
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        coroutineScope.launch {
+        viewModelScope.launch {
             try {
                 val factDeferred = async(Dispatchers.IO) { catsService.getCatFact() }
                 val imageDeferred = async(Dispatchers.IO) {
@@ -50,8 +53,5 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        coroutineScope.coroutineContext.cancelChildren()
     }
 }
-
-fun PresenterScope() = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
