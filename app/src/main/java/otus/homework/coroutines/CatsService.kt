@@ -1,10 +1,10 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
+import otus.homework.coroutines.models.CatsFact
 import retrofit2.http.GET
 
 interface CatsService {
 
-    @GET("random?animal_type=cat")
-    fun getCatFact() : Call<Fact>
+    @GET("/fact?max_length=140")
+    suspend fun getCatFact() : CatsFact
 }
