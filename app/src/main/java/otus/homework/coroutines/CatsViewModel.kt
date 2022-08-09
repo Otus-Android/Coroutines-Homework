@@ -18,8 +18,16 @@ class CatsViewModel(
     private val catsPhotoService: CatsPhotoService
 ) : ViewModel() {
 
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        CrashMonitor.trackWarning(throwable)
+    private val exceptionHandler = CoroutineExceptionHandler { _, e ->
+        when (e) {
+            is CancellationException -> throw e
+            else -> {
+                if (e !is SocketTimeoutException) {
+                    CrashMonitor.trackWarning(e)
+                }
+                _cats.value = Result.Error(e)
+            }
+        }
     }
 
     private val _cats: MutableLiveData<Result<Cat>> = MutableLiveData()
@@ -32,22 +40,10 @@ class CatsViewModel(
 
     fun loadData() {
         viewModelScope.launch(exceptionHandler) {
-            try {
-                val factDeferred = async { catsFactService.getCatFact() }
-                val photoDeferred = async { catsPhotoService.getCatPhoto() }
-                val cat = Cat(factDeferred.await(), photoDeferred.await())
-                _cats.value = Result.Success(cat)
-            } catch (e: Exception) {
-                when (e) {
-                    is CancellationException -> throw e
-                    else -> {
-                        if (e !is SocketTimeoutException) {
-                            CrashMonitor.trackWarning(e)
-                        }
-                        _cats.value = Result.Error(e)
-                    }
-                }
-            }
+            val factDeferred = async { catsFactService.getCatFact() }
+            val photoDeferred = async { catsPhotoService.getCatPhoto() }
+            val cat = Cat(factDeferred.await(), photoDeferred.await())
+            _cats.value = Result.Success(cat)
         }
     }
 
