@@ -22,3 +22,7 @@ data class Fact(
 	@field:SerializedName("updatedAt")
 	val updatedAt: String
 )
+
+data class Image(@field:SerializedName("file") val file: String)
+
+data class Cat(val text: String, val image: String)
