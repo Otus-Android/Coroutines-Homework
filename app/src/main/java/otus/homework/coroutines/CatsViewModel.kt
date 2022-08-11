@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
-import retrofit2.Response
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
@@ -22,41 +21,21 @@ class CatsViewModel(
     val showToast: LiveData<Event<String>>
         get() = _showToast
 
-    private fun <T> catResponseAsync(
-        scope: CoroutineScope,
-        responseBlock: suspend () -> Response<T>
-    ): Deferred<Result> = scope.async(dispatcherIo) {
-        try {
-            val response = responseBlock()
-            if (response.isSuccessful) {
-                if (response.body() != null) {
-                    Result.Success(response.body())
-                } else {
-                    val crashMessage = "Empty response body"
-                    CrashMonitor.trackWarning(message = crashMessage)
-                    Result.Error(crashMessage)
-                }
-            } else {
-                val crashMessage = response.errorBody().toString()
-                CrashMonitor.trackWarning(message = crashMessage)
-                Result.Error(crashMessage)
-            }
-        } catch (e: Exception) {
-            val errorMessage: String
-            when (e) {
-                is CancellationException -> throw e
-                is SocketTimeoutException -> {
-                    errorMessage = "Failed to get a response from the server"
-                    CrashMonitor.trackWarning(message = e.message, throwable = e)
-                }
-                else -> {
-                    errorMessage = e.message ?: "Unknown exception"
-                    CrashMonitor.trackWarning(message = e.message, throwable = e)
-                }
-            }
-            Result.Error(errorMessage)
-        }
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, t ->
+        val errorMessage = t.message ?: "Unknown exception"
+        CrashMonitor.trackWarning(message = errorMessage, throwable = t)
     }
+
+    private fun <T> CoroutineScope.catResponseAsync(block: suspend () -> T) =
+        async(dispatcherIo) {
+            try {
+                Result.Success(block())
+            } catch (e: SocketTimeoutException) {
+                val errorMessage = "Failed to get a response from the server"
+                CrashMonitor.trackWarning(message = errorMessage, throwable = e)
+                Result.Error(errorMessage)
+            }
+        }
 
     private inline fun <reified T> resultHandle(result: Result): T? = when (result) {
         is Result.Success<*> -> result.result as T
@@ -67,9 +46,9 @@ class CatsViewModel(
     }
 
     fun refreshContent() {
-        viewModelScope.launch {
-            val deferredFact = catResponseAsync(this) { catsService.getCatFact() }
-            val deferredImageUrl = catResponseAsync(this) { catsImageService.getImageUrl() }
+        viewModelScope.launch(coroutineExceptionHandler) {
+            val deferredFact = catResponseAsync { catsService.getCatFact() }
+            val deferredImageUrl = catResponseAsync { catsImageService.getImageUrl() }
             val resultFact = deferredFact.await()
             val resultImageUrl = deferredImageUrl.await()
             val fact = resultHandle<Fact>(resultFact)

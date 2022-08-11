@@ -1,7 +1,6 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
-import retrofit2.Response
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -13,41 +12,37 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
 
-    private fun <T> catResponseAsync(
-        scope: CoroutineScope,
-        responseBlock: suspend () -> Response<T>
-    ): Deferred<T?> = scope.async(dispatcherIo) {
-        try {
-            val response = responseBlock()
-            if (response.isSuccessful) {
-                response.body()?.let { return@async it }
-                    ?: CrashMonitor.trackWarning(message = "Empty response body")
-            } else {
-                val crashMessage = response.errorBody().toString()
-                CrashMonitor.trackWarning(message = crashMessage)
-            }
-            return@async null
-        } catch (e: Exception) {
-            when (e) {
-                is CancellationException -> throw e
-                is SocketTimeoutException -> {
-                    CrashMonitor.trackWarning(message = e.message, throwable = e)
-                    val crashMessage = "Failed to get a response from the server"
-                    _catsView?.showToast(text = crashMessage)
+    private fun <T> CoroutineScope.catResponseAsync(block: suspend () -> T) =
+        async(dispatcherIo) {
+            try {
+                return@async block()
+            } catch (e: Exception) {
+                when (e) {
+                    is CancellationException -> throw e
+                    is SocketTimeoutException -> {
+                        CrashMonitor.trackWarning(message = e.message, throwable = e)
+                        val crashMessage = "Failed to get a response from the server"
+                        withContext(Dispatchers.Main) {
+                            _catsView?.showToast(text = crashMessage)
+                        }
+                    }
+                    else -> {
+                        CrashMonitor.trackWarning(message = e.message, throwable = e)
+                        e.message?.let {
+                            withContext(Dispatchers.Main) {
+                                _catsView?.showToast(it)
+                            }
+                        }
+                    }
                 }
-                else -> {
-                    CrashMonitor.trackWarning(message = e.message, throwable = e)
-                    e.message?.let { _catsView?.showToast(it) }
-                }
+                return@async null
             }
-            return@async null
         }
-    }
 
     fun onInitComplete() {
         presenterScope.launch {
-            val deferredFact = catResponseAsync(this) { catsService.getCatFact() }
-            val deferredImageUrl = catResponseAsync(this) { catsImageService.getImageUrl() }
+            val deferredFact = catResponseAsync { catsService.getCatFact() }
+            val deferredImageUrl = catResponseAsync { catsImageService.getImageUrl() }
             val content =
                 CatsContent(fact = deferredFact.await(), imageUrl = deferredImageUrl.await())
             _catsView?.populate(content)
