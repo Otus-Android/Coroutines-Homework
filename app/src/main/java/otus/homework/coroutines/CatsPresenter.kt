@@ -5,8 +5,10 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -19,24 +21,26 @@ class CatsPresenter(
         CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine") + SupervisorJob())
 
     fun onInitComplete() {
-
         scope.launch {
             runCatching {
-                loadData()
+                val fact = getCatFact().await()
+                val photo = getCatPhoto().await()
+                CatsViewState(
+                    fact = fact,
+                    photo = photo
+                )
             }
                 .onFailure {
-                    CrashMonitor.trackWarning()
                     when (it) {
                         is SocketTimeoutException -> {
                             _catsView?.showToast(null)
+                            CrashMonitor.trackWarning()
                         }
                         is CancellationException -> {
                             CrashMonitor.trackWarning()
-                            _catsView?.showToast(it.message)
                         }
                         else -> {
                             CrashMonitor.trackWarning()
-                            _catsView?.showToast(it.message)
                         }
                     }
                 }
@@ -47,11 +51,13 @@ class CatsPresenter(
         }
     }
 
-    private suspend fun loadData() =
-        CatsViewState(
-            fact = catsService.getCatFact(),
-            photo = catsPhotoService.getCatPhoto()
-        )
+    private suspend fun getCatFact() = withContext(Dispatchers.IO) {
+        async { catsService.getCatFact() }
+    }
+
+    private suspend fun getCatPhoto() = withContext(Dispatchers.IO) {
+        async { catsPhotoService.getCatPhoto() }
+    }
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView

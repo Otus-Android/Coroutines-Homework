@@ -8,4 +8,6 @@ sealed class Result<T> {
     data class Error<T>(
         val message: String?
     ) : Result<T>()
+
+    class Empty<T> : Result<T>()
 }

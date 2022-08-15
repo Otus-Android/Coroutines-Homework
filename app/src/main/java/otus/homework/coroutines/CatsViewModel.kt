@@ -2,15 +2,20 @@ package otus.homework.coroutines
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.SocketTimeoutException
+import kotlin.coroutines.cancellation.CancellationException
 
 class CatsViewModel(
     private val catsService: CatsService,
@@ -18,20 +23,33 @@ class CatsViewModel(
 ) : ViewModel() {
 
     /** State экрана */
-    val screenState: StateFlow<Result<CatsViewState?>?> get() = _screenState.asStateFlow()
-    private val _screenState = MutableStateFlow<Result<CatsViewState?>?>(null)
-
-    private val scope =
-        CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine") + SupervisorJob())
+    val screenState: StateFlow<Result<CatsViewState>> get() = _screenState.asStateFlow()
+    private val _screenState = MutableStateFlow<Result<CatsViewState>>(Result.Empty())
 
     fun onInitComplete() {
 
-        scope.launch(coroutineExceptionHandler) {
+        viewModelScope.launch(coroutineExceptionHandler) {
             runCatching {
-                loadData()
+                val fact = getCatFact().await()
+                val photo = getCatPhoto().await()
+                CatsViewState(
+                    fact = fact,
+                    photo = photo
+                )
             }
                 .onFailure {
                     _screenState.emit(Result.Error(it.message))
+                    when (it) {
+                        is SocketTimeoutException -> {
+                            CrashMonitor.trackWarning()
+                        }
+                        is CancellationException -> {
+                            CrashMonitor.trackWarning()
+                        }
+                        else -> {
+                            CrashMonitor.trackWarning()
+                        }
+                    }
                 }
                 .onSuccess {
                     _screenState.emit(Result.Success(it))
@@ -40,11 +58,13 @@ class CatsViewModel(
         }
     }
 
-    private suspend fun loadData() =
-        CatsViewState(
-            fact = catsService.getCatFact(),
-            photo = catsPhotoService.getCatPhoto()
-        )
+    private suspend fun getCatFact() = withContext(Dispatchers.IO) {
+        async { catsService.getCatFact() }
+    }
+
+    private suspend fun getCatPhoto() = withContext(Dispatchers.IO) {
+        async { catsPhotoService.getCatPhoto() }
+    }
 
     private val coroutineExceptionHandler =
         CoroutineExceptionHandler { _, _ ->
