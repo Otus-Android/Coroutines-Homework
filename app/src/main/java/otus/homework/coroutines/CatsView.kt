@@ -32,7 +32,7 @@ class CatsView @JvmOverloads constructor(
     }
 
     override fun populate(catModel: CatModel) {
-        findViewById<TextView>(R.id.fact_textView).text = catModel.fact?.text
+        findViewById<TextView>(R.id.fact_textView).text = catModel.fact?.text.orEmpty()
 
         val catImageView = findViewById<ImageView>(R.id.catImage)
         Picasso.get()
@@ -41,11 +41,10 @@ class CatsView @JvmOverloads constructor(
     }
 
     override fun showUILoading(isLoading: Boolean) {
-        findViewById<TextView>(R.id.fact_textView).text = if (isLoading) {
-            "Идет загрузка данных..."
-        } else {
-            ""
+        if (isLoading) {
+            findViewById<TextView>(R.id.fact_textView).text = "Идет загрузка данных..."
         }
+
         findViewById<ImageView>(R.id.catImage).isVisible = !isLoading
         findViewById<Button>(R.id.button).isVisible = !isLoading
 
@@ -53,6 +52,7 @@ class CatsView @JvmOverloads constructor(
     }
 
     override fun showError(errorMessage: String?) {
+        findViewById<TextView>(R.id.fact_textView).text = ""
         Toast.makeText(context, errorMessage ?: "Unknown error", Toast.LENGTH_SHORT).show()
     }
 }

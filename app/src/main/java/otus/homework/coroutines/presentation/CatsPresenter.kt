@@ -1,9 +1,9 @@
 package otus.homework.coroutines.presentation
 
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.ICatsView
 import otus.homework.coroutines.network.CatImageService
@@ -19,34 +19,37 @@ class CatsPresenter(
     private val scope = PresenterScope()
 
     fun onInitComplete() {
-        scope.launch(CoroutineExceptionHandler { _, throwable ->
-            CrashMonitor.trackWarning()
-            //_catsView?.showError(throwable.message)
-        }) {
+        _catsView?.showUILoading(true)
 
-            val catImageDeferred = async() {
+        scope.launch {
+            supervisorScope {
                 try {
-                    catImageService.getCatImage()
+                    val catFactDeferred = async() { catsService.getCatFact() }
+                    val catImageDeferred = async() { catImageService.getCatImage() }
+
+                    val fact = catFactDeferred.await()
+                    val image = catImageDeferred.await()
+
+                    val catModel = CatModel(fact, image)
+                    _catsView?.populate(catModel)
+
                 } catch (e: Exception) {
-                    _catsView?.showError("Не удалось получить ответ от сервера")
-                    null
+                    when (e) {
+                        is SocketTimeoutException -> {
+                            _catsView?.showError("Не удалось получить ответ от сервера")
+                        }
+                        is RuntimeException -> {
+                            Result.Error(e.message)
+                        }
+                        else -> {
+                            CrashMonitor.trackWarning()
+                            Result.Error(null)
+                        }
+                    }
+                } finally {
+                    _catsView?.showUILoading(false)
                 }
             }
-
-            val catFactDeferred = async() {
-                try {
-                    catsService.getCatFact()
-                } catch (e: SocketTimeoutException) {
-                    _catsView?.showError("Не удалось получить ответ от сервера")
-                    null
-                }
-            }
-
-            val fact = catFactDeferred.await()
-            val image = catImageDeferred.await()
-
-            val catModel = CatModel(fact, image)
-            _catsView?.populate(catModel)
         }
     }
 

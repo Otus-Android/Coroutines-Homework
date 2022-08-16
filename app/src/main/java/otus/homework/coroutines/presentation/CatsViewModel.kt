@@ -1,9 +1,9 @@
 package otus.homework.coroutines.presentation
 
 import androidx.lifecycle.*
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.network.CatImageService
 import otus.homework.coroutines.network.CatsService
@@ -14,49 +14,41 @@ class CatsViewModel(
     private val catImageService: CatImageService
 ) : ViewModel() {
 
-    private val _successLiveData = MutableLiveData<Result.Success<CatModel>>()
-    val successLiveData: LiveData<Result.Success<CatModel>> = _successLiveData
-
-    private val _errorLiveData = MutableLiveData<Result.Error>()
-    val errorLiveData: LiveData<Result.Error> = _errorLiveData
-
-    private val _loadingLiveData = MutableLiveData<Boolean>()
-    val loadingLiveData: LiveData<Boolean> = _loadingLiveData
+    private val _resultLiveData = MutableLiveData<Result>()
+    val resultLiveData: LiveData<Result> = _resultLiveData
 
     fun onInitComplete() {
-        _loadingLiveData.postValue(true)
+        _resultLiveData.value = Result.Loading(true)
 
-        viewModelScope.launch(CoroutineExceptionHandler { _, throwable ->
-            CrashMonitor.trackWarning()
-            _loadingLiveData.postValue(false)
-            //_errorLiveData.postValue(Result.Error(throwable.message))
-        }) {
-
-            val catImageDeferred = async() {
+        viewModelScope.launch {
+            supervisorScope {
                 try {
-                    catImageService.getCatImage()
+                    val catFactDeferred = async() { catsService.getCatFact() }
+                    val catImageDeferred = async() { catImageService.getCatImage() }
+
+                    val fact = catFactDeferred.await()
+                    val image = catImageDeferred.await()
+
+                    val catModel = CatModel(fact, image)
+                    _resultLiveData.value = Result.Success(catModel)
+
                 } catch (e: Exception) {
-                    _errorLiveData.postValue(Result.Error("Не удалось получить ответ от сервера"))
-                    null
+                    _resultLiveData.value = when (e) {
+                        is SocketTimeoutException -> {
+                            Result.Error("Не удалось получить ответ от сервера")
+                        }
+                        is RuntimeException -> {
+                            Result.Error(e.message)
+                        }
+                        else -> {
+                            CrashMonitor.trackWarning()
+                            Result.Error(null)
+                        }
+                    }
+                } finally {
+                    _resultLiveData.value = Result.Loading(false)
                 }
             }
-
-            val catFactDeferred = async() {
-                try {
-                    catsService.getCatFact()
-                } catch (e: SocketTimeoutException) {
-                    _errorLiveData.postValue(Result.Error("Не удалось получить ответ от сервера"))
-                    null
-                }
-            }
-
-            val fact = catFactDeferred.await()
-            val image = catImageDeferred.await()
-
-            val catModel = CatModel(fact, image)
-
-            _loadingLiveData.postValue(false)
-            _successLiveData.postValue(Result.Success(catModel))
         }
     }
 
