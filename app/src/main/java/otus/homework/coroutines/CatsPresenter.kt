@@ -1,8 +1,8 @@
 package otus.homework.coroutines
 
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.api.CatsService
 import otus.homework.coroutines.api.ImagesService
@@ -16,10 +16,11 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
     private val scope = PresenterScope()
-    private var job: Job? = null
 
     fun onInitComplete() {
-        job = scope.launch {
+        scope.launch(CoroutineExceptionHandler { _, throwable ->
+            CrashMonitor.trackWarning(throwable.message.orEmpty())
+        }) {
             try {
                 val fact = async {
                     catsService.getCatFact()
@@ -35,12 +36,6 @@ class CatsPresenter(
                 )
             } catch (e: SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
-            } catch (e: CancellationException) {
-                CrashMonitor.trackWarning(e.message.orEmpty())
-            } catch (e: Exception) {
-                val message = e.message.orEmpty()
-                CrashMonitor.trackWarning(message)
-                _catsView?.showToast(message)
             }
         }
     }
@@ -51,10 +46,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        job?.let { job ->
-            if (job.isActive) {
-                job.cancel()
-            }
-        }
+        scope.cancel()
     }
 }

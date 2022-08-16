@@ -32,7 +32,6 @@ class MainActivity : AppCompatActivity() {
         view.presenter = catsPresenter
 //        catsPresenter.attachView(view)
 //        catsPresenter.onInitComplete()
-        viewModel.attachView(view)
         viewModel.onInitComplete()
 
         viewModel.result.observe(this) { result ->
@@ -50,7 +49,6 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         if (isFinishing) {
 //            catsPresenter.detachView()
-            viewModel.detachView()
         }
         super.onStop()
     }

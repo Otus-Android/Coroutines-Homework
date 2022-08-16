@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -34,20 +33,7 @@ class CatsViewModel : ViewModel() {
                 _result.value = Result.Success(Content(fact.await(), image.await()))
             } catch (e: SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
-            } catch (e: CancellationException) {
-                CrashMonitor.trackWarning(e.message.orEmpty())
-            } catch (e: Exception) {
-                _result.value = Result.Error(e)
             }
         }
-
-    }
-
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
-
-    fun detachView() {
-        _catsView = null
     }
 }

@@ -2,13 +2,11 @@ package otus.homework.coroutines
 
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
-import otus.homework.coroutines.models.CatFact
 import otus.homework.coroutines.models.Content
 
 class CatsView @JvmOverloads constructor(
