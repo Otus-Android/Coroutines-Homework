@@ -21,7 +21,9 @@ data class Fact(
 	@field:SerializedName("user")
 	val user: String,
 	@field:SerializedName("updatedAt")
-	val updatedAt: String
+	val updatedAt: String,
+
+	val photo: Photo? = null
 )
 
 data class Message(@StringRes val stringId: Int)
@@ -39,4 +41,5 @@ data class CatsData(
 sealed class Result<out R> {
 	data class Success<out R>(val data: R) : Result<R>()
 	data class Error(val throwable: Throwable) : Result<Nothing>()
+	object Progress: Result<Nothing>()
 }

@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
+import androidx.lifecycle.lifecycleScope
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import java.net.SocketTimeoutException
@@ -18,16 +19,11 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.databinding.ActivityMain2Binding
 
-class MainActivity2 : AppCompatActivity(), CoroutineScope {
+class MainActivity2 : AppCompatActivity() {
 
     lateinit var catsViewModel: CatsViewModel
 
     private val diContainer = DiContainer()
-
-    private var job: Job = SupervisorJob()
-
-    override val coroutineContext: CoroutineContext
-        get() = CoroutineName("CatsPresenterCoroutine") + Dispatchers.Main + job
 
     var activityMain2Binding: ActivityMain2Binding? = null
 
@@ -39,11 +35,10 @@ class MainActivity2 : AppCompatActivity(), CoroutineScope {
 
         catsViewModel = CatsViewModel(diContainer.serviceCats, diContainer.servicePhoto)
         findViewById<Button>(R.id.button).setOnClickListener {
-            showLoading()
             catsViewModel.onInitComplete()
         }
 
-        launch(Dispatchers.Main) {
+        lifecycleScope.launch(Dispatchers.Main) {
             catsViewModel.catsInfo.collect { result ->
                 when (result) {
                     is Result.Error -> {
@@ -63,6 +58,7 @@ class MainActivity2 : AppCompatActivity(), CoroutineScope {
                     is Result.Success -> {
                         populate(result.data.fact, result.data.photo)
                     }
+                    is Result.Progress -> showLoading()
                 }
             }
         }
@@ -103,12 +99,6 @@ class MainActivity2 : AppCompatActivity(), CoroutineScope {
 
     override fun onResume() {
         super.onResume()
-        showLoading()
         catsViewModel.onInitComplete()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        coroutineContext.cancelChildren()
     }
 }

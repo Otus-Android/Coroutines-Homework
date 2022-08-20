@@ -4,8 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import java.net.SocketTimeoutException
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -19,29 +17,23 @@ class CatsViewModel(
     val catsInfo: Flow<Result<CatsData>> get() = _catsInfo
 
     fun onInitComplete() = viewModelScope.launch(handler) {
-            val factAsync = async(Dispatchers.IO) {
-                catsService.getCatFact()
-            }
-            val photoAsync = async(Dispatchers.IO) {
-                photoService.getPhoto()
-            }
-            unionPopulate(factAsync.await(), photoAsync.await())
-    }
-
-    private suspend fun unionPopulate(fact: Fact?, photo: Photo?) {
-        fact?.let { fact ->
-            photo?.let { photo ->
-                _catsInfo.emit(Result.Success(CatsData(fact, photo)))
-            }
+        try {
+            _catsInfo.emit(Result.Progress)
+            val fact = catsService.getCatFact()
+            val photo = photoService.getPhoto()
+            unionPopulate(fact, photo)
+        } catch (se: SocketTimeoutException) {
+            _catsInfo.emit(Result.Error(se))
         }
     }
+
+    private suspend fun unionPopulate(fact: Fact, photo: Photo) =
+        _catsInfo.emit(Result.Success(CatsData(fact, photo)))
 
 
     private val handler = CoroutineExceptionHandler { _, exception ->
         println("CoroutineExceptionHandler got $exception")
-        viewModelScope.launch {
-            _catsInfo.emit(Result.Error(exception))
-        }
+        CrashMonitor.trackWarning()
     }
 }
 

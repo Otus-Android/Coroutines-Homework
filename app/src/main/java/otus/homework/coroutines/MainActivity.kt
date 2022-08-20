@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         catsPresenter = CatsPresenter(diContainer.serviceCats, diContainer.servicePhoto)
+
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()

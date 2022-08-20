@@ -6,5 +6,5 @@ import retrofit2.http.GET
 interface PhotoService {
 
     @GET("meow")
-    suspend fun getPhoto() : Photo?
+    suspend fun getPhoto() : Photo
 }

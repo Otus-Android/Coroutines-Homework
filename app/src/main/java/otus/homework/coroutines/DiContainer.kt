@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -12,10 +13,14 @@ class DiContainer {
     }
 
     private val okHttpClient by lazy {
+        val loggingInterceptor = HttpLoggingInterceptor()
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+
         OkHttpClient.Builder()
             .callTimeout(FIFTEEN, TimeUnit.SECONDS)
             .readTimeout(FIFTEEN, TimeUnit.SECONDS)
             .writeTimeout(FIFTEEN, TimeUnit.SECONDS)
+            .addInterceptor(loggingInterceptor)
             .build()
     }
 
