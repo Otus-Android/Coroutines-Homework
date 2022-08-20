@@ -20,6 +20,6 @@ class DiContainer {
     }
 
 
-    val serviceMeow by lazy { retrofit.create(CatsServiceMeow::class.java) }
+    val serviceMeow by lazy { retrofitMeow.create(CatsServiceMeow::class.java) }
     val service by lazy { retrofit.create(CatsService::class.java) }
 }
