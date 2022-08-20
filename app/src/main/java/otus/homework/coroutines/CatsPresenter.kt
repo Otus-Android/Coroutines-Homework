@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import java.io.IOException
 import java.net.SocketTimeoutException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
@@ -26,7 +27,7 @@ class CatsPresenter(
             val fact = catsService.getCatFact()
             val photo = photoService.getPhoto()
             unionPopulate(fact, photo)
-        } catch (se: SocketTimeoutException) {
+        } catch (se: IOException) {
             _catsView?.showMessage(Message(stringId = R.string.socket_network_error))
         }
     }

@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import java.io.IOException
 import java.net.SocketTimeoutException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +23,7 @@ class CatsViewModel(
             val fact = catsService.getCatFact()
             val photo = photoService.getPhoto()
             unionPopulate(fact, photo)
-        } catch (se: SocketTimeoutException) {
+        } catch (se: IOException) {
             _catsInfo.emit(Result.Error(se))
         }
     }
