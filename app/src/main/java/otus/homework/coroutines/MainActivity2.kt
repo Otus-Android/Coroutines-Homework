@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
+import androidx.lifecycle.lifecycleScope
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import java.net.SocketTimeoutException
@@ -18,16 +19,11 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.databinding.ActivityMain2Binding
 
-class MainActivity2 : AppCompatActivity(), CoroutineScope {
+class MainActivity2 : AppCompatActivity() {
 
     lateinit var catsViewModel: CatsViewModel
 
     private val diContainer = DiContainer()
-
-    private var job: Job = SupervisorJob()
-
-    override val coroutineContext: CoroutineContext
-        get() = CoroutineName("CatsPresenterCoroutine") + Dispatchers.Main + job
 
     var activityMain2Binding: ActivityMain2Binding? = null
 
@@ -39,25 +35,30 @@ class MainActivity2 : AppCompatActivity(), CoroutineScope {
 
         catsViewModel = CatsViewModel(diContainer.serviceCats, diContainer.servicePhoto)
         findViewById<Button>(R.id.button).setOnClickListener {
-            showLoading()
             catsViewModel.onInitComplete()
         }
 
-        launch(Dispatchers.Main) {
+        lifecycleScope.launch(Dispatchers.Main) {
             catsViewModel.catsInfo.collect { result ->
                 when (result) {
                     is Result.Error -> {
-                        when (result.exception) {
+                        when (result.throwable) {
                             is SocketTimeoutException -> {
                                 showMessage(Message(stringId = R.string.socket_network_error))
                             }
-                            else -> CrashMonitor.trackWarning()
+                            else -> {
+                                result.throwable.message?.let {
+                                    showMessage(it)
+                                }
+                                CrashMonitor.trackWarning()
+                            }
                         }
                         showContent()
                     }
                     is Result.Success -> {
                         populate(result.data.fact, result.data.photo)
                     }
+                    is Result.Progress -> showLoading()
                 }
             }
         }
@@ -89,17 +90,15 @@ class MainActivity2 : AppCompatActivity(), CoroutineScope {
     }
 
     private fun showMessage(message: Message) {
-        Toast.makeText(this, message.stringId, Toast.LENGTH_LONG).show()
+        Toast.makeText(this, message.stringId, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {
         super.onResume()
-        showLoading()
         catsViewModel.onInitComplete()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        coroutineContext.cancelChildren()
     }
 }

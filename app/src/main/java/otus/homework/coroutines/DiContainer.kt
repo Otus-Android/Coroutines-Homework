@@ -2,21 +2,31 @@ package otus.homework.coroutines
 
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class DiContainer {
 
+    companion object{
+        val FIFTEEN : Long = 15L
+    }
+
     private val okHttpClient by lazy {
+        val loggingInterceptor = HttpLoggingInterceptor()
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+
         OkHttpClient.Builder()
-            .callTimeout(1, TimeUnit.MINUTES)
-            .readTimeout(1, TimeUnit.MINUTES)
-            .writeTimeout(1, TimeUnit.MINUTES)
+            .callTimeout(FIFTEEN, TimeUnit.SECONDS)
+            .readTimeout(FIFTEEN, TimeUnit.SECONDS)
+            .writeTimeout(FIFTEEN, TimeUnit.SECONDS)
+            .addInterceptor(loggingInterceptor)
             .build()
     }
 
     private val retrofitCats by lazy {
         Retrofit.Builder()
+            .client(okHttpClient)
             .baseUrl("https://cat-fact.herokuapp.com/facts/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -26,6 +36,7 @@ class DiContainer {
 
     private val retrofitPhoto by lazy {
         Retrofit.Builder()
+            .client(okHttpClient)
             .baseUrl("https://aws.random.cat/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()

@@ -2,10 +2,9 @@ package otus.homework.coroutines
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import java.io.IOException
 import java.net.SocketTimeoutException
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -20,39 +19,22 @@ class CatsViewModel(
 
     fun onInitComplete() = viewModelScope.launch(handler) {
         try {
-            val factAsync = async(Dispatchers.IO) {
-                catsService.getCatFact()
-            }
-            val photoAsync = async(Dispatchers.IO) {
-                photoService.getPhoto()
-            }
-            unionPopulate(factAsync.await(), photoAsync.await())
-        } catch (ex: Exception) {
-            _catsInfo.emit(Result.Error(ex))
+            _catsInfo.emit(Result.Progress)
+            val fact = catsService.getCatFact()
+            val photo = photoService.getPhoto()
+            unionPopulate(fact, photo)
+        } catch (e: IOException) {
+            _catsInfo.emit(Result.Error(e))
         }
     }
 
-    private suspend fun unionPopulate(fact: Fact?, photo: Photo?) {
-        fact?.let { fact ->
-            photo?.let { photo ->
-                _catsInfo.emit(Result.Success(CatsData(fact, photo)))
-            }
-        }
-    }
+    private suspend fun unionPopulate(fact: Fact, photo: Photo) =
+        _catsInfo.emit(Result.Success(CatsData(fact, photo)))
 
 
     private val handler = CoroutineExceptionHandler { _, exception ->
         println("CoroutineExceptionHandler got $exception")
-        when (exception) {
-            is SocketTimeoutException -> {
-                viewModelScope.launch {
-                    _catsInfo.emit(Result.Error(exception))
-                }
-            }
-            else -> {
-                CrashMonitor.trackWarning()
-            }
-        }
+        CrashMonitor.trackWarning()
     }
 }
 
