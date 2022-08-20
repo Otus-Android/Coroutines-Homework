@@ -1,7 +1,7 @@
 package otus.homework.coroutines
 
-sealed class Result
+sealed class Result<T>  {
 
-class Success<T>: Result()
-
-object Error : Result()
+    data class Success<T>(val result: T) : Result<T>()
+    data class Error<T>(val message: String) : Result<T>()
+}

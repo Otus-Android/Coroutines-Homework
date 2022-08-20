@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
        /* catsPresenter.attachView(view)
         catsPresenter.onInitComplete(this)*/
         viewModel.attachView(view)
-        viewModel.onInitComplete(this)
+        viewModel.onInitComplete()
     }
 
     override fun onStop() {

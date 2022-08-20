@@ -9,6 +9,5 @@ import com.google.gson.annotations.SerializedName
 
 data class Picture (
     @SerializedName("file")
-    @Expose
-    val file: String? = null
+    val file: String
     )

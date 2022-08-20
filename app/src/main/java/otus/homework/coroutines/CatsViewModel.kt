@@ -3,6 +3,7 @@ package otus.homework.coroutines
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
@@ -15,63 +16,39 @@ class CatsViewModel() : ViewModel() {
     private val catsService = DiContainer().service
     private val catsServiceMeow = DiContainer().serviceMeow
 
-    fun onInitComplete(context: Context) {
+    val state = MutableLiveData<Result<FactAndPicture>>()
+
+    fun onInitComplete() {
         viewModelScope.launch(CoroutineName("CatsCoroutine") + CoroutineExceptionHandler { coroutineContext, throwable ->
             Log.d("CoroutineExceptionHandler", "${throwable.message}")
         }) {
             try {
                 val fact = requestCatsFact()
                 val picture = requestCatsPicture()
-                if (fact != null && picture != null) {
-                    withContext(Dispatchers.Main) {
-                        _catsView!!.populate(fact, picture)
-                    }
-                } else {
-                    CrashMonitor.trackWarning()
-                }
+               state.postValue(Result.Success(FactAndPicture(fact, picture)))
             } catch (e: Exception) {
                 if (e is SocketTimeoutException) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            context,
-                            "Не удалось получить ответ от сервером",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    state.value = Result.Error("Не удалось получить ответ от сервера")
                 } else {
                     CrashMonitor.trackWarning()
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "${e.message}", Toast.LENGTH_SHORT).show()
+                        state.value = Result.Error(e.message.toString())
                     }
                 }
             }
         }
     }
 
-    private suspend fun requestCatsFact(): Fact? {
+    private suspend fun requestCatsFact(): Fact {
         val async = viewModelScope.async {
-            val responseFact = catsService.getCatFact()
-            if (responseFact.isSuccessful && responseFact.body() != null) {
-                Log.d("TEST_TAG", "fact: ${responseFact.body()}")
-                return@async responseFact.body()
-            } else {
-                CrashMonitor.trackWarning()
-                return@async null
-            }
+                return@async catsService.getCatFact()
         }
         return async.await()
     }
 
-    private suspend fun requestCatsPicture(): Picture? {
+    private suspend fun requestCatsPicture(): Picture {
         val async = viewModelScope.async {
-            val responsePicture = catsServiceMeow.getCatRandomPicture()
-            if (responsePicture.isSuccessful && responsePicture.body() != null) {
-                Log.d("TEST_TAG", "picture: ${responsePicture.body()}")
-                return@async responsePicture.body()
-            } else {
-                CrashMonitor.trackWarning()
-                return@async null
-            }
+           return@async catsServiceMeow.getCatRandomPicture()
         }
         return async.await()
     }
