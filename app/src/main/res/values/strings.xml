@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Cat Facts </string>
     <string name="more_facts">More Facts</string>
+    <string name="exception_timeout_server_unreached">Couldn\'t get answer from server</string>
+
+
 </resources>

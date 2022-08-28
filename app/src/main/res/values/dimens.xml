@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<dimen name="medium_square_image_size">150dp</dimen>
+	<dimen name="size_small">8dp</dimen>
+	<dimen name="size_medium">16dp</dimen>
+</resources>

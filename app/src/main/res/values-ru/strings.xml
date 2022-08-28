@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">Котешные Факты</string>
+	<string name="more_facts">Больше Фактов</string>
+	<string name="exception_timeout_server_unreached">Не удалось получить ответ от сервером</string>
+</resources>

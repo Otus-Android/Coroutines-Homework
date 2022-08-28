@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<otus.homework.coroutines.CatsView xmlns:android="http://schemas.android.com/apk/res/android"
+<otus.homework.coroutines.CatsView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,16 +8,46 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/fact_textView"
-        android:textColor="@color/black"
-        android:textSize="24sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <ProgressBar
+        android:id="@+id/catsImageLoader"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:indeterminate="true"
+        app:layout_constraintStart_toStartOf="@id/catsImage"
+        app:layout_constraintTop_toTopOf="@id/catsImage"
+        app:layout_constraintBottom_toBottomOf="@id/catsImage"
+        app:layout_constraintEnd_toEndOf="@id/catsImage"/>
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/catsImage"
+        android:layout_width="@dimen/medium_square_image_size"
+        android:layout_height="@dimen/medium_square_image_size"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/textScrollView"/>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/textScrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginVertical="@dimen/size_medium"
+        app:layout_constraintVertical_weight="0.9"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintBottom_toTopOf="@id/button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/catsImage">
+
+        <TextView
+            android:id="@+id/fact_textView"
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="LOREM IPSUM LOREM IPSUMLOREM IPSUM"/>
+
+    </androidx.core.widget.NestedScrollView>
 
     <Button
         android:id="@+id/button"
@@ -25,6 +56,7 @@
         android:text="@string/more_facts"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fact_textView" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textScrollView" />
 
 </otus.homework.coroutines.CatsView>
