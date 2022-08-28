@@ -2,14 +2,21 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
-
-    lateinit var catsPresenter: CatsPresenter
 
     private val diContainer = DiContainer()
 
     private var catsView: CatsView? = null
+
+    private val viewModel: CatsViewModel by lazy {
+        CatsViewModelFactory(
+            application,
+            diContainer.service,
+            resources
+        ).create(CatsViewModel::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,16 +25,15 @@ class MainActivity : AppCompatActivity() {
         catsView?.let { view ->
             setContentView(view)
 
-            catsPresenter = CatsPresenter(diContainer.service, resources)
-            view.presenter = catsPresenter
-            catsPresenter.attachView(view)
-            catsPresenter.onInitComplete()
+            view.viewModel = viewModel
+            viewModel.attachView(view)
+            viewModel.onInitComplete()
         }
     }
 
     override fun onStop() {
         if (isFinishing) {
-            catsPresenter.detachView()
+            viewModel.detachView()
             catsView?.stopPictureLoading()
         }
         super.onStop()

@@ -20,7 +20,7 @@ class CatsPresenter(
                 CoroutineName(COROUTINE_SCOPE_NAME) +
                 CoroutineExceptionHandler
                 { coroutineContext, throwable ->
-                    CrashMonitor.trackWarning()
+                    CrashMonitor.trackWarning(throwable.message)
                     throwable.message?.let { _catsView?.showShortToast(it) }
                 }
     )
@@ -28,12 +28,12 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                _catsView?.populate(
+                /*_catsView?.populate(
                     CatsData(
                         textFact = catsService.getCatFact().text,
                         imageUrl = catsService.getCatsImageUrl().url
                     )
-                )
+                )*/
             } catch (ex: SocketTimeoutException) {
                 _catsView?.showShortToast(resourcesProvider.getString(R.string.exception_timeout_server_unreached))
             }

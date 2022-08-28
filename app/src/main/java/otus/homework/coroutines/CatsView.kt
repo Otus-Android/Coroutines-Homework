@@ -9,7 +9,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.google.android.material.imageview.ShapeableImageView
+import androidx.core.content.res.ResourcesCompat
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import java.lang.Exception
@@ -20,37 +20,28 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter : CatsPresenter? = null
+    var viewModel : CatsViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
             findViewById<ProgressBar>(R.id.catsImageLoader).visibility = View.VISIBLE
-            presenter?.onInitComplete()
+            findViewById<TextView>(R.id.fact_textView).text = ""
+            findViewById<ImageView>(R.id.catsImage).visibility = View.INVISIBLE
+            viewModel?.onInitComplete()
         }
     }
 
-    override fun populate(catsStuff: CatsData) {
-        findViewById<TextView>(R.id.fact_textView).text = catsStuff.textFact
-        val image = findViewById<ImageView>(R.id.catsImage)
-        val imageLoader = findViewById<ProgressBar>(R.id.catsImageLoader)
-        Picasso.get()
-            .load(catsStuff.imageUrl)
-            .tag(PICASSO_LOADING_TAG)
-            .error(R.drawable.ic_baseline_error_outline_24)
-            .into(image, object: Callback {
-                override fun onSuccess() {
-                    imageLoader.visibility = View.GONE
-                }
-
-                override fun onError(e: Exception?) {
-                    imageLoader.visibility = View.GONE
-                }
+    override fun populate(catsStuff: Result<CatsData>) {
+        when(catsStuff) {
+            is Result.Success -> render(catsStuff.data)
+            is Result.Error -> {
+                inCaseOfError(catsStuff.msg)
             }
-        )
+        }
     }
 
-    override fun showShortToast(toastyMsg: String) {
+    override fun showShortToast(toastyMsg: String?) {
         Toast.makeText(context, toastyMsg, Toast.LENGTH_SHORT).show()
     }
 
@@ -58,16 +49,53 @@ class CatsView @JvmOverloads constructor(
         Picasso.get().cancelTag(PICASSO_LOADING_TAG)
     }
 
+    override fun inCaseOfError(msg: String?) {
+        showShortToast(msg)
+        findViewById<ImageView>(R.id.catsImage).apply {
+            setImageDrawable(
+                ResourcesCompat
+                    .getDrawable(
+                        resources,
+                        R.drawable.ic_baseline_error_outline_24,
+                        context.theme
+                    )
+            )
+            visibility = View.VISIBLE
+        }
+        findViewById<ProgressBar>(R.id.catsImageLoader).visibility = View.GONE
+    }
+
+    private fun render(catsData: CatsData) {
+        findViewById<TextView>(R.id.fact_textView).text = catsData.textFact
+        val image = findViewById<ImageView>(R.id.catsImage)
+        val imageLoader = findViewById<ProgressBar>(R.id.catsImageLoader)
+        Picasso.get()
+            .load(catsData.imageUrl)
+            .tag(PICASSO_LOADING_TAG)
+            .into(image, object: Callback {
+                override fun onSuccess() {
+                    image.visibility = View.VISIBLE
+                    imageLoader.visibility = View.GONE
+                }
+
+                override fun onError(e: Exception?) {
+                    inCaseOfError(e?.message)
+                }
+            })
+    }
+
     companion object {
-        private val PICASSO_LOADING_TAG = "picasso_loading_tag"
+        private const val PICASSO_LOADING_TAG = "picasso_loading_tag"
     }
 }
 
 interface ICatsView {
 
-    fun populate(fcatsStuff: CatsData)
+    fun populate(catsStuff: Result<CatsData>)
 
-    fun showShortToast(toastyMsg: String)
+    fun showShortToast(toastyMsg: String?)
 
     fun stopPictureLoading()
+
+    fun inCaseOfError(msg: String?)
 }
