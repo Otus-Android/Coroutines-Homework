@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
@@ -10,13 +11,14 @@ class MainActivity : AppCompatActivity() {
 
     private var catsView: CatsView? = null
 
-    private val viewModel: CatsViewModel by lazy {
-        CatsViewModelFactory(
-            application,
-            diContainer.service,
-            resources
-        ).create(CatsViewModel::class.java)
-    }
+    private val viewModel: CatsViewModel by viewModels(
+        factoryProducer = {
+            CatsViewModelFactory(
+                application,
+                diContainer.service
+            )
+        }
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +35,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         if (isFinishing) {
-            viewModel.detachView()
             catsView?.stopPictureLoading()
         }
         super.onStop()

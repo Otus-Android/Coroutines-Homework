@@ -5,7 +5,9 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
@@ -19,7 +21,7 @@ class CatsPresenter(
         Dispatchers.Main +
                 CoroutineName(COROUTINE_SCOPE_NAME) +
                 CoroutineExceptionHandler
-                { coroutineContext, throwable ->
+                { _, throwable ->
                     CrashMonitor.trackWarning(throwable.message)
                     throwable.message?.let { _catsView?.showShortToast(it) }
                 }
@@ -28,12 +30,18 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                /*_catsView?.populate(
-                    CatsData(
-                        textFact = catsService.getCatFact().text,
-                        imageUrl = catsService.getCatsImageUrl().url
+                coroutineScope {
+                    val factDeferred = async { catsService.getCatFact().text }
+                    val imageDeferred = async { catsService.getCatsImageUrl().url }
+                    _catsView?.populate(
+                        Result.Success(
+                            CatsData(
+                                textFact = factDeferred.await(),
+                                imageUrl = imageDeferred.await()
+                            )
+                        )
                     )
-                )*/
+                }
             } catch (ex: SocketTimeoutException) {
                 _catsView?.showShortToast(resourcesProvider.getString(R.string.exception_timeout_server_unreached))
             }
