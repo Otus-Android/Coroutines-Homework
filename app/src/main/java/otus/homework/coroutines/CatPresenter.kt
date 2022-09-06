@@ -3,13 +3,13 @@ package otus.homework.coroutines
 import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
-class CatsPresenter(
-    private val catsService: CatsService,
-    private val catsImageService: CatsService
+class CatPresenter(
+    private val catsService: CatService,
+    private val catsImageService: CatService
 ) {
 
     private var presenterScope: CoroutineScope = PresenterScope
-    private var _catsView: ICatsView? = null
+    private var _catsView: ICatView? = null
 
     fun onInitComplete() {
         presenterScope.launch {
@@ -36,7 +36,7 @@ class CatsPresenter(
         }
     }
 
-    fun attachView(catsView: ICatsView) {
+    fun attachView(catsView: ICatView) {
         _catsView = catsView
     }
 

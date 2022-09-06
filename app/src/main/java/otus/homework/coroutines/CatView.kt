@@ -9,18 +9,20 @@ import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 
-class CatsView @JvmOverloads constructor(
+class CatView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
+) : ConstraintLayout(context, attrs, defStyleAttr), ICatView {
 
-    var presenter: CatsPresenter? = null
+    //    var presenter: CatsPresenter? = null
+    var viewModel: CatViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+//            presenter?.onInitComplete()
+            viewModel?.onInitComplete()
         }
     }
 
@@ -34,7 +36,7 @@ class CatsView @JvmOverloads constructor(
     }
 }
 
-interface ICatsView {
+interface ICatView {
     fun populate(factAndImage: FactAndImage)
     fun showToastMessage(message: String)
 }
