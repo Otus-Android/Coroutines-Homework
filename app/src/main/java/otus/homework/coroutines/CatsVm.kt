@@ -41,39 +41,12 @@ class CatsVm(
                 val deferredPicture = async { catPictureService.getCatPicture() }
 
                 //Ждём выполнение всех запросов
-                val responseFact = deferredFact.await()
-                val responsePicture = deferredPicture.await()
+                val fact = deferredFact.await()
+                val picture = deferredPicture.await()
 
-                //Анализируем ответы
-                if (
-                    responseFact.isSuccessful
-                    && responseFact.body() != null
+                Log.e("CatsVm", "requests success!!!")
+                result = Success(CatsModel(fact.text, picture.url))
 
-                    && responsePicture.isSuccessful
-                    && responsePicture.body() != null
-                    && (responsePicture.body() as Picture).url.isNotEmpty()
-                ) {
-                    Log.e("CatsVm", "requests success!!!")
-                    val fact = responseFact.body() as Fact
-                    val picture = responsePicture.body() as Picture
-                    result = Success(CatsModel(fact.text, picture.url))
-                } else {
-                    throw Exception(
-                        if (responseFact.body() == null || responsePicture.body() == null) {
-                            "Incorrect data from server"
-                        }
-                        else {
-                            if (!responseFact.isSuccessful && responsePicture.isSuccessful) {
-                                responseFact.message()
-                            }
-                            else if (responseFact.isSuccessful && !responsePicture.isSuccessful) {
-                                responsePicture.message()
-                            }
-                            else {
-                                responseFact.message() + " " + responsePicture.message()
-                            }
-                        })
-                }
             }
             //Обрабатываем определённые ошибки
             catch (e: SocketTimeoutException) {
