@@ -7,42 +7,35 @@ class CatsPresenter(
     private val catsService: CatsService,
     private val catsImageService: CatsImageService,
     private val presenterScope: CoroutineScope,
-    private val dispatcherIo: CoroutineDispatcher
 ) {
 
     private var _catsView: ICatsView? = null
 
-    private fun <T> CoroutineScope.catResponseAsync(block: suspend () -> T) =
-        async(dispatcherIo) {
-            try {
-                return@async block()
-            } catch (e: Exception) {
-                when (e) {
-                    is CancellationException -> throw e
-                    is SocketTimeoutException -> {
-                        CrashMonitor.trackWarning(message = e.message, throwable = e)
-                        val crashMessage = "Failed to get a response from the server"
-                        withContext(Dispatchers.Main) {
-                            _catsView?.showToast(text = crashMessage)
-                        }
-                    }
-                    else -> {
-                        CrashMonitor.trackWarning(message = e.message, throwable = e)
-                        e.message?.let {
-                            withContext(Dispatchers.Main) {
-                                _catsView?.showToast(it)
-                            }
-                        }
+    private suspend fun <T> catResponse(block: suspend () -> T) =
+        try {
+            block()
+        } catch (e: Exception) {
+            when (e) {
+                is CancellationException -> throw e
+                is SocketTimeoutException -> {
+                    CrashMonitor.trackWarning(message = e.message, throwable = e)
+                    val crashMessage = "Failed to get a response from the server"
+                    _catsView?.showToast(text = crashMessage)
+                }
+                else -> {
+                    CrashMonitor.trackWarning(message = e.message, throwable = e)
+                    e.message?.let {
+                        _catsView?.showToast(it)
                     }
                 }
-                return@async null
             }
+            null
         }
 
     fun onInitComplete() {
         presenterScope.launch {
-            val deferredFact = catResponseAsync { catsService.getCatFact() }
-            val deferredImageUrl = catResponseAsync { catsImageService.getImageUrl() }
+            val deferredFact = async { catResponse { catsService.getCatFact() } }
+            val deferredImageUrl = async { catResponse { catsImageService.getImageUrl() } }
             val content =
                 CatsContent(fact = deferredFact.await(), imageUrl = deferredImageUrl.await())
             _catsView?.populate(content)
