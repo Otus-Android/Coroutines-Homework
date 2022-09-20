@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class DiContainer {
 
     companion object{
-        val FIFTEEN : Long = 15L
+        val FIFTEEN : Long = 5L
     }
 
     private val okHttpClient by lazy {
@@ -17,6 +17,7 @@ class DiContainer {
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
 
         OkHttpClient.Builder()
+            .connectTimeout(FIFTEEN, TimeUnit.SECONDS)
             .callTimeout(FIFTEEN, TimeUnit.SECONDS)
             .readTimeout(FIFTEEN, TimeUnit.SECONDS)
             .writeTimeout(FIFTEEN, TimeUnit.SECONDS)
