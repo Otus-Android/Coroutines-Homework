@@ -1,9 +1,6 @@
 package otus.homework.coroutines
 
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import otus.homework.coroutines.api.CatsFactService
 import otus.homework.coroutines.api.CatsPhotoService
 import otus.homework.coroutines.models.Cat
@@ -19,18 +16,20 @@ class CatsPresenter(
 
     fun onInitComplete() {
         presenterScope.launch {
-            try {
+            supervisorScope {
                 val factDeferred = async { catsFactService.getCatFact() }
                 val photoDeferred = async { catsPhotoService.getCatPhoto() }
-                _catsView?.populate(Cat(factDeferred.await(), photoDeferred.await()))
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: SocketTimeoutException) {
-                _catsView?.showServerResponseError()
-            } catch (e: Exception) {
-                CrashMonitor.trackWarning(e)
-                e.message?.let {
-                    _catsView?.showError(it)
+                try {
+                    _catsView?.populate(Cat(factDeferred.await(), photoDeferred.await()))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: SocketTimeoutException) {
+                    _catsView?.showServerResponseError()
+                } catch (e: Exception) {
+                    CrashMonitor.trackWarning(e)
+                    e.message?.let {
+                        _catsView?.showError(it)
+                    }
                 }
             }
         }
