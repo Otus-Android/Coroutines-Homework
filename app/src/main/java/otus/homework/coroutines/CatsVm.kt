@@ -22,8 +22,8 @@ class CatsVm(
         _showToast.postValue("")
     }
 
-    private val _catsData: MutableLiveData<CatsModel?> = MutableLiveData()
-    val catsData: LiveData<CatsModel?> = _catsData
+    private val _catsData: MutableLiveData<CatsModel> = MutableLiveData()
+    val catsData: LiveData<CatsModel> = _catsData
 
 
     fun onInitComplete() {
@@ -33,7 +33,7 @@ class CatsVm(
             changeUI(Error(throwable.message ?: throwable.toString()))
         }
         ) {
-            lateinit var result: Result
+            var result: Result
 
             try {
                 //Запускаем запросы одновременно

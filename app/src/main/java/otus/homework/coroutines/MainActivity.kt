@@ -28,9 +28,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         catsVM.catsData.observe(this) { catsModel ->
-            catsModel?.let {
-                view.populate(it)
-            }
+            view.populate(catsModel)
         }
     }
 }
