@@ -38,6 +38,7 @@ class CatsPresenter(
                         }
                         is CancellationException -> {
                             CrashMonitor.trackWarning()
+                            throw it
                         }
                         else -> {
                             CrashMonitor.trackWarning()
@@ -51,13 +52,9 @@ class CatsPresenter(
         }
     }
 
-    private suspend fun getCatFact() = withContext(Dispatchers.IO) {
-        async { catsService.getCatFact() }
-    }
+    private suspend fun getCatFact() = scope.async { catsService.getCatFact() }
 
-    private suspend fun getCatPhoto() = withContext(Dispatchers.IO) {
-        async { catsPhotoService.getCatPhoto() }
-    }
+    private suspend fun getCatPhoto() = scope.async { catsPhotoService.getCatPhoto() }
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
