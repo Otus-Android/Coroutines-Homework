@@ -4,16 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.net.SocketTimeoutException
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -45,6 +40,7 @@ class CatsViewModel(
                         }
                         is CancellationException -> {
                             CrashMonitor.trackWarning()
+                            throw it
                         }
                         else -> {
                             CrashMonitor.trackWarning()
@@ -58,13 +54,9 @@ class CatsViewModel(
         }
     }
 
-    private suspend fun getCatFact() = withContext(Dispatchers.IO) {
-        async { catsService.getCatFact() }
-    }
+    private suspend fun getCatFact() = viewModelScope.async { catsService.getCatFact() }
 
-    private suspend fun getCatPhoto() = withContext(Dispatchers.IO) {
-        async { catsPhotoService.getCatPhoto() }
-    }
+    private suspend fun getCatPhoto() = viewModelScope.async { catsPhotoService.getCatPhoto() }
 
     private val coroutineExceptionHandler =
         CoroutineExceptionHandler { _, _ ->
