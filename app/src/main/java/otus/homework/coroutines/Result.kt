@@ -3,9 +3,10 @@ package otus.homework.coroutines
 import android.content.Context
 import androidx.annotation.StringRes
 
-sealed class Result<T> {
+sealed class Result<out T> {
     data class Success<T>(val data: T) : Result<T>()
 
+//    class Loading<T> : Result<T>()
     object Loading : Result<Nothing>()
 
     data class Error private constructor (
@@ -13,6 +14,8 @@ sealed class Result<T> {
         @StringRes private val _messageId: Int,
         private val formatArgs: List<Any?>
     ) : Result<Nothing>() {
+        val throwable: Throwable? get() = _throwable
+
         constructor(throwable: Throwable) : this(throwable, 0, emptyList())
         constructor(@StringRes messageId: Int, vararg formatArgs: Any?) : this(null, messageId, formatArgs.toList())
 
