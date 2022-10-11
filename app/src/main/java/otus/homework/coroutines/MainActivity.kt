@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.lifecycle.lifecycleScope
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,7 +19,7 @@ class MainActivity : AppCompatActivity() {
         catsPresenter = CatsPresenter(diContainer.service)
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+        catsPresenter.onInitComplete(lifecycleScope)
     }
 
     override fun onStop() {
