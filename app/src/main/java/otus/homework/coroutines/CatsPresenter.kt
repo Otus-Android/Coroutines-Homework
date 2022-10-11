@@ -20,10 +20,13 @@ class CatsPresenter(
     fun onInitComplete(scope: CoroutineScope) {
         scope.launch {
             try {
-                val response = catsService.getCatFact()
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
+                val responseImage = catsService.getRandomImage()
+                val response = catsService.getCatFactReserve()
+                _catsView?.populate(CatDescription(response.fact, responseImage.file))
+//                if (response.isSuccessful && response.body() != null) {
+//                    _catsView?.populate(response.body()!!.toFact())
+//                }
+
             } catch (e: CancellationException) {
                 throw e
             } catch (e: SocketTimeoutException) {
