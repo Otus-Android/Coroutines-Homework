@@ -25,19 +25,26 @@ class CatsView @JvmOverloads constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-//            presenter?.onInitComplete(GlobalScope)
-            catViewModel?.updateCat()
+            if (Constants.PRESENTER_MODE) {
+                presenter?.onInitComplete()
+            } else {
+                catViewModel?.updateCat()
+            }
         }
     }
 
     override fun populate(catDescription: CatDescription) {
         findViewById<TextView>(R.id.fact_textView).text = catDescription.fact
         val image = findViewById<ImageView>(R.id.cat_image)
-        Picasso.get().load(catDescription.imageUrl).into(image)
+        Picasso.get()
+            .load(catDescription.imageUrl)
+            .placeholder(R.drawable.loading_img)
+            .error(R.drawable.ic_broken_image)
+            .into(image)
     }
 
     override fun showError(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
 
     override fun showError(@StringRes messageId: Int, vararg formatArgs: Any?) {

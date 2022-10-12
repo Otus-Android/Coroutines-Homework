@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
@@ -44,12 +45,17 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
 
         viewModelScope.launch(exceptionHandler) {
             _catDescription.value = Result.Loading
-            val fact = async { catsService.getCatFact() }
-            val imageUrl = async { catsService.getRandomImage() }
-            _catDescription.value = Result.Success(CatDescription(
-                fact.await().text,
-                imageUrl.await().file
-            ))
+            val factDeferred: Deferred<Fact> = async {
+                if (Constants.RESERVE_CATS_SERVER) catsService.getCatFactReserve()
+                    .toFact() else catsService.getCatFact()
+            }
+            val imageUrlDeferred = async { catsService.getRandomImage() }
+            _catDescription.value = Result.Success(
+                CatDescription(
+                    factDeferred.await().text,
+                    imageUrlDeferred.await().file
+                )
+            )
         }
     }
 }

@@ -20,36 +20,36 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service)
-//        view.presenter = catsPresenter
-//        catsPresenter.attachView(view)
-//        catsPresenter.onInitComplete(lifecycleScope)
-
-        view.catViewModel = catsViewModel
-        catsViewModel.catDescription.observe(this) {
-            when(it) {
-//                is Result.Loading -> view.setLoading(true)
-                is Result.Error -> {
-//                    view.setLoading(false)
-                    val message = it.getMessage(this, getText(R.string.error_unknown))
-                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        if (Constants.PRESENTER_MODE) {
+            catsPresenter = CatsPresenter(diContainer.service)
+            view.presenter = catsPresenter
+            catsPresenter.attachView(view)
+            catsPresenter.onInitComplete()
+        } else {
+            view.catViewModel = catsViewModel
+            catsViewModel.catDescription.observe(this) {
+                when (it) {
+                    is Result.Error -> {
+                        val message = it.getMessage(this, getText(R.string.error_unknown))
+                        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                    }
+                    is Result.Success -> {
+                        view.populate(it.data)
+                    }
+                    is Result.Loading, null -> Unit
                 }
-                is Result.Success -> {
-//                    view.setLoading(false)
-                    view.populate(it.data)
-                }
-//                null -> view.setLoading(false)
-                is Result.Loading, null -> Unit
             }
+
+            catsViewModel.isLoading.observe(this) {
+                view.setLoading(it ?: false)
+            }
+
+            catsViewModel.updateCat()
         }
-        catsViewModel.isLoading.observe(this) {
-            view.setLoading(it ?: false)
-        }
-        catsViewModel.updateCat()
     }
 
     override fun onStop() {
-        if (isFinishing) {
+        if (isFinishing && ::catsPresenter.isInitialized) {
             catsPresenter.detachView()
         }
         super.onStop()
