@@ -28,7 +28,7 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
         val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
             _catDescription.value = when (throwable) {
                 is CancellationException -> {
-                    Log.d(TAG, "Can we catch CancellationException?", throwable)
+                    Log.d(TAG, "Can we catch CancellationException here?", throwable)
                     return@CoroutineExceptionHandler
                 }
                 is SocketTimeoutException -> {
@@ -37,10 +37,10 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
                 }
                 else -> {
                     Log.d(TAG, "Unknown error", throwable)
+                    CrashMonitor.trackWarning()
                     Result.Error(throwable)
                 }
             }
-            CrashMonitor.trackWarning()
         }
 
         viewModelScope.launch(exceptionHandler) {

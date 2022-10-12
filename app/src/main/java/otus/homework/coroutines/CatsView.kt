@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
-import kotlinx.coroutines.GlobalScope
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -25,7 +24,7 @@ class CatsView @JvmOverloads constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            if (Constants.PRESENTER_MODE) {
+            if (Constants.PRESENTER_VARIANT) {
                 presenter?.onInitComplete()
             } else {
                 catViewModel?.updateCat()

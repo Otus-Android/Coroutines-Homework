@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 
 class MainActivity : AppCompatActivity() {
     lateinit var catsPresenter: CatsPresenter
@@ -20,7 +19,7 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        if (Constants.PRESENTER_MODE) {
+        if (Constants.PRESENTER_VARIANT) {
             catsPresenter = CatsPresenter(diContainer.service)
             view.presenter = catsPresenter
             catsPresenter.attachView(view)
