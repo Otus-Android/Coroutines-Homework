@@ -20,10 +20,10 @@ sealed class Result<out T> {
             formatArgs.toList()
         )
 
-        fun getMessage(context: Context, emptyMessage: CharSequence = ""): CharSequence = when {
+        fun getMessage(context: Context): CharSequence = when {
             throwable != null -> throwable.message?.takeIf { it.isNotEmpty() }
-                ?: throwable.javaClass.simpleName
-            _messageId == 0 -> emptyMessage
+                ?: throwable.toString()
+            _messageId == 0 -> ""
             formatArgs.isEmpty() -> context.getText(_messageId)
             else -> context.getString(_messageId, *formatArgs.toTypedArray())
         }

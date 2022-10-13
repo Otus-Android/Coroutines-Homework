@@ -29,7 +29,8 @@ class MainActivity : AppCompatActivity() {
             catsViewModel.catDescription.observe(this) {
                 when (it) {
                     is Result.Error -> {
-                        val message = it.getMessage(this, getText(R.string.error_unknown))
+                        var message = it.getMessage(this)
+                        if (message.isEmpty()) message = getText(R.string.error_unknown)
                         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
                     }
                     is Result.Success -> {
