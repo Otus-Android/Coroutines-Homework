@@ -2,8 +2,9 @@ package otus.homework.coroutines
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import otus.homework.coroutines.entities.CatEntity
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -16,10 +17,18 @@ class CatsPresenter(
     fun onInitComplete() {
         try {
             presenterScope.launch {
-                val cat = withContext(Dispatchers.IO) {
-                    return@withContext catsService.getCatFact()
+                val catFact = async(Dispatchers.IO) {
+                    catsService.getCatFact()
                 }
-                _catsView?.populate(cat)
+                val catPhotoUrl = async(Dispatchers.IO) {
+                    catsService.getPhotoCat()
+                }
+                _catsView?.populate(
+                    CatEntity(
+                        text = catFact.await().text,
+                        catUrl = catPhotoUrl.await().fileUrl
+                    )
+                )
             }
         } catch (ste: SocketTimeoutException) {
             _catsView?.showToast("Не удалось получить ответ от сервером")

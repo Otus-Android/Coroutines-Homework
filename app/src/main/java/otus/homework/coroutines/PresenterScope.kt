@@ -1,9 +1,6 @@
 package otus.homework.coroutines
 
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 class PresenterScope : CoroutineScope {
@@ -13,5 +10,5 @@ class PresenterScope : CoroutineScope {
     }
 
     override val coroutineContext: CoroutineContext =
-        Dispatchers.Main + SupervisorJob() + coroutineExceptionHandler
+        Dispatchers.Main + SupervisorJob() + coroutineExceptionHandler + CoroutineName("CatsCoroutine")
 }
