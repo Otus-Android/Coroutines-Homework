@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import otus.homework.coroutines.error.handler.CrashMonitor
 import otus.homework.coroutines.network.facts.base.image.ImageService
 import otus.homework.coroutines.network.facts.base.AbsCatService
 import otus.homework.coroutines.network.facts.base.CatData
@@ -19,37 +20,37 @@ class CatsPresenter(
 
     private val catData = CatData()
 
-    fun onInitComplete() {
-        catFactJob = _presenterScope.launch {
-            try {
-                val catFact = catsService.getCatFact()
-                catData.fact = catFact
-                if (catImageJob.isCompleted) populateView()
-            } catch (exp: Exception) {
-                if (exp is SocketTimeoutException) {
-                    _catsView?.showError(R.string.socket_timeout_exception_error_text)
-                } else {
-                    CrashMonitor.trackWarning()
-                    _catsView?.showError(exp.message)
-                }
-            }
-        }
-
-        catImageJob = _presenterScope.launch {
-            try {
-                val imageUrl = catsImageService.getCatImageUrl()
-                catData.imageUrl = imageUrl
-                if (catFactJob.isCompleted) populateView()
-            } catch (exp: Exception) {
-                if (exp is SocketTimeoutException) {
-                    _catsView?.showError(R.string.socket_timeout_exception_error_text)
-                } else {
-                    CrashMonitor.trackWarning()
-                    _catsView?.showError(exp.message)
-                }
-            }
-        }
-    }
+//    fun onInitComplete() {
+//        catFactJob = _presenterScope.launch {
+//            try {
+//                val catFact = catsService.getCatFact()
+//                catData.fact = catFact
+//                if (catImageJob.isCompleted) populateView()
+//            } catch (exp: Exception) {
+//                if (exp is SocketTimeoutException) {
+//                    _catsView?.showError(R.string.socket_timeout_exception_error_text)
+//                } else {
+//                    //CrashMonitor.trackWarning()
+//                    _catsView?.showError(exp.message)
+//                }
+//            }
+//        }
+//
+//        catImageJob = _presenterScope.launch {
+//            try {
+//                val imageUrl = catsImageService.getCatImageUrl()
+//                catData.imageUrl = imageUrl
+//                if (catFactJob.isCompleted) populateView()
+//            } catch (exp: Exception) {
+//                if (exp is SocketTimeoutException) {
+//                    _catsView?.showError(R.string.socket_timeout_exception_error_text)
+//                } else {
+//                    //CrashMonitor.trackWarning()
+//                    _catsView?.showError(exp.message)
+//                }
+//            }
+//        }
+//    }
 
     private fun populateView() {
         _catsView?.populate(catData)

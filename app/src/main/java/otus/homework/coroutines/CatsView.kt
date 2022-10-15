@@ -5,7 +5,6 @@ import android.util.AttributeSet
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.network.facts.base.CatData
@@ -16,12 +15,9 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
-
-    override fun onFinishInflate() {
-        super.onFinishInflate()
+    fun setUpButtonCallback(getFactAndImage: () -> Unit) {
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            getFactAndImage()
         }
     }
 
@@ -30,26 +26,8 @@ class CatsView @JvmOverloads constructor(
         val imageView = findViewById<ImageView>(R.id.fact_image)
         Picasso.get().load(catData.imageUrl?.file).into(imageView);
     }
-
-    override fun showError(id: Int?) {
-        val errorText = context.getString(id ?: R.string.unknown_error_text)
-        Toast.makeText(context, errorText, Toast.LENGTH_SHORT).show()
-    }
-
-    override fun showError(msg: String?) {
-        Toast.makeText(
-            context,
-            msg ?: context.getString(R.string.unknown_error_text),
-            Toast.LENGTH_SHORT
-        ).show()
-    }
-
 }
 
 interface ICatsView {
-
     fun populate(catData: CatData)
-
-    fun showError(id: Int? = null)
-    fun showError(msg: String? = null)
 }

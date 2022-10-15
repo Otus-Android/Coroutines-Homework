@@ -4,4 +4,7 @@
     
     <string name="unknown_error_text">Неизвестная ошибка</string>
     <string name="socket_timeout_exception_error_text">Не удалось получить ответ от сервера</string>
+
+    <string name="fact_success">Факт загружен</string>
+    <string name="image_success">Ссылка на картинку загружена</string>
 </resources>
