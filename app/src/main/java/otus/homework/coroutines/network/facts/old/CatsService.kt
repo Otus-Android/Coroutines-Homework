@@ -1,6 +1,6 @@
 package otus.homework.coroutines.network.facts.old
 
-import otus.homework.coroutines.network.facts.abs.AbsCatService
+import otus.homework.coroutines.network.facts.base.AbsCatService
 import retrofit2.http.GET
 
 interface CatsService : AbsCatService {
