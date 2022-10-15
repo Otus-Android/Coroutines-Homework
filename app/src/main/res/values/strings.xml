@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Cat Facts </string>
     <string name="more_facts">More Facts</string>
+    
+    <string name="unknown_error_text">Неизвестная ошибка</string>
+    <string name="socket_timeout_exception_error_text">Не удалось получить ответ от сервера</string>
 </resources>

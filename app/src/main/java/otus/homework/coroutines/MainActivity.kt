@@ -1,13 +1,16 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import otus.homework.coroutines.network.facts.ninja.NinjaDiContainer
+import otus.homework.coroutines.network.facts.old.DiContainer
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var catsPresenter: CatsPresenter
 
-    private val diContainer = DiContainer()
+//    private val diContainer = DiContainer()
+    private val diContainer = NinjaDiContainer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,6 +28,7 @@ class MainActivity : AppCompatActivity() {
         if (isFinishing) {
             catsPresenter.detachView()
         }
+        catsPresenter.stopCatJob()
         super.onStop()
     }
 }
