@@ -1,6 +1,7 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.network.facts.old
 
 import com.google.gson.annotations.SerializedName
+import otus.homework.coroutines.network.facts.base.AbsCatFact
 
 data class Fact(
 	@field:SerializedName("createdAt")
@@ -10,7 +11,7 @@ data class Fact(
 	@field:SerializedName("_id")
 	val id: String,
 	@field:SerializedName("text")
-	val text: String,
+	override val text: String,
 	@field:SerializedName("source")
 	val source: String,
 	@field:SerializedName("used")
@@ -21,4 +22,4 @@ data class Fact(
 	val user: String,
 	@field:SerializedName("updatedAt")
 	val updatedAt: String
-)
+): AbsCatFact()

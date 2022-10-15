@@ -1,28 +1,59 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import otus.homework.coroutines.error.handler.CrashMonitor
+import otus.homework.coroutines.network.facts.base.image.ImageService
+import otus.homework.coroutines.network.facts.base.AbsCatService
+import otus.homework.coroutines.network.facts.base.CatData
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: AbsCatService,
+    private val catsImageService: ImageService
 ) {
-
     private var _catsView: ICatsView? = null
+    private val _presenterScope = PresenterScope()
 
-    fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+    private lateinit var catFactJob: Job
+    private lateinit var catImageJob: Job
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
-            }
+    private val catData = CatData()
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+//    fun onInitComplete() {
+//        catFactJob = _presenterScope.launch {
+//            try {
+//                val catFact = catsService.getCatFact()
+//                catData.fact = catFact
+//                if (catImageJob.isCompleted) populateView()
+//            } catch (exp: Exception) {
+//                if (exp is SocketTimeoutException) {
+//                    _catsView?.showError(R.string.socket_timeout_exception_error_text)
+//                } else {
+//                    //CrashMonitor.trackWarning()
+//                    _catsView?.showError(exp.message)
+//                }
+//            }
+//        }
+//
+//        catImageJob = _presenterScope.launch {
+//            try {
+//                val imageUrl = catsImageService.getCatImageUrl()
+//                catData.imageUrl = imageUrl
+//                if (catFactJob.isCompleted) populateView()
+//            } catch (exp: Exception) {
+//                if (exp is SocketTimeoutException) {
+//                    _catsView?.showError(R.string.socket_timeout_exception_error_text)
+//                } else {
+//                    //CrashMonitor.trackWarning()
+//                    _catsView?.showError(exp.message)
+//                }
+//            }
+//        }
+//    }
+
+    private fun populateView() {
+        _catsView?.populate(catData)
     }
 
     fun attachView(catsView: ICatsView) {
@@ -31,5 +62,10 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+    }
+
+    fun stopCatJob() {
+        catFactJob.cancel()
+        catImageJob.cancel()
     }
 }
