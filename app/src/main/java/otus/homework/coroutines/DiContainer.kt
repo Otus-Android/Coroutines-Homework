@@ -3,6 +3,7 @@ package otus.homework.coroutines
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+
 class DiContainer {
 
     private val retrofit by lazy {
@@ -12,5 +13,7 @@ class DiContainer {
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+
+    val service: CatsService by lazy { retrofit.create(CatsService::class.java) }
+
 }
