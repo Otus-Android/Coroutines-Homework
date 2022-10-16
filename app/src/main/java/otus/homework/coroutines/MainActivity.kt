@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity(), CatsPresenter.ToastEventListener {
         super.onCreate(savedInstanceState)
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
+        catsVm.fetchData()
         view.findViewById<Button>(R.id.button).setOnClickListener {
             catsVm.fetchData()
         }

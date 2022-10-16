@@ -28,10 +28,6 @@ class CatsViewModel : ViewModel() {
             CrashMonitor.trackWarning(throwable as Exception)
         }
 
-    init {
-        fetchData()
-    }
-
     fun fetchData() {
         viewModelScope.launch {
 
