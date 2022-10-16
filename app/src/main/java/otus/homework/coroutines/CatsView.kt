@@ -2,12 +2,10 @@ package otus.homework.coroutines
 
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.widget.ImageViewCompat
 import com.squareup.picasso.Picasso
 
 class CatsView @JvmOverloads constructor(
@@ -16,20 +14,11 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
-
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
-        }
-    }
-
     override fun populate(entity: CatEntity) {
         findViewById<TextView>(R.id.fact_textView).text = entity.catFact.text
 
         val imageView = findViewById<ImageView>(R.id.cat_image)
-        Picasso.get().load(entity.catImageUrl.url).into(imageView)
+        Picasso.get().load(entity.catImage.url).into(imageView)
     }
 
     override fun showError(message: String?) {

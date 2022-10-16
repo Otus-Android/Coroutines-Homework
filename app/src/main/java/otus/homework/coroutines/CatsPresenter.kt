@@ -13,7 +13,7 @@ class CatsPresenter(
     private val handler = CoroutineExceptionHandler { _, e ->
         if (e is SocketTimeoutException) {
             _catsView?.showError(R.string.timeout_error)
-        } else {
+        } else if (e !is CancellationException){
             CrashMonitor.trackWarning(e.message)
 
             _catsView?.showError(e.message)
