@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 
 class CatsView @JvmOverloads constructor(
@@ -12,7 +13,7 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var presenter: CatsPresenter? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -24,9 +25,31 @@ class CatsView @JvmOverloads constructor(
     override fun populate(fact: Fact) {
         findViewById<TextView>(R.id.fact_textView).text = fact.text
     }
+
+    override fun showError(message: String?) {
+        val msg = message ?: context.getString(R.string.unknown_error)
+
+        showToast(msg)
+    }
+
+    override fun showError(messageId: Int?) {
+        val msg = messageId?.let {
+            context.getString(it)
+        } ?: context.getString(R.string.unknown_error)
+
+        showToast(msg)
+    }
+
+    private fun showToast(msg: String) {
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+    }
 }
 
 interface ICatsView {
 
     fun populate(fact: Fact)
+
+    fun showError(message: String? = null)
+
+    fun showError(messageId: Int? = null)
 }
