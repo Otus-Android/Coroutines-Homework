@@ -5,6 +5,11 @@ import retrofit2.http.GET
 
 interface CatsService {
 
-    @GET("random?animal_type=cat")
+    @GET("fact")
     suspend fun getCatFact(): Response<Fact>
+}
+
+interface CatsImageService {
+    @GET("meow")
+    suspend fun getCatImage(): Response<CatImage>
 }

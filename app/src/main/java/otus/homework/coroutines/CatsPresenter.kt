@@ -1,37 +1,42 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imageService: CatsImageService
 ) {
 
     private var _catsView: ICatsView? = null
 
+    private val handler = CoroutineExceptionHandler { _, e ->
+        if (e is SocketTimeoutException) {
+            _catsView?.showError(R.string.timeout_error)
+        } else {
+            CrashMonitor.trackWarning(e.message)
+
+            _catsView?.showError(e.message)
+        }
+    }
+
     private val job = SupervisorJob()
-    private val scope = CoroutineScope(Dispatchers.Main) + CoroutineName("CatsCoroutine") + job
+    private val scope =
+        CoroutineScope(Dispatchers.Main + job) + CoroutineName("CatsCoroutine")
 
     fun onInitComplete() {
 
-        scope.launch {
-            try {
-                val result = catsService.getCatFact()
+        scope.launch(handler) {
+            val factAsync = async { catsService.getCatFact() }
+            val imageAsync = async { imageService.getCatImage() }
 
-                if (result.isSuccessful && result.body() != null) {
+            val factResult = factAsync.await()
+            val imageResult = imageAsync.await()
 
-                    _catsView?.populate(result.body()!!)
-                }
-
-            } catch (e: SocketTimeoutException) {
-                _catsView?.showError(R.string.timeout_error)
-            } catch (e: Throwable) {
-                CrashMonitor.trackWarning(e.message)
-
-                _catsView?.showError(e.message)
+            if (factResult.isSuccessful && factResult.body() != null &&
+                imageResult.isSuccessful && imageResult.body() != null
+            ) {
+                _catsView?.populate(CatEntity(factResult.body()!!, imageResult.body()!!))
             }
         }
     }
