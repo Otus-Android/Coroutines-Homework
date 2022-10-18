@@ -1,30 +1,57 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.squareup.picasso.Picasso
+import kotlinx.coroutines.flow.collect
 
-class MainActivity : AppCompatActivity() {
-
-    lateinit var catsPresenter: CatsPresenter
+class MainActivity : AppCompatActivity(), ICatsView {
 
     private val diContainer = DiContainer()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
-        setContentView(view)
-
-        catsPresenter = CatsPresenter(diContainer.service)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+    private val viewModel by viewModels<MainViewModel> {
+        MainViewModelFactory(diContainer.service)
     }
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        lifecycleScope.launchWhenStarted {
+            viewModel.result.collect { result ->
+                when (result) {
+                    Result.NoResult -> getData()
+                    is Result.Success -> populate(result.bundle)
+                    is Result.Error -> showToast(result.error)
+                }
+            }
         }
-        super.onStop()
+
+        findViewById<Button>(R.id.button).setOnClickListener {
+            getData()
+        }
+    }
+
+    private fun getData() {
+        viewModel.getCatsInformation()
+    }
+
+    override fun populate(bundle: Bundle) {
+
+        findViewById<TextView>(R.id.fact_textView).text = bundle.getString("fact")
+        val imageUrl = bundle.getString("image")!!
+        Picasso.get()
+            .load(imageUrl)
+            .into(findViewById<ImageView>(R.id.imageCats))
+
+    }
+
+    override fun showToast(text: String) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
     }
 }
