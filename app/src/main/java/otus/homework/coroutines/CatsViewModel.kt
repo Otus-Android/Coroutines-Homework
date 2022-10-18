@@ -1,32 +1,35 @@
 package otus.homework.coroutines
 
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
-
-class CatsPresenter(
+class CatsViewModel(
     private val catsService: CatsService
-) {
+) : ViewModel() {
 
-    private var _catsView: ICatsView? = null
+    var catResult: MutableLiveData<Result<CatResult>> = MutableLiveData()
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
-        .plus(CoroutineName("CatsCoroutine"))
-
-    var errorResult: MutableLiveData<Result<CatResult>> = MutableLiveData()
+    init {
+        loadData()
+    }
 
     private val errorHandlerException: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, exception ->
             if (exception is SocketTimeoutException) {
-                errorResult.postValue(Result.Error)
+                catResult.value = Result.Error
             } else {
                 CrashMonitor.trackWarning()
             }
         }
 
-    fun onInitComplete() {
-        coroutineScope.launch(errorHandlerException) {
+    private fun loadData() {
+        viewModelScope.launch(errorHandlerException) {
             val factDeferred = async { catsService.getCatFact() }
             val imageDeferred = async { catsService.getCatImage() }
 
@@ -41,19 +44,11 @@ class CatsPresenter(
                 throw IllegalStateException("Incorrect image response: ${image.message()}")
             }
 
-            _catsView?.populate(CatResult(fact.body()!!, image.body()!!))
+            catResult.value = Result.Success(CatResult(fact.body()!!, image.body()!!))
         }
     }
 
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
-
-    fun detachView() {
-        _catsView = null
-    }
-
     fun cancel() {
-        coroutineScope.cancel()
+        viewModelScope.cancel()
     }
 }
