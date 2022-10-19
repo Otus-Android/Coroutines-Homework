@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.viewModels
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
@@ -14,8 +15,7 @@ class MainActivity : AppCompatActivity() {
 
     private val diContainer = DiContainer()
 
-    val presenterScope = PresenterScope()
-    lateinit var job: Job
+    val catsViewModel: CatsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,31 +23,17 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        job = presenterScope.launch {
-            try {
-                catsPresenter = CatsPresenter(diContainer.service, diContainer.awsService)
-                view.presenter = catsPresenter
-                catsPresenter.attachView(view)
-                catsPresenter.onInitComplete()
-            } catch (e: Exception) {
-                if (e is SocketTimeoutException) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Не удалось получить ответ от сервером",
-                        Toast.LENGTH_SHORT
-                    )
-                        .show()
-                } else {
-                    Log.e("error", e.printStackTrace().toString())
-                }
-            }
+        catsViewModel.onInitComplete(diContainer.service, diContainer.awsService)
+
+        catsViewModel.catsLiveData.observe(this) { fact ->
+            fact.data?.let { it -> view.populate(it) }
         }
+
     }
 
     override fun onStop() {
         if (isFinishing) {
             catsPresenter.detachView()
-            job.cancel()
         }
         super.onStop()
     }
