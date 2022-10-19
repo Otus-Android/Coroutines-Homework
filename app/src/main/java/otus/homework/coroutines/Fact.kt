@@ -20,5 +20,6 @@ data class Fact(
 	@field:SerializedName("user")
 	val user: String,
 	@field:SerializedName("updatedAt")
-	val updatedAt: String
+	val updatedAt: String,
+	var imgUrl: String = ""
 )

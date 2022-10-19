@@ -5,13 +5,16 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val awsService: CatsService
 ) {
 
     private var _catsView: ICatsView? = null
 
     suspend fun onInitComplete() {
-        _catsView?.populate(catsService.getCatFact())
+        val fact = catsService.getCatFact()
+        fact.imgUrl = awsService.getCatPicture()
+        _catsView?.populate(fact)
     }
 
     fun attachView(catsView: ICatsView) {

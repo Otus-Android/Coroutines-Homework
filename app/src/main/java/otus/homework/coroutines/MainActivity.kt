@@ -23,12 +23,11 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-
         job = presenterScope.launch {
             try {
+                catsPresenter = CatsPresenter(diContainer.service, diContainer.awsService)
+                view.presenter = catsPresenter
+                catsPresenter.attachView(view)
                 catsPresenter.onInitComplete()
             } catch (e: Exception) {
                 if (e is SocketTimeoutException) {
