@@ -9,8 +9,6 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel: CatsViewModel by viewModels { CatsViewModel.Factory }
 
-    private val diContainer = DiContainer()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

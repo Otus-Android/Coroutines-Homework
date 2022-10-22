@@ -19,7 +19,7 @@ class CatsView @JvmOverloads constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            viewModel?.onInitComplete(context)
+            viewModel?.onInitComplete()
         }
     }
 
