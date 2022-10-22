@@ -6,5 +6,9 @@ data class Fact(
     @field:SerializedName("fact")
     val text: String,
     @field:SerializedName("length")
-    val length: Int
+    val length: Int,
+    val image: String = ""
+)
+data class File(
+    val file: String
 )

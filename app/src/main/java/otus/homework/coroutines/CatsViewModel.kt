@@ -2,30 +2,25 @@ package otus.homework.coroutines
 
 import android.content.Context
 import android.widget.Toast
-import kotlinx.coroutines.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.lang.Exception
-import kotlin.coroutines.CoroutineContext
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
-class PresenterScope : CoroutineScope {
-    override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main + CoroutineName("CatsCoroutine")
-}
-data class CatsData(
-    val text:String,
-    val image:String
-)
-class CatsPresenter(
+class CatsViewModel(
     private val catsService: CatsService
-) {
+) : ViewModel() {
+
 
     private var _catsView: ICatsView? = null
     private var getCatFact: Job? = null
     fun onInitComplete(context: Context) {
-        val scope = PresenterScope()
-        getCatFact = scope.launch {
+        getCatFact = viewModelScope.launch(CatsScope().coroutineContext) {
             try {
                 val fact = async { catsService.getCatFact() }
                 val image = async { catsService.getImage() }
@@ -55,5 +50,16 @@ class CatsPresenter(
     fun detachView() {
         getCatFact?.cancel("App closed")
         _catsView = null
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val catsService = DiContainer()
+                CatsViewModel(
+                    catsService.service
+                )
+            }
+        }
     }
 }
