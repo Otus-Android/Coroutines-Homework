@@ -6,5 +6,7 @@ import retrofit2.http.GET
 interface CatsService {
 
     @GET(".")
-    fun getCatFact() : Call<Fact>
+    suspend fun getCatFact() : Fact
+    @GET("https://aws.random.cat/meow")
+    suspend fun getImage(): File
 }
