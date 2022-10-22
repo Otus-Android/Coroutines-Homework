@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.entities.CatEntity
 
@@ -14,30 +15,25 @@ class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
+) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    var presenter: CatsPresenter? = null
+    var catViewModel: CatViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            catViewModel?.onInitComplete()
         }
     }
 
-    override fun showToast(message: String) {
+    fun showToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
-    override fun populate(cat: CatEntity) {
+    fun populate(cat: CatEntity) {
         findViewById<TextView>(R.id.fact_textView)?.text = cat.text
         findViewById<ImageView>(R.id.cat_photo)?.let {
             Picasso.get().load(cat.catUrl).placeholder(R.drawable.cat_stub).into(it)
         }
     }
-}
-
-interface ICatsView {
-    fun showToast(message: String)
-    fun populate(cat: CatEntity)
 }
