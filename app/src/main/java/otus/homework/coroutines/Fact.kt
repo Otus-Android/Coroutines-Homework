@@ -12,3 +12,7 @@ data class Fact(
 data class File(
     val file: String
 )
+data class CatsData(
+    val text:String,
+    val image:String
+)

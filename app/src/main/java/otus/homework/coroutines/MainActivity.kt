@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 
 class MainActivity : AppCompatActivity() {
@@ -18,7 +19,19 @@ class MainActivity : AppCompatActivity() {
 
         view.viewModel = viewModel
         viewModel.attachView(view)
-        viewModel.onInitComplete(this)
+        viewModel.onInitComplete()
+        viewModel.response.observe(this) {
+            when (it) {
+                is Result.Success -> view.populate(it.item)
+                else -> {
+                    Toast.makeText(
+                        this,
+                        "Не удалось получить ответ от сервера",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
 
     override fun onStop() {
