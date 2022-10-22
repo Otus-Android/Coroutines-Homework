@@ -1,28 +1,67 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import android.widget.Toast
+import android.widget.Toast.LENGTH_LONG
+import kotlinx.coroutines.*
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catsImageService: CatsImageService,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) {
 
     private var _catsView: ICatsView? = null
 
+    private val handler = CoroutineExceptionHandler { _, exception ->
+        CrashMonitor.trackWarning(exception.toString())
+        Toast.makeText(
+            (_catsView as CatsView).context,
+            exception.message,
+            LENGTH_LONG
+        )
+            .show()
+    }
+
+    private val job = Job()
+    private val catsScope =
+        CoroutineScope(defaultDispatcher + CoroutineName("CatsCoroutine") + handler + job)
+
+    // due to CatsViewModel
+    //private suspend fun getCatFact(): Flow<Result<TextFact>> = flow { emit(catsService.getCatFact())}
+    //private suspend fun getCatImage(): Flow<Result<ImageFact>> = flow { emit(catsImageService.getCatImage()) }
+
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
-            }
+        catsScope.launch {
+            /*val catFactFlow = getCatFact();
+            val catImageFlow = getCatImage();
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
+            try {
+                catFactFlow
+                  .combine(catImageFlow) { fact, image ->
+                        Result(Fact(fact.text, image.file))
+                    }
+                    .flowOn(Dispatchers.IO)
+                    .catch { e ->
+                        CrashMonitor.trackWarning(e.toString())
+                        Toast.makeText(
+                            (_catsView as CatsView).context,
+                            "Не удалось получить ответ от сервера $e",
+                            LENGTH_LONG)
+                            .show()
+                    }
+                    .collect {
+                        _catsView?.populate(it)
+                    }
             }
-        })
+            catch (e: java.net.SocketTimeoutException) {
+                Toast.makeText(
+                    (_catsView as CatsView).context,
+                    "Не удалось получить ответ от сервера",
+                    LENGTH_LONG)
+                    .show()
+            }*/
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -31,5 +70,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+        job.cancel()
     }
 }
