@@ -1,38 +1,34 @@
 package otus.homework.coroutines
 
 import android.os.Bundle
-import android.widget.Toast
-import android.widget.Toast.LENGTH_LONG
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 
 class MainActivity : AppCompatActivity() {
 
-    //lateinit var catsPresenter: CatsPresenter
+    lateinit var catsPresenter: CatsPresenter
 
     private val diContainer = DiContainer()
 
-    private lateinit var view: CatsView
+    //private lateinit var view: CatsView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
+        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        /*catsPresenter = CatsPresenter(diContainer.service, diContainer.service2)
+        catsPresenter = CatsPresenter(diContainer.factService, diContainer.imageService)
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()*/
+        catsPresenter.onInitComplete()
 
-        val viewModel: CatsViewModel by viewModels {
+        /*val viewModel: CatsViewModel by viewModels {
             MyViewModelFactory(diContainer.factService, diContainer.imageService)
         }
 
-        view.viewModel = viewModel
+        view.viewModel = viewModel*/
 
-        lifecycleScope.launchWhenStarted {
+        /*lifecycleScope.launchWhenStarted {
             viewModel.uiState.collect {
                 when (it) {
                     is Result.Loading -> {
@@ -46,27 +42,27 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-        }
+        }*/
 
     }
 
-    private fun updateUi(fact: Fact) {
+    /*private fun updateUi(fact: Fact) {
         view.populate(fact)
-    }
+    }*/
 
-    private fun showError() {
+    /*private fun showError() {
         Toast.makeText(
             applicationContext,
             "Не удалось получить ответ от сервера",
             LENGTH_LONG
         )
             .show()
-    }
+    }*/
 
     override fun onStop() {
-        /*if (isFinishing) {
+        if (isFinishing) {
             catsPresenter.detachView()
-        }*/
+        }
         super.onStop()
     }
 }

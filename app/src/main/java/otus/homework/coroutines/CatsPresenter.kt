@@ -3,6 +3,7 @@ package otus.homework.coroutines
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 
 class CatsPresenter(
     private val catsService: CatsService,
@@ -26,20 +27,20 @@ class CatsPresenter(
     private val catsScope =
         CoroutineScope(defaultDispatcher + CoroutineName("CatsCoroutine") + handler + job)
 
-    // due to CatsViewModel
-    //private suspend fun getCatFact(): Flow<Result<TextFact>> = flow { emit(catsService.getCatFact())}
-    //private suspend fun getCatImage(): Flow<Result<ImageFact>> = flow { emit(catsImageService.getCatImage()) }
+    private suspend fun getCatFact(): Flow<TextFact> = flow { emit(catsService.getCatFact()) }
+    private suspend fun getCatImage(): Flow<ImageFact> =
+        flow { emit(catsImageService.getCatImage()) }
 
     fun onInitComplete() {
 
         catsScope.launch {
-            /*val catFactFlow = getCatFact();
+            val catFactFlow = getCatFact();
             val catImageFlow = getCatImage();
 
             try {
                 catFactFlow
-                  .combine(catImageFlow) { fact, image ->
-                        Result(Fact(fact.text, image.file))
+                    .combine(catImageFlow) { fact, image ->
+                        (Fact(fact.text, image.file))
                     }
                     .flowOn(Dispatchers.IO)
                     .catch { e ->
@@ -60,7 +61,7 @@ class CatsPresenter(
                     "Не удалось получить ответ от сервера",
                     LENGTH_LONG)
                     .show()
-            }*/
+            }
         }
     }
 
