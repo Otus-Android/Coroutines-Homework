@@ -1,13 +1,25 @@
 package otus.homework.coroutines
 
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
+    //lateinit var catsPresenter: CatsPresenter
 
     private val diContainer = DiContainer()
+
+    private val catsViewModel: CatsViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return CatsViewModel(diContainer.catsService, diContainer.catPicturesService) as T
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -15,16 +27,20 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.catsService, diContainer.catPicturesService)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+//        catsPresenter = CatsPresenter(diContainer.catsService, diContainer.catPicturesService)
+//        view.presenter = catsPresenter
+//        catsPresenter.attachView(view)
+//        catsPresenter.onInitComplete()
+        view.viewModel = catsViewModel
+        catsViewModel.catData.observe(this) { (view as ICatsView).populate(it) }
+        catsViewModel.socketTimeoutExceptionEvent.observe(this) { (view as ICatsView).showSocketTimeoutExceptionToast() }
+        catsViewModel.defaultExceptionEvent.observe(this) { (view as ICatsView).showDefaultExceptionToast(it) }
     }
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
-        }
-        super.onStop()
-    }
+//    override fun onStop() {
+//        if (isFinishing) {
+//            catsPresenter.detachView()
+//        }
+//        super.onStop()
+//    }
 }
