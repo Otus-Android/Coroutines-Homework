@@ -14,18 +14,12 @@ class CatsViewModel(
     private val catPicturesService: CatPicturesService
 ) : ViewModel() {
 
-    private val _catData = MutableLiveData<CatData>()
-    val catData = _catData.toImmutable()
-
-    private val _socketTimeoutExceptionEvent = SingleLiveEvent<Unit>()
-    val socketTimeoutExceptionEvent = _socketTimeoutExceptionEvent.toImmutable()
-
-    private val _defaultExceptionEvent = SingleLiveEvent<String?>()
-    val defaultExceptionEvent = _defaultExceptionEvent.toImmutable()
+    private val _catData = MutableLiveData<Result>()
+    val catData: LiveData<Result> = _catData
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         CrashMonitor.trackWarning(CatsPresenter::class.simpleName, throwable)
-        _defaultExceptionEvent.value = throwable.message
+        _catData.value = Result.Error(throwable, (_catData.value as? Result.Success)?.data)
     }
 
     init {
@@ -40,7 +34,7 @@ class CatsViewModel(
             val fact = fetchData { factDef.await().text }
             val picUrl = fetchData { picDef.await().picUrl }
 
-            _catData.value = CatData(fact, picUrl)
+            _catData.value = Result.Success(CatData(fact, picUrl))
         }
     }
 
@@ -48,11 +42,14 @@ class CatsViewModel(
         return try {
             action.invoke()
         } catch (ex: SocketTimeoutException) {
-            _socketTimeoutExceptionEvent.call()
+            _catData.value = Result.Error(ex, (_catData.value as? Result.Success)?.data)
             null
         }
     }
 
 }
 
-fun <T> MutableLiveData<T>.toImmutable() = this as LiveData<T>
+sealed class Result {
+    data class Success(val data: CatData) : Result()
+    data class Error(val throwable: Throwable?, val oldData: CatData?) : Result()
+}

@@ -5,6 +5,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,9 +33,21 @@ class MainActivity : AppCompatActivity() {
 //        catsPresenter.attachView(view)
 //        catsPresenter.onInitComplete()
         view.viewModel = catsViewModel
-        catsViewModel.catData.observe(this) { (view as ICatsView).populate(it) }
-        catsViewModel.socketTimeoutExceptionEvent.observe(this) { (view as ICatsView).showSocketTimeoutExceptionToast() }
-        catsViewModel.defaultExceptionEvent.observe(this) { (view as ICatsView).showDefaultExceptionToast(it) }
+        val catsView = view as ICatsView
+        catsViewModel.catData.observe(this) { result ->
+            when (result) {
+                is Result.Success -> catsView.populate(result.data)
+
+                is Result.Error -> {
+                    result.oldData?.let { catsView.populate(it) }
+                    if (result.throwable is SocketTimeoutException) {
+                        catsView.showSocketTimeoutExceptionToast()
+                    } else {
+                        catsView.showDefaultExceptionToast(result.throwable?.message)
+                    }
+                }
+            }
+        }
     }
 
 //    override fun onStop() {
