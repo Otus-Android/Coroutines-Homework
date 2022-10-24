@@ -5,6 +5,8 @@ import android.util.AttributeSet
 import android.widget.Button
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import kotlinx.coroutines.launch
+import otus.homework.coroutines.utils.PresenterScope
 
 class CatsView @JvmOverloads constructor(
     context: Context,
