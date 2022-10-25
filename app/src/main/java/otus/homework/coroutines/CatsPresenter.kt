@@ -67,15 +67,12 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        presenterScope.close()
+
+        presenterScope.cancel()
     }
 
-    private class PresenterScope() : CoroutineScope, AutoCloseable {
+    private class PresenterScope() : CoroutineScope {
         override val coroutineContext: CoroutineContext =
             Dispatchers.Main + CoroutineName("CatsCoroutine")
-
-        override fun close() {
-            coroutineContext.cancel()
-        }
     }
 }
