@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import java.net.SocketTimeoutException
 
 private val TAG = "CatsViewModel"
@@ -22,32 +23,35 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
 
     fun updateCat() {
         val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-            _catDescription.value = when (throwable) {
-                is SocketTimeoutException -> {
-                    Log.d(TAG, "Network error occurred", throwable)
-                    Result.Error(R.string.error_network)
-                }
-                else -> {
-                    Log.d(TAG, "Unknown error", throwable)
-                    CrashMonitor.trackWarning()
-                    Result.Error(throwable)
-                }
-            }
+            Log.d(TAG, "Just logging exception in CoroutineExceptionHandler", throwable)
+            CrashMonitor.trackWarning()
         }
 
         viewModelScope.launch(exceptionHandler) {
             _catDescription.value = Result.Loading
-            val factDeferred: Deferred<Fact> = async {
-                if (Constants.RESERVE_CATS_SERVER) catsService.getCatFactReserve()
-                    .toFact() else catsService.getCatFact()
+            supervisorScope {
+                try {
+                    val factDeferred: Deferred<Fact> = async {
+                        if (Constants.RESERVE_CATS_SERVER) catsService.getCatFactReserve()
+                            .toFact() else catsService.getCatFact()
+                    }
+                    val imageUrlDeferred = async { catsService.getRandomImage() }
+                    _catDescription.value = Result.Success(
+                        CatDescription(
+                            factDeferred.await().text,
+                            imageUrlDeferred.await().file
+                        )
+                    )
+                } catch (exception: Exception) {
+                    _catDescription.value = when (exception) {
+                        is CancellationException -> throw exception
+                        is SocketTimeoutException -> Result.Error(R.string.error_network)
+                        else -> Result.Error(exception)
+                    }
+
+                    throw exception // отправить исключение в CoroutineExceptionHandler согласно пункту 2 задания "Реализовать решение ViewModel"
+                }
             }
-            val imageUrlDeferred = async { catsService.getRandomImage() }
-            _catDescription.value = Result.Success(
-                CatDescription(
-                    factDeferred.await().text,
-                    imageUrlDeferred.await().file
-                )
-            )
         }
     }
 }
