@@ -20,10 +20,6 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
     private val _catDescription = MutableLiveData<Result<CatDescription>?>()
     val catDescription: LiveData<Result<CatDescription>?> get() = _catDescription
 
-    val isLoading: LiveData<Boolean> = Transformations.map(_catDescription) {
-        return@map it == Result.Loading
-    }
-
     fun updateCat() {
         val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
             _catDescription.value = when (throwable) {

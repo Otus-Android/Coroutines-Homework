@@ -27,6 +27,8 @@ class MainActivity : AppCompatActivity() {
         } else {
             view.catViewModel = catsViewModel
             catsViewModel.catDescription.observe(this) {
+                view.setLoading(it == Result.Loading)
+
                 when (it) {
                     is Result.Error -> {
                         var message = it.getMessage(this)
@@ -38,10 +40,6 @@ class MainActivity : AppCompatActivity() {
                     }
                     is Result.Loading, null -> Unit
                 }
-            }
-
-            catsViewModel.isLoading.observe(this) {
-                view.setLoading(it ?: false)
             }
 
             catsViewModel.updateCat()
