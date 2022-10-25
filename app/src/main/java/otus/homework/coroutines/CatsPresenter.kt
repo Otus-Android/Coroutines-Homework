@@ -4,9 +4,12 @@ import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -26,11 +29,19 @@ class CatsPresenter(
         presenterScope.launch {
             try {
                 _catsView?.setLoading(true)
-                val responseImage = catsService.getRandomImage()
-                val response: Fact =
-                    if (Constants.RESERVE_CATS_SERVER) catsService.getCatFactReserve()
-                        .toFact() else catsService.getCatFact()
-                _catsView?.populate(CatDescription(response.text, responseImage.file))
+                supervisorScope {
+                    val deferredImage: Deferred<ImageDescription> = async {
+                        catsService.getRandomImage()
+                    }
+                    val deferredFact: Deferred<Fact> = async {
+                        if (Constants.RESERVE_CATS_SERVER) catsService.getCatFactReserve()
+                            .toFact() else catsService.getCatFact()
+                    }
+                    _catsView?.populate(CatDescription(
+                        deferredFact.await().text,
+                        deferredImage.await().file
+                    ))
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: SocketTimeoutException) {
