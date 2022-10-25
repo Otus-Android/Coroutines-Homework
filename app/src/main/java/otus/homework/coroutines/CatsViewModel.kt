@@ -23,10 +23,6 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
     fun updateCat() {
         val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
             _catDescription.value = when (throwable) {
-                is CancellationException -> {
-                    Log.d(TAG, "Can we catch CancellationException here?", throwable)
-                    return@CoroutineExceptionHandler
-                }
                 is SocketTimeoutException -> {
                     Log.d(TAG, "Network error occurred", throwable)
                     Result.Error(R.string.error_network)
