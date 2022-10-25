@@ -18,7 +18,7 @@ private const val TAG = "CatsPresenter"
 class CatsPresenter(
     private val catsService: CatsService
 ) {
-    private val presenterScope: PresenterScope by lazy { PresenterScope() }
+    private val presenterScope = PresenterScope()
 
     private var _catsView: ICatsView? = null
 
