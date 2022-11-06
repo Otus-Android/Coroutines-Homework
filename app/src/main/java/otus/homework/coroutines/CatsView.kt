@@ -2,10 +2,10 @@ package otus.homework.coroutines
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 
@@ -27,14 +27,18 @@ class CatsView @JvmOverloads constructor(
     override fun populate(catPresentationModel: CatPresentationModel) {
         findViewById<TextView>(R.id.fact_textView).text =
             catPresentationModel.catFactMessage
-        Log.d("myLog", "${catPresentationModel.catImageUrl}")
         val imageView = findViewById<ImageView>(R.id.cat_iv)
         Picasso.get()
             .load(catPresentationModel.catImageUrl)
             .into(imageView)
     }
+
+    override fun showMessage(msg: String) {
+        Toast.makeText(this.context, msg, Toast.LENGTH_SHORT).show()
+    }
 }
 
 interface ICatsView {
     fun populate(catPresentationModel: CatPresentationModel)
+    fun showMessage(msg: String)
 }

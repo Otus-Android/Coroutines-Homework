@@ -6,72 +6,47 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.net.SocketTimeoutException
 
 
-class CatsViewModel : ViewModel() {
-
-    private val diContainer: DiContainer = DiContainer()
-    private val catsService: CatsService = diContainer.service
+class CatsViewModel(
+    private val catsService: CatsService
+) : ViewModel() {
 
     val livePresentationModel: LiveData<Result>
         get() = _livePresentationModel
 
-    private val _livePresentationModel by lazy {
-        MutableLiveData<Result>()
-    }
-
+    private val _livePresentationModel = MutableLiveData<Result>()
     private val exceptionHandler =
         CoroutineExceptionHandler { coroutineContext, throwable ->
             CrashMonitor.trackWarning(throwable as Exception)
         }
 
     fun fetchData() {
-        viewModelScope.launch {
 
-            var catImageUrl: String? = null
-            var catFactText = "Something went wrong :("
+        val catImageUrlDeferred = viewModelScope.async { catsService.getCatImageUrl() }
+        val catFactDeferred = viewModelScope.async { catsService.getCatFact() }
 
-            withContext(exceptionHandler) {
-                val imageJob = launch {
-                    try {
-                        val response = catsService.getCatImageUrl()
-                        if (response.isSuccessful && response.body() != null) {
-                            catImageUrl = response.body()!!.fileUrl
+        viewModelScope.launch(exceptionHandler) {
+            try {
+                val catImageUrlResponse = catImageUrlDeferred.await()
+                val catFactResponse = catFactDeferred.await()
+                if (catImageUrlResponse.isSuccessful && catImageUrlResponse.body() != null &&
+                    catFactResponse.isSuccessful && catFactResponse.body() != null ) {
+                    val catPresentationModel = CatPresentationModel(
+                        catFactMessage = catFactResponse.body()!!.fact,
+                        catImageUrl = catImageUrlResponse.body()!!.fileUrl
+                    )
+
+                    _livePresentationModel.value =
+                        Result.Success<CatPresentationModel>().apply {
+                            successBody = catPresentationModel
                         }
-                    } catch (e: Exception) {
-                        handleException(e)
-                    }
                 }
-
-                val factJob = launch {
-                    try {
-                        val response = catsService.getCatFact()
-                        if (response.isSuccessful && response.body() != null) {
-                            catFactText = response.body()!!.text
-                        }
-                    } catch (e: Exception) {
-                        handleException(e)
-                    }
-                }
-
-                imageJob.join()
-                factJob.join()
-
-            }
-
-            if (catImageUrl != null) {
-                val catPresentationModel = CatPresentationModel(
-                    catFactMessage = catFactText,
-                    catImageUrl = catImageUrl!!
-                )
-
-                _livePresentationModel.value =
-                    Result.Success<CatPresentationModel>().apply {
-                        successBody = catPresentationModel
-                    }
+            } catch (e: Exception) {
+                handleException(e)
             }
         }
     }

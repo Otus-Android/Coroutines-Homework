@@ -1,16 +1,16 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
-import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 
-class MainActivity : AppCompatActivity(), CatsPresenter.ToastEventListener {
+class MainActivity : AppCompatActivity() {
 
     //lateinit var catsPresenter: CatsPresenter
     //private val diContainer = DiContainer()
-    private val catsVm: CatsViewModel by viewModels()
+    private val viewModelFactory: CatsViewModelFactory = CatsViewModelFactory()
+    private val catsVm: CatsViewModel by viewModels { viewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity(), CatsPresenter.ToastEventListener {
         catsVm.livePresentationModel.observe(this) {
             when (it) {
                 is Result.Success<*> -> view.populate(it.successBody as CatPresentationModel)
-                is Result.Error -> onToastEvent(it.message)
+                is Result.Error -> view.showMessage(it.message)
             }
         }
         //catsPresenter = CatsPresenter(diContainer.service, this)
@@ -41,7 +41,4 @@ class MainActivity : AppCompatActivity(), CatsPresenter.ToastEventListener {
         super.onStop()
     }
 
-    override fun onToastEvent(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
 }

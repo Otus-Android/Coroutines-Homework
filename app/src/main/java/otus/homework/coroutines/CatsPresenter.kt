@@ -4,8 +4,7 @@ import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService,
-    private val toastEventListener: ToastEventListener
+    private val catsService: CatsService
 ) {
 
     private var _catsView: ICatsView? = null
@@ -15,43 +14,24 @@ class CatsPresenter(
     )
 
     fun onInitComplete() {
+        val catImageUrlDeferred = presenterScope.async { catsService.getCatImageUrl() }
+        val catFactDeferred = presenterScope.async { catsService.getCatFact() }
 
         presenterScope.launch {
 
-            var catImageUrl: String? = null
-            var catFactText = "Something went wrong :("
-
-            val imageJob = launch {
-                try {
-                    val response = catsService.getCatImageUrl()
-                    if (response.isSuccessful && response.body() != null) {
-                        catImageUrl = response.body()!!.fileUrl
-                    }
-                } catch (e: Exception) {
-                    handleException(e)
+            try {
+                val catImageUrlResponse = catImageUrlDeferred.await()
+                val catFactResponse = catFactDeferred.await()
+                if (catImageUrlResponse.isSuccessful && catImageUrlResponse.body() != null &&
+                    catFactResponse.isSuccessful && catFactResponse.body() != null ) {
+                    val catPresentationModel = CatPresentationModel(
+                        catFactMessage = catFactResponse.body()!!.fact,
+                        catImageUrl = catImageUrlResponse.body()!!.fileUrl
+                    )
+                    _catsView?.populate(catPresentationModel)
                 }
-            }
-
-            val factJob = launch {
-                try {
-                    val response = catsService.getCatFact()
-                    if (response.isSuccessful && response.body() != null) {
-                        catFactText = response.body()!!.text
-                    }
-                } catch (e: Exception) {
-                    handleException(e)
-                }
-            }
-
-            imageJob.join()
-            factJob.join()
-
-            if (catImageUrl != null) {
-                val catPresentationModel = CatPresentationModel(
-                    catFactMessage = catFactText,
-                    catImageUrl = catImageUrl!!
-                )
-                _catsView?.populate(catPresentationModel)
+            } catch (e: Exception) {
+                handleException(e)
             }
         }
     }
@@ -60,14 +40,10 @@ class CatsPresenter(
         when (e) {
             is CancellationException -> throw e
             is SocketTimeoutException ->
-                toastEventListener.onToastEvent(
-                    message = "Server do not response"
-                )
+                _catsView?.showMessage(msg = "Server do not response")
             else -> {
                 CrashMonitor.trackWarning(e)
-                toastEventListener.onToastEvent(
-                    message = e.message!!
-                )
+                _catsView?.showMessage(msg = e.message!!)
             }
         }
     }
@@ -79,9 +55,5 @@ class CatsPresenter(
     fun detachView() {
         presenterScope.cancel()
         _catsView = null
-    }
-
-    interface ToastEventListener {
-        fun onToastEvent(message: String)
     }
 }
