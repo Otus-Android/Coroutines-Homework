@@ -1,15 +1,7 @@
 package otus.homework.coroutines
 
 import android.util.Log
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -26,6 +18,8 @@ class CatsPresenter(
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
+        Log.d(TAG, "PresenterScope job: ${presenterScope.coroutineContext[Job]}")
+
         presenterScope.launch {
             try {
                 _catsView?.setLoading(true)
@@ -68,11 +62,16 @@ class CatsPresenter(
     fun detachView() {
         _catsView = null
 
-        presenterScope.cancel()
+        try {
+            presenterScope.cancel()
+        } catch (ex: Exception) {
+            Log.d(TAG, "We got an exception during canceling the scope", ex)
+            throw ex
+        }
     }
 
     private class PresenterScope() : CoroutineScope {
         override val coroutineContext: CoroutineContext =
-            Dispatchers.Main + CoroutineName("CatsCoroutine")
+            Dispatchers.Main + CoroutineName("CatsCoroutine") + Job()
     }
 }

@@ -1,9 +1,12 @@
 package otus.homework.coroutines
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+
+private const val TAG = "MainActivityTag"
 
 class MainActivity : AppCompatActivity() {
     lateinit var catsPresenter: CatsPresenter
@@ -47,9 +50,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        if (isFinishing && ::catsPresenter.isInitialized) {
+        super.onStop()
+        Log.d(TAG, "onStop")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::catsPresenter.isInitialized) {
             catsPresenter.detachView()
         }
-        super.onStop()
+        Log.d(TAG, "onDestroy")
     }
 }
