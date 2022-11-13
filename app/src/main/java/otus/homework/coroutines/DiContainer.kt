@@ -16,7 +16,7 @@ class DiContainer {
 
     private val awsRetrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://aws.random.cat/meow/")
+            .baseUrl("https://aws.random.cat/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
