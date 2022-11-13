@@ -16,14 +16,19 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+//    var presenter :CatsPresenter? = null
+    var catsViewModel: CatsViewModel? = null
+    var service: CatsService? = null
+    var awsService: CatsService? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         val scope = PresenterScope()
         findViewById<Button>(R.id.button).setOnClickListener {
             scope.launch {
-                presenter?.onInitComplete()
+                if (service != null && awsService != null) {
+                    catsViewModel?.onInitComplete(service!!, awsService!!)
+                }
             }
         }
     }
@@ -32,12 +37,9 @@ class CatsView @JvmOverloads constructor(
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
-    }
-
-    override fun populateImg(catPicture: CatPicture) {
-        Picasso.get().load(catPicture.fileUrl).into(findViewById<ImageView>(R.id.img))
+    override fun populate(catResultData: CatResultData) {
+        findViewById<TextView>(R.id.fact_textView).text = catResultData.text
+        Picasso.get().load(catResultData.fileUrl).into(findViewById<ImageView>(R.id.img))
     }
 }
 
@@ -45,7 +47,5 @@ interface ICatsView {
 
     fun showToast(message: String)
 
-    fun populate(fact: Fact)
-
-    fun populateImg(catPicture: CatPicture)
+    fun populate(catResultData: CatResultData)
 }
