@@ -36,7 +36,6 @@ class MainActivity : AppCompatActivity() {
             catsPresenter.detachView()
         }
         catsPresenter.cancel()
-        viewModel.cancel()
         super.onStop()
     }
 
@@ -49,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun listenViewModelResult() {
-        catsPresenter.errorResult.observe(this) { result ->
+        viewModel.catResult.observe(this) { result ->
             when (result) {
                 is Result.Error -> showErrorMessage()
                 is Result.Success -> _catsView?.populate(result.data)
