@@ -4,7 +4,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -22,17 +21,10 @@ class CatsViewModel(
     fun getCatEntity() = catEntity
 
     private val handler = CoroutineExceptionHandler { _, e ->
-        if (e is SocketTimeoutException) {
-            catEntity.postValue(Result.Error(resourceProvider.getString(R.string.timeout_error)))
-        } else if (e !is CancellationException) {
-            CrashMonitor.trackWarning(e.message)
+        CrashMonitor.trackWarning(e.message)
 
-            catEntity.postValue(
-                Result.Error(
-                    e.message ?: resourceProvider.getString(R.string.unknown_error)
-                )
-            )
-        }
+        catEntity.value =
+            Result.Error(e.message ?: resourceProvider.getString(R.string.unknown_error))
     }
 
     init {
@@ -44,17 +36,22 @@ class CatsViewModel(
             val factAsync = async { catsService.getCatFact() }
             val imageAsync = async { imageService.getCatImage() }
 
-            val factResult = factAsync.await()
-            val imageResult = imageAsync.await()
+            try {
+                val factResult = factAsync.await()
+                val imageResult = imageAsync.await()
 
-            if (factResult.isSuccessful && factResult.body() != null &&
-                imageResult.isSuccessful && imageResult.body() != null
-            ) {
-                val entity = CatEntity(factResult.body()!!, imageResult.body()!!)
+                if (factResult.isSuccessful && factResult.body() != null &&
+                    imageResult.isSuccessful && imageResult.body() != null
+                ) {
+                    val entity = CatEntity(factResult.body()!!, imageResult.body()!!)
 
-                catEntity.postValue(Result.Success(entity))
-            } else {
-                catEntity.postValue(Result.Error(resourceProvider.getString(R.string.unknown_error)))
+                    catEntity.value = Result.Success(entity)
+                } else {
+                    catEntity.value =
+                        Result.Error(resourceProvider.getString(R.string.unknown_error))
+                }
+            } catch (e: SocketTimeoutException) {
+                catEntity.value = Result.Error(resourceProvider.getString(R.string.timeout_error))
             }
         }
     }

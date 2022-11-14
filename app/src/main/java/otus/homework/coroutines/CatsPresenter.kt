@@ -11,14 +11,11 @@ class CatsPresenter(
     private var _catsView: ICatsView? = null
 
     private val handler = CoroutineExceptionHandler { _, e ->
-        if (e is SocketTimeoutException) {
-            _catsView?.showError(R.string.timeout_error)
-        } else if (e !is CancellationException){
-            CrashMonitor.trackWarning(e.message)
+        CrashMonitor.trackWarning(e.message)
 
-            _catsView?.showError(e.message)
-        }
+        _catsView?.showError(e.message)
     }
+
 
     private val job = SupervisorJob()
     private val scope =
@@ -30,13 +27,18 @@ class CatsPresenter(
             val factAsync = async { catsService.getCatFact() }
             val imageAsync = async { imageService.getCatImage() }
 
-            val factResult = factAsync.await()
-            val imageResult = imageAsync.await()
+            try {
+                val factResult = factAsync.await()
+                val imageResult = imageAsync.await()
 
-            if (factResult.isSuccessful && factResult.body() != null &&
-                imageResult.isSuccessful && imageResult.body() != null
-            ) {
-                _catsView?.populate(CatEntity(factResult.body()!!, imageResult.body()!!))
+                if (factResult.isSuccessful && factResult.body() != null &&
+                    imageResult.isSuccessful && imageResult.body() != null
+                ) {
+                    _catsView?.populate(CatEntity(factResult.body()!!, imageResult.body()!!))
+                }
+
+            } catch (e: SocketTimeoutException) {
+                _catsView?.showError(R.string.timeout_error)
             }
         }
     }
