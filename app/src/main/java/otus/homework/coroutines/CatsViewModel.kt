@@ -21,11 +21,13 @@ class CatsViewModel(
         _uiState.value = Result.Error(exception.toString())
     }
 
-    private suspend fun getCatFact(): Flow<TextFact> = flow { emit(catsService.getCatFact()) }
+    private suspend fun getCatFact(): Flow<TextFact> =
+        flow { emit(catsService.getCatFact()) }
+
     private suspend fun getCatImage(): Flow<ImageFact> =
         flow { emit(catsImageService.getCatImage()) }
 
-    fun getCatFactsAndImage() {
+    private fun getCatFactsAndImage() {
         viewModelScope.launch(handler) {
             try {
                 getCatFact()

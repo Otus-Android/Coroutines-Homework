@@ -1,9 +1,6 @@
 package otus.homework.coroutines
 
-import android.widget.Toast
-import android.widget.Toast.LENGTH_LONG
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
 
 class CatsPresenter(
     private val catsService: CatsService,
@@ -15,52 +12,24 @@ class CatsPresenter(
 
     private val handler = CoroutineExceptionHandler { _, exception ->
         CrashMonitor.trackWarning(exception.toString())
-        Toast.makeText(
-            (_catsView as CatsView).context,
-            exception.message,
-            LENGTH_LONG
-        )
-            .show()
+        (_catsView as CatsView).showToast("Не удалось получить ответ от сервера $exception")
     }
 
-    private val job = Job()
     private val catsScope =
-        CoroutineScope(defaultDispatcher + CoroutineName("CatsCoroutine") + handler + job)
+        CoroutineScope(defaultDispatcher + CoroutineName("CatsCoroutine") + handler)
 
-    private suspend fun getCatFact(): Flow<TextFact> = flow { emit(catsService.getCatFact()) }
-    private suspend fun getCatImage(): Flow<ImageFact> =
-        flow { emit(catsImageService.getCatImage()) }
+    private suspend fun getCatFact(): TextFact = catsService.getCatFact()
+    private suspend fun getCatImage(): ImageFact = catsImageService.getCatImage()
 
     fun onInitComplete() {
 
         catsScope.launch {
-            val catFactFlow = getCatFact();
-            val catImageFlow = getCatImage();
-
             try {
-                catFactFlow
-                    .combine(catImageFlow) { fact, image ->
-                        (Fact(fact.text, image.file))
-                    }
-                    .flowOn(Dispatchers.IO)
-                    .catch { e ->
-                        CrashMonitor.trackWarning(e.toString())
-                        Toast.makeText(
-                            (_catsView as CatsView).context,
-                            "Не удалось получить ответ от сервера $e",
-                            LENGTH_LONG)
-                            .show()
-                    }
-                    .collect {
-                        _catsView?.populate(it)
-                    }
-            }
-            catch (e: java.net.SocketTimeoutException) {
-                Toast.makeText(
-                    (_catsView as CatsView).context,
-                    "Не удалось получить ответ от сервера",
-                    LENGTH_LONG)
-                    .show()
+                val factImage = getCatImage();
+                val factText = getCatFact();
+                _catsView?.populate(Fact(factText.text, factImage.file))
+            } catch (e: java.net.SocketTimeoutException) {
+                (_catsView as CatsView).showToast("Не удалось получить ответ от сервера $e")
             }
         }
     }
@@ -71,6 +40,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        job.cancel()
+        catsScope.cancel()
     }
 }
