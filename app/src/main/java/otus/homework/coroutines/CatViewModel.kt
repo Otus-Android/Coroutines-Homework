@@ -28,7 +28,13 @@ class CatViewModel(
             catsService.getPhotoCat()
         }
 
-        _cat.postValue(Result.Success(CatEntity(catFact.await().text, catPhotoUrl.await().fileUrl)))
+        try {
+            _cat.setValue(
+                Result.Success(CatEntity(catFact.await().text, catPhotoUrl.await().fileUrl))
+            )
+        } catch (e: Exception) {
+            _cat.setValue(Result.Error(e.localizedMessage.orEmpty()))
+        }
     }
 
     class ViewModelFactory(
