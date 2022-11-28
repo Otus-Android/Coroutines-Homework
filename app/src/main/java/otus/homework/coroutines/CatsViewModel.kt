@@ -2,46 +2,77 @@ package otus.homework.coroutines
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 
 class CatsViewModel(
     private val catsService: CatsService,
     private val catsImageService: CatsImageService
 ) : ViewModel() {
-    private val hideViewsChannel = Channel<Result.Success>(1)
-    private val populateChannel = Channel<Result.Success>(1)
-    private val progressDialogChannel = Channel<Result.Success>(1)
-    private val toastChannel = Channel<Result.Failure>(1)
+    private val populateStateFlow = MutableStateFlow<Result?>(value = null)
+    private val progressDialogStateFlow = MutableStateFlow<Boolean>(false)
+    private val toastStateFlow = MutableStateFlow<String?>(value = null)
 
     fun onInitComplete() {
         viewModelScope.launch(getCoroutineExceptionHandler()) {
-            progressDialogChannel.send(Result.Success(true))
-            hideViewsChannel.send(Result.Success(true))
-            val fact = catsService.getCatFact(FACT_URI)
-            val imageUri = catsImageService.getCatImage(IMAGE_URI)
-            populateChannel.send(Result.Success(Pair(fact, imageUri)))
+            progressDialogStateFlow.emit(true)
+            val factDeferred =
+                async {
+                    try {
+                        catsService.getCatFact(FACT_URI)
+                    } catch (e: Exception) {
+                        when (e) {
+                            SocketTimeoutException() ->
+                                toastStateFlow.emit("Не удалось получить ответ от сервера")
+                            else -> {
+                                CrashMonitor.trackWarning()
+                                e.message?.let { toastStateFlow.emit(it) }
+                            }
+                        }
+                        throw CancellationException(e.message)
+                    }
+                }
+
+            val imageUriDeferred =
+                async {
+                    try {
+                        catsImageService.getCatImage(IMAGE_URI)
+                    } catch (e: Exception) {
+                        when (e) {
+                            SocketTimeoutException() ->
+                                toastStateFlow.emit("Не удалось получить ответ от сервера")
+                            else -> {
+                                CrashMonitor.trackWarning()
+                                e.message?.let { toastStateFlow.emit(it) }
+                            }
+                        }
+                        throw CancellationException(e.message)
+                    }
+                }
+            populateStateFlow.emit(
+                Result.Success(
+                    Pair(
+                        factDeferred.await(),
+                        imageUriDeferred.await()
+                    )
+                )
+            )
+            progressDialogStateFlow.emit(false)
         }
     }
 
-    internal fun getViewsChannelFlow() = hideViewsChannel.receiveAsFlow()
-    internal fun getPopulateChannel() = populateChannel.receiveAsFlow()
-    internal fun getProgressDialogsFlow() = progressDialogChannel.receiveAsFlow()
-    internal fun getToastChannelFlow() = toastChannel.receiveAsFlow()
+    internal fun getPopulateFlow(): Flow<Result?> = populateStateFlow
+    internal fun getProgressDialogsFlow(): Flow<Boolean> = progressDialogStateFlow
+    internal fun getToastFlow(): Flow<String?> = toastStateFlow
 
     private fun getCoroutineExceptionHandler(): CoroutineExceptionHandler {
-        return CoroutineExceptionHandler { _, exception ->
-            viewModelScope.launch {
-                CrashMonitor.trackWarning()
-                if (exception == java.net.SocketTimeoutException()) {
-                    toastChannel.send(Result.Failure("Не удалось получить ответ от сервером"))
-                } else {
-                    CrashMonitor.trackWarning()
-                    exception.message?.let { toastChannel.send(Result.Failure(it)) }
-                }
-            }
+        return CoroutineExceptionHandler { _, _ ->
+            CrashMonitor.trackWarning()
         }
     }
 
