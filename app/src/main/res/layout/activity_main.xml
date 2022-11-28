@@ -9,14 +9,15 @@
 
     <TextView
         android:id="@+id/fact_textView"
-        android:textColor="@color/black"
+        android:textColor="@color/design_default_color_on_primary"
         android:textSize="24sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="TEST TEXT"/>
 
     <Button
         android:id="@+id/button"
@@ -25,6 +26,6 @@
         android:text="@string/more_facts"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fact_textView" />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </otus.homework.coroutines.CatsView>
