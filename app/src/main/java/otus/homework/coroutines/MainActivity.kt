@@ -2,8 +2,6 @@ package otus.homework.coroutines
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import otus.homework.coroutines.error.handler.CrashMonitor
-import otus.homework.coroutines.error.handler.ResultHandler
 import otus.homework.coroutines.network.facts.CatFactServiceList
 import otus.homework.coroutines.network.facts.ninja.NinjaDiContainer
 import otus.homework.coroutines.network.facts.old.DiContainer
@@ -28,18 +26,7 @@ class MainActivity : AppCompatActivity() {
         val catsView = findViewById<CatsView>(R.id.catsView)
         catsView.setUpButtonCallback(mainViewModel::onStart)
 
-        CrashMonitor.resultHandler = ResultHandler(applicationContext)
-
         mainViewModel.attachView(view)
         mainViewModel.onStart()
-
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            mainViewModel.detachView()
-        }
-        mainViewModel.onStop()
-        super.onStop()
     }
 }

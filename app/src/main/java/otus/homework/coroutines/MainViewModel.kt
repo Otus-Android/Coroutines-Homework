@@ -1,12 +1,15 @@
 package otus.homework.coroutines
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import otus.homework.coroutines.error.handler.CrashMonitor
+import otus.homework.coroutines.error.handler.Result
 import otus.homework.coroutines.network.facts.base.AbsCatService
 import otus.homework.coroutines.network.facts.base.CatData
 import otus.homework.coroutines.network.facts.base.image.ImageService
+import java.net.SocketTimeoutException
 
 class MainViewModel(
     private val catsService: AbsCatService,
@@ -15,53 +18,43 @@ class MainViewModel(
 
     private var _catsView: ICatsView? = null
 
-    private lateinit var catFactJob: Job
-    private lateinit var catImageJob: Job
-
-    private val catData = CatData()
-
-    private val _viewModelScope = viewModelScope + SupervisorJob() +
+    private val _viewModelScope = viewModelScope +
             CoroutineExceptionHandler { _, t ->
                 CrashMonitor.trackWarning(t)
-                stopCatJob()
             }
 
     fun onStart() {
         _viewModelScope.launch {
-            catFactJob = launch {
-                val catFact = catsService.getCatFact()
-                catData.fact = catFact
-                if (catImageJob.isCompleted) populateView()
-                CrashMonitor.notCrashMessage(R.string.fact_success)
-            }
+            val catFactCall = async { catsService.getCatFact() }
+            val catImageCall = async { catsImageService.getCatImageUrl() }
 
-            catImageJob = launch {
-                val imageUrl = catsImageService.getCatImageUrl()
-                catData.imageUrl = imageUrl
-                if (catFactJob.isCompleted) populateView()
-                CrashMonitor.notCrashMessage(R.string.image_success)
+            try {
+                val catFact = catFactCall.await()
+                val catImage = catImageCall.await()
+                val catData = CatData(catFact, catImage)
+                _catsView?.populate(Result.Success(catData))
+
+            } catch (exp: Exception) {
+                Log.d("cats", "Exception is ${exp.message}")
+                when (exp) {
+                    is CancellationException -> throw exp
+                    is SocketTimeoutException ->_catsView?.populate(Result.Error(exp))
+                    else -> _catsView?.populate(Result.Error(exp))
+                }
             }
         }
-    }
-
-    private fun populateView() {
-        _catsView?.populate(catData)
     }
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
 
-    fun detachView() {
+    private fun detachView() {
         _catsView = null
     }
 
-    fun onStop() {
-        stopCatJob()
-    }
-
-    private fun stopCatJob() {
-        catFactJob.cancel()
-        catImageJob.cancel()
+    override fun onCleared() {
+        super.onCleared()
+        detachView()
     }
 }
