@@ -7,9 +7,19 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <ImageView
+        android:id="@+id/cat_image_iv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/cat_fact_tv"
+        tools:src="@drawable/ic_launcher_background"
+        />
+
     <TextView
-        android:id="@+id/fact_textView"
-        android:textColor="@color/design_default_color_on_primary"
+        android:id="@+id/cat_fact_tv"
         android:textSize="24sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -17,7 +27,9 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="TEST TEXT"/>
+        android:shadowColor="@color/design_default_color_on_secondary"
+        android:shadowRadius="5"
+        tools:text="Short fact about cats!"/>
 
     <Button
         android:id="@+id/button"

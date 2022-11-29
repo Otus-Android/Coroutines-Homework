@@ -1,7 +1,7 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
-import java.net.SocketTimeoutException
+import okhttp3.internal.wait
 
 class CatsPresenter(
     private val catsService: CatsService
@@ -13,22 +13,26 @@ class CatsPresenter(
     )
 
 
-     @OptIn(ExperimentalCoroutinesApi::class)
      fun onInitComplete() {
-         catsScope.launch {
+
+         val handler = CoroutineExceptionHandler { _, exception ->
+             val msg = exception.message ?: "unknown exception"
+             CrashMonitor.trackWarning(msg)
+             _catsView?.toast(msg)
+         }
+         catsScope.launch(SupervisorJob() + handler) {
+             val fact = async {
+                 catsService.getCatFact()
+             }
+             val img = async {
+                 catsService.getCatImage()
+             }
              try {
-                 val fact = async {
-                     catsService.getCatFact()
-                 }
-                 awaitAll(fact)
+                 listOf(fact, img).awaitAll()
                  _catsView?.populate(fact.getCompleted())
-             } catch (e: SocketTimeoutException) {
-               _catsView?.toast("Не удалось получить ответ от сервером")
-             } catch (e: Exception) {
-                 val msg = e.message ?: "unknown exception"
-                 CrashMonitor.trackWarning(msg)
-                 _catsView?.toast(msg)
-                 throw e
+                 _catsView?.populate(img.getCompleted())
+             } catch (e: java.net.SocketTimeoutException) {
+                 _catsView?.toast("Не удалось получить ответ от сервером")
              }
          }
      }
@@ -38,7 +42,7 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        catsScope.cancel()
+        catsScope.cancel("detach view")
         _catsView = null
     }
 }
