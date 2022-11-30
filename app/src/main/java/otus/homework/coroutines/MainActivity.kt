@@ -16,10 +16,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         catsPresenter = CatsPresenter(
-            catsService = diContainer.service,
+            catsFactService = diContainer.serviceFact,
+            catsImgService = diContainer.serviceImg,
             presenterScope = diContainer.presenterScope,
             errorDisplay = diContainer.errorDisplay,
-            managerResources = diContainer.managerResources)
+            managerResources = diContainer.managerResources
+        )
 
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
