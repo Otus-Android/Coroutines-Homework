@@ -7,7 +7,7 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var catsPresenter: CatsPresenter
 
-    private val diContainer = DiContainer()
+    private val diContainer = DiContainer(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -15,7 +15,12 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service)
+        catsPresenter = CatsPresenter(
+            catsService = diContainer.service,
+            presenterScope = diContainer.presenterScope,
+            errorDisplay = diContainer.errorDisplay,
+            managerResources = diContainer.managerResources)
+
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
@@ -24,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         if (isFinishing) {
             catsPresenter.detachView()
+            catsPresenter.stopCoroutines()
         }
         super.onStop()
     }
