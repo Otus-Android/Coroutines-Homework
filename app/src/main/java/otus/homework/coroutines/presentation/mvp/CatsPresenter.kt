@@ -1,9 +1,16 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation.mvp
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import otus.homework.coroutines.presentation.CatsDataUI
+import otus.homework.coroutines.utils.CrashMonitor
+import otus.homework.coroutines.utils.ErrorDisplay
+import otus.homework.coroutines.utils.ManagerResources
+import otus.homework.coroutines.R
+import otus.homework.coroutines.data.fact.CatsFactService
+import otus.homework.coroutines.data.img.CatsImgService
 import java.net.SocketTimeoutException
 
 class CatsPresenter(

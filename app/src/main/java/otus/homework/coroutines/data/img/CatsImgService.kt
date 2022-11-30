@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.data.img
 
 import retrofit2.http.GET
 

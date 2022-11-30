@@ -1,14 +1,14 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation.mvp
 
 import android.content.Context
-import android.icu.number.NumberFormatter.with
 import android.util.AttributeSet
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
-import retrofit2.Response.error
+import otus.homework.coroutines.presentation.CatsDataUI
+import otus.homework.coroutines.R
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -16,7 +16,7 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var presenter : CatsPresenter? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()

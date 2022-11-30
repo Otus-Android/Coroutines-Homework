@@ -1,7 +1,9 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation.mvp
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import otus.homework.coroutines.R
+import otus.homework.coroutines.di.DiContainer
 
 class MainActivity : AppCompatActivity() {
 

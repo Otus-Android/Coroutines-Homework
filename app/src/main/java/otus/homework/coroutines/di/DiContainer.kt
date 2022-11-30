@@ -1,6 +1,11 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.di
 
 import android.content.Context
+import otus.homework.coroutines.utils.ErrorDisplay
+import otus.homework.coroutines.utils.ManagerResources
+import otus.homework.coroutines.presentation.mvp.PresenterScope
+import otus.homework.coroutines.data.fact.CatsFactService
+import otus.homework.coroutines.data.img.CatsImgService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
