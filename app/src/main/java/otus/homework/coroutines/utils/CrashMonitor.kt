@@ -5,6 +5,6 @@ object CrashMonitor {
     /**
      * Pretend this is Crashlytics/AppCenter
      */
-    fun trackWarning(exception: Exception) = Unit
+    fun trackWarning(throwable: Throwable) = Unit
 
 }
