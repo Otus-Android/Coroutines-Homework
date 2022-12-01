@@ -12,5 +12,7 @@ class DiContainer {
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+    val factService: CatsService by lazy { retrofit.create(CatsService::class.java) }
+
+    val imageService: CatsImageService by lazy { retrofit.create(CatsImageService::class.java) }
 }
