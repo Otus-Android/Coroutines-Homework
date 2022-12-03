@@ -1,11 +1,6 @@
 package otus.homework.coroutines
 
-import android.content.Context
-import android.widget.Toast
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Job
@@ -19,31 +14,22 @@ class CatsViewModel(
 ) : ViewModel() {
 
 
-
-    private var _catsView: ICatsView? = null
     private var getCatFact: Job? = null
-    val response: MutableLiveData<Result<CatsData>> = MutableLiveData()
+    private val catsData: MutableLiveData<Result<CatsData>> = MutableLiveData()
+    val _catsData: LiveData<Result<CatsData>> = catsData
     fun onInitComplete() {
-        getCatFact = viewModelScope.launch(CatsScope().coroutineContext) {
+        getCatFact = viewModelScope.launch {
             try {
                 val fact = async { catsService.getCatFact() }
                 val image = async { catsService.getImage() }
-                response.value = Result.Success(CatsData(fact.await().text, image.await().file))
-            } catch (e: java.net.SocketTimeoutException ) {
-                response.value = Result.Error(e)
+                catsData.value = Result.Success(CatsData(fact.await().text, image.await().file))
+            } catch (e: java.net.SocketTimeoutException) {
+                catsData.value = Result.Error(e)
                 CrashMonitor.trackWarning(e.message)
             }
         }
     }
 
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
-
-    fun detachView() {
-        getCatFact?.cancel("App closed")
-        _catsView = null
-    }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -54,5 +40,10 @@ class CatsViewModel(
                 )
             }
         }
+    }
+
+    override fun onCleared() {
+        getCatFact?.cancel("App closed")
+        super.onCleared()
     }
 }

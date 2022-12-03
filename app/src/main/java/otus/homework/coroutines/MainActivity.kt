@@ -16,9 +16,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         view.viewModel = viewModel
-        viewModel.attachView(view)
         viewModel.onInitComplete()
-        viewModel.response.observe(this) {
+        viewModel._catsData.observe(this) {
             when (it) {
                 is Result.Success -> view.populate(it.item)
                 else -> {
@@ -32,10 +31,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onStop() {
-        if (isFinishing) {
-            viewModel.detachView()
-        }
-        super.onStop()
-    }
 }
