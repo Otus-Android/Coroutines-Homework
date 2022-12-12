@@ -11,6 +11,7 @@ import otus.homework.coroutines.R
 import otus.homework.coroutines.data.fact.CatsFactService
 import otus.homework.coroutines.data.img.CatsImgService
 import otus.homework.coroutines.presentation.CatsDataUI
+import otus.homework.coroutines.utils.CrashMonitor
 import otus.homework.coroutines.utils.ErrorDisplay
 import otus.homework.coroutines.utils.ManagerResources
 import java.net.SocketTimeoutException
@@ -19,10 +20,13 @@ class CatsViewModel(
     private val catsFactService: CatsFactService,
     private val catsImgService: CatsImgService,
     private val errorDisplay: ErrorDisplay,
-    private val exceptionHandler: CoroutineExceptionHandler,
     private val managerResources: ManagerResources,
     private val catsDataUiMapper: CatsDataUiMapper = CatsDataUiMapper()
 ) : ViewModel() {
+
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        CrashMonitor.trackWarning(throwable)
+    }
 
     private val _viewStateLiveData = MutableLiveData<Result>()
     val viewStateLiveData: LiveData<Result> = _viewStateLiveData

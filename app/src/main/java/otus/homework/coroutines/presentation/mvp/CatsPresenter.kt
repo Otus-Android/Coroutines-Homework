@@ -1,5 +1,6 @@
 package otus.homework.coroutines.presentation.mvp
 
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
@@ -25,7 +26,11 @@ class CatsPresenter(
 
     fun onInitComplete() {
 
-        presenterScope.launch {
+        val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+            CrashMonitor.trackWarning(exception)
+        }
+
+        presenterScope.launch(exceptionHandler) {
             try {
                 val fact = async { catsFactService.getCatFact() }
                 val img = async { catsImgService.getCatImg() }
@@ -34,9 +39,7 @@ class CatsPresenter(
                 if (exception is SocketTimeoutException) {
                     errorDisplay.showMessage(managerResources.getString(R.string.server_error))
                 } else {
-                    CrashMonitor.trackWarning(exception)
                     exception.message?.let { errorDisplay.showMessage(it) }
-                    throw exception
                 }
             }
         }

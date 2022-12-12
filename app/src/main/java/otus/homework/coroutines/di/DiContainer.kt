@@ -8,7 +8,6 @@ import otus.homework.coroutines.utils.ManagerResources
 import otus.homework.coroutines.presentation.mvp.PresenterScope
 import otus.homework.coroutines.data.fact.CatsFactService
 import otus.homework.coroutines.data.img.CatsImgService
-import otus.homework.coroutines.utils.CrashMonitor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -28,12 +27,6 @@ class DiContainer(private val context: Context) {
     val managerResources by lazy { ManagerResources.Base(context) }
 
     val errorDisplay by lazy { ErrorDisplay.Base(context) }
-
-    val exceptionHandler by lazy {
-        CoroutineExceptionHandler { _, throwable ->
-            CrashMonitor.trackWarning(throwable)
-        }
-    }
 
     companion object {
         private const val URL_FACT = "https://catfact.ninja/"

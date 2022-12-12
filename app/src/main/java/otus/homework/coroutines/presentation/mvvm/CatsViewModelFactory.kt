@@ -2,7 +2,6 @@ package otus.homework.coroutines.presentation.mvvm
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import kotlinx.coroutines.handleCoroutineException
 import otus.homework.coroutines.di.DiContainer
 
 class CatsViewModelFactory(private val diContainer: DiContainer) : ViewModelProvider.NewInstanceFactory() {
@@ -12,7 +11,6 @@ class CatsViewModelFactory(private val diContainer: DiContainer) : ViewModelProv
                 catsFactService = diContainer.serviceFact,
                 catsImgService = diContainer.serviceImg,
                 errorDisplay = diContainer.errorDisplay,
-                exceptionHandler = diContainer.exceptionHandler,
                 managerResources = diContainer.managerResources
             ) as T
         }
