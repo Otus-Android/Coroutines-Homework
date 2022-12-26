@@ -18,8 +18,8 @@ class CatsView @JvmOverloads constructor(
 
 //    var presenter :CatsPresenter? = null
     var catsViewModel: CatsViewModel? = null
-    var service: CatsService? = null
-    var awsService: CatsService? = null
+    var service: NewCatsService? = null
+    var awsService: NewCatsService? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()

@@ -7,8 +7,8 @@ import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService,
-    private val awsService: CatsService
+    private val catsService: NewCatsService,
+    private val awsService: NewCatsService
 ) {
 //
 //    private var _catsView: ICatsView? = null

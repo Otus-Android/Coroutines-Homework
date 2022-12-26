@@ -12,7 +12,7 @@ class DiContainer {
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+    val service by lazy { retrofit.create(NewCatsService::class.java) }
 
     private val awsRetrofit by lazy {
         Retrofit.Builder()
@@ -21,5 +21,5 @@ class DiContainer {
             .build()
     }
 
-    val awsService by lazy { awsRetrofit.create(CatsService::class.java) }
+    val awsService by lazy { awsRetrofit.create(NewCatsService::class.java) }
 }

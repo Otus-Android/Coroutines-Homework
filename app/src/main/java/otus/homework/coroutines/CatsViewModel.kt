@@ -12,7 +12,7 @@ class CatsViewModel: ViewModel() {
     private val _catsFactData = MutableLiveData<Result<CatResultData>>()
     val catsFactData: LiveData<Result<CatResultData>> = _catsFactData
 
-    fun onInitComplete(catsService: CatsService, awsService: CatsService) {
+    fun onInitComplete(catsService: NewCatsService, awsService: NewCatsService) {
 
         val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             CrashMonitor.trackWarning()
