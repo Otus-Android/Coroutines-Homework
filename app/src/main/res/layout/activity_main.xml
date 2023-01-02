@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<otus.homework.coroutines.CatsView xmlns:android="http://schemas.android.com/apk/res/android"
+<otus.homework.coroutines.view.CatsView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:padding="16dp"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginBottom="24dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/fact_textView" />
 
     <TextView
         android:id="@+id/fact_textView"
@@ -27,4 +37,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/fact_textView" />
 
-</otus.homework.coroutines.CatsView>
+</otus.homework.coroutines.view.CatsView>

@@ -2,6 +2,8 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import otus.homework.coroutines.data.DiContainer
+import otus.homework.coroutines.view.CatsView
 
 class MainActivity : AppCompatActivity() {
 
