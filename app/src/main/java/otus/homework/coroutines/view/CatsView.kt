@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
-import otus.homework.coroutines.CatsPresenter
+import otus.homework.coroutines.CatsViewModel
 import otus.homework.coroutines.R
 import otus.homework.coroutines.model.CatModel
 
@@ -19,12 +19,12 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
+    var viewModel: CatsViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            viewModel?.onInitComplete()
         }
     }
 
