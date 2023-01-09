@@ -30,11 +30,11 @@ class CatsViewModel: ViewModel() {
         viewModelScope.launch(exceptionHandler) {
             try {
                 _catsFactData.value = Result.Success(CatResultData(picture.await().fileUrl, fact.await().text))
-            } catch (e: SocketTimeoutException) {
-                _catsFactData.value = Result.Error(null, "Не удалось получить ответ от сервера")
             } catch (e: Exception) {
-                e.message?.let {
-                    Result.Error(null, it)
+                when (e) {
+                    is SocketTimeoutException -> _catsFactData.value = Result.Error(null, "Не удалось получить ответ от сервера")
+                    is CancellationException -> _catsFactData.value = Result.Error(null, "Работа прервалась")
+                    else -> _catsFactData.value = Result.Error(null, e.message ?: "")
                 }
             }
         }
