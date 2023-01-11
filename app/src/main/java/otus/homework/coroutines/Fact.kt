@@ -19,6 +19,10 @@ data class Fact(
 	val type: String,
 	@field:SerializedName("user")
 	val user: String,
+	@field:SerializedName("fact")
+	val fact: String,
+	@field:SerializedName("length")
+	val length: String,
 	@field:SerializedName("updatedAt")
 	val updatedAt: String
 )
