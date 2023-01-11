@@ -7,6 +7,12 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <ImageView
+        android:id="@+id/meow_imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter" />
+
     <TextView
         android:id="@+id/fact_textView"
         android:textColor="@color/black"
