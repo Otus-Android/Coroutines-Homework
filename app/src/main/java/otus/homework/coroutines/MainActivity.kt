@@ -1,7 +1,10 @@
 package otus.homework.coroutines
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
+import otus.homework.coroutines.viewModelApproach.ViewModelActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,10 +18,15 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service)
+        catsPresenter = CatsPresenter(diContainer.service, diContainer.picturesService)
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
+
+        findViewById<Button>(R.id.toViewModel).setOnClickListener {
+            startActivity(Intent(this, ViewModelActivity::class.java))
+        }
+
     }
 
     override fun onStop() {
