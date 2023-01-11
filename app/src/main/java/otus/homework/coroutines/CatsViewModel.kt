@@ -14,7 +14,9 @@ class CatsViewModel(
 ) : ViewModel() {
 
 
-    private var getCatFact: Job? = null
+    var getCatFact: Job? = null
+    private set
+
     private val catsData: MutableLiveData<Result<CatsData>> = MutableLiveData()
     val _catsData: LiveData<Result<CatsData>> = catsData
     fun onInitComplete() {
@@ -23,9 +25,8 @@ class CatsViewModel(
                 val fact = async { catsService.getCatFact() }
                 val image = async { catsService.getImage() }
                 catsData.value = Result.Success(CatsData(fact.await().text, image.await().file))
-            } catch (e: java.net.SocketTimeoutException) {
+            } catch (e: Exception) {
                 catsData.value = Result.Error(e)
-                CrashMonitor.trackWarning(e.message)
             }
         }
     }
@@ -42,8 +43,4 @@ class CatsViewModel(
         }
     }
 
-    override fun onCleared() {
-        getCatFact?.cancel("App closed")
-        super.onCleared()
-    }
 }

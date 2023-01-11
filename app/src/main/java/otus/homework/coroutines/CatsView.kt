@@ -15,11 +15,13 @@ class CatsView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
     var viewModel :CatsViewModel? = null
+    var presenter :CatsPresenter? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
             viewModel?.onInitComplete()
+            presenter?.onInitComplete()
         }
     }
 
