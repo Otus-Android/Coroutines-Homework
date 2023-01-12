@@ -5,7 +5,8 @@ import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val meowService: MeowService,
 ) {
 
     private var _catsView: ICatsView? = null
@@ -17,8 +18,12 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                val fact = withContext(Dispatchers.IO) { catsService.getCatFact() }
-                _catsView?.populate(fact)
+                val vo = withContext(Dispatchers.IO) {
+                    val fact = catsService.getCatFact()
+                    val meow = meowService.getCatImage()
+                    CatsVO(fact = fact.fact, imageUrl = meow.imageUrl)
+                }
+                _catsView?.populate(vo)
             } catch (e: Exception) {
                 when (e) {
                     is CancellationException -> {
