@@ -58,6 +58,7 @@ class CatsPresenter(
     }
 
     fun detachView() {
+        job?.cancel()
         job = null
         _catsView = null
     }

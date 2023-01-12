@@ -49,6 +49,7 @@ class CatsViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        job?.cancel()
         job = null
     }
 }
