@@ -11,8 +11,7 @@ class CatsViewModel : ViewModel() {
     var catsService: CatsService? = null
     var meowService: MeowService? = null
 
-    val uiState = MutableLiveData<UiState>()
-    val errorState = MutableLiveData<String>()
+    val state = MutableLiveData<Result>()
 
     private var job: Job = Job()
 
@@ -31,14 +30,14 @@ class CatsViewModel : ViewModel() {
                 val imageUrl = async(Dispatchers.IO) {
                     meowService!!.getMeow().file
                 }
-                uiState.value = UiState(fact.await(), imageUrl.await())
+                state.value = Result.Success(UiState(fact.await(), imageUrl.await()))
             } catch (e: Exception) {
                 when(e) {
                     is CancellationException -> throw e
-                    is SocketTimeoutException -> errorState.value = "Не удалось получить ответ от сервера"
+                    is SocketTimeoutException -> state.value = Result.Error("Не удалось получить ответ от сервера")
                     else -> {
                         CrashMonitor.trackWarning()
-                        errorState.value = e.message ?: ""
+                        state.value = Result.Error(e.message ?: "")
                     }
                 }
             }

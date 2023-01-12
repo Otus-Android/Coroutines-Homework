@@ -27,11 +27,8 @@ class MainActivity : AppCompatActivity() {
         viewModel.meowService = diContainer.meowService
 
         view.viewModel = viewModel
-        viewModel.uiState.observe(this) {
+        viewModel.state.observe(this) {
             view.populate(it)
-        }
-        viewModel.errorState.observe(this) {
-            view.showError(it)
         }
         viewModel.onInitComplete()
     }

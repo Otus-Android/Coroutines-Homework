@@ -27,20 +27,26 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(state: UiState) {
+    override fun populate(state: Result) {
+        when(state) {
+            is Result.Success -> showState(state.uiState)
+            is Result.Error -> showError(state.message)
+        }
+    }
+
+    private fun showState(state: UiState) {
         findViewById<TextView>(R.id.fact_textView).text = state.fact.text
         Picasso.Builder(context).build()
             .load(state.imageUrl)
             .into(findViewById<ImageView>(R.id.meow_imageView))
     }
 
-    override fun showError(message: String) {
+    private fun showError(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
 }
 
 interface ICatsView {
 
-    fun populate(state: UiState)
-    fun showError(message: String)
+    fun populate(state: Result)
 }
