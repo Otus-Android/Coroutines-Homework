@@ -19,13 +19,13 @@ class CatsPresenter(
             try {
                 val fact = async(Dispatchers.IO) { catsService.getCatFact() }
                 val image = async(Dispatchers.IO) { meowService.getImage() }
-                _catsView?.populate(UiState(fact.await().text, image.await().url))
+                _catsView?.populate(Result.Success(UiState(fact.await().text, image.await().url)))
             } catch (e: Exception) {
                 when (e) {
                     is CancellationException -> throw e
-                    is SocketTimeoutException -> _catsView?.toast("Не удалось получить ответ от сервером")
+                    is SocketTimeoutException -> _catsView?.populate(Result.Error("Не удалось получить ответ от сервером"))
                     else -> {
-                        _catsView?.toast(e.message.toString())
+                        _catsView?.populate(Result.Error(e.message.toString()))
                         CrashMonitor.trackWarning()
                     }
                 }
