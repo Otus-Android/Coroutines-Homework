@@ -1,8 +1,10 @@
 package otus.homework.coroutines
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.AttributeSet
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -22,8 +24,9 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+    override fun populate(catFact: CatFact) {
+        findViewById<TextView>(R.id.fact_textView).text = catFact.fact?.fact
+        findViewById<ImageView>(R.id.cat_image).setImageBitmap(catFact.catImage)
     }
 
     override fun showErrorMessage(message: String) {
@@ -35,7 +38,7 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(fact: CatFact)
 
     fun showErrorMessage(message: String)
 }

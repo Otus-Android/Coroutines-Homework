@@ -1,30 +1,32 @@
 package otus.homework.coroutines
 
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
-private const val COROUTINE_NAME = "CatsCoroutine"
 private const val TIME_OUT_ERROR_TOAST_MSG = "Не удалось получить ответ от сервером"
 private const val UNKNOW_ERROR_TOAST_MSG = "НЕИЗВЕСТНАЯ ОШИБКА"
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imageService: ImageService
 ) {
     private var _catsView: ICatsView? = null
     private lateinit var factJob: Job
-    private val scope =
-        PresenterScope(
-            CoroutineName(COROUTINE_NAME)
-                    + Dispatchers.Main +
-                    SupervisorJob()
-        )
+
 
     fun onInitComplete() = run {
-        factJob = scope.launch {
+        factJob = PresenterScope.defaultScope.launch {
             try {
-                catsService.getCatFact()?.let { fact ->
-                    _catsView?.populate(fact)
+                val fact = async {
+                    catsService.getCatFact()
                 }
+                val catImage = async(Dispatchers.IO) {
+                    imageService.getCatImageUrl()?.urlImage?.let {
+                        Picasso.get().load(it).get()
+                    }
+                }
+                _catsView?.populate(CatFact(catImage.await(), fact.await()))
             } catch (e: Exception) {
                 checkException(e)
             }
