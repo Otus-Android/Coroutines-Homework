@@ -14,6 +14,7 @@ class CatsPresenter(
     private var job: Job = Job()
 
     fun onInitComplete() {
+        job.cancel()
         job = presenterScope.launch {
             try {
                 val fact = async(Dispatchers.IO) {
