@@ -16,10 +16,14 @@ class CatsViewModel : ViewModel() {
 
     private var job: Job = Job()
 
+    private val exceptionHandler = CoroutineExceptionHandler() { _, _ ->
+        CrashMonitor.trackWarning()
+    }
+
     fun onInitComplete() {
         job.cancel()
         if (catsService == null || meowService == null) return
-        job = viewModelScope.launch {
+        job = viewModelScope.launch(exceptionHandler) {
             try {
                 val fact = async(Dispatchers.IO) {
                     catsService!!.getCatFact()
