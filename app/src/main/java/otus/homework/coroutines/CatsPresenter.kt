@@ -1,28 +1,49 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import android.content.Context
+import android.widget.Toast
+import kotlinx.coroutines.*
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val context: Context,
+    private val catsService: CatsService,
+    private val catsImageService: CatsImageService
 ) {
-
+    private val presenterScope = CoroutineScope(
+        Dispatchers.Main + CoroutineName("CatsCoroutine")
+    )
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+        presenterScope.launch {
+            supervisorScope {
+                val factDeffered = async {
+                    catsService.getCatFact()
+                }
+                val imageDeffered = async {
+                    catsImageService.getCatImage()
+                }
+                try {
+                    val factResponse = factDeffered.await()
+                    val imageResponse = imageDeffered.await()
+                    if (
+                        factResponse.isSuccessful && factResponse.body() != null
+                        && imageResponse.isSuccessful && imageResponse.body() != null
+                    ) {
+                        _catsView?.populate(CatViewData(
+                            factResponse.body()!!.fact,
+                            imageResponse.body()!!.file
+                        ))
+                    }
+                } catch (e: SocketTimeoutException) {
+                    Toast.makeText(context, R.string.service_response_error, Toast.LENGTH_SHORT).show()
+                } catch (e: Throwable) {
+                    Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                    CrashMonitor.trackWarning()
                 }
             }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -30,6 +51,7 @@ class CatsPresenter(
     }
 
     fun detachView() {
+        presenterScope.cancel()
         _catsView = null
     }
 }
