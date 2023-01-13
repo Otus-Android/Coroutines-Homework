@@ -23,7 +23,6 @@ class CatsViewModel(
             CrashMonitor.trackWarning()
         }) {
             supervisorScope {
-                delay(2000)
                 val factDeffered = async {
                     catsService.getCatFact()
                 }
