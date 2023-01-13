@@ -1,10 +1,16 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
+import otus.homework.coroutines.model.Fact
+import otus.homework.coroutines.model.Image
+import otus.homework.coroutines.network.CatsService
+import otus.homework.coroutines.model.CatsUiState
+import otus.homework.coroutines.network.ImageService
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imageService: ImageService
 ) {
 
     private var _catsView: ICatsView? = null
@@ -14,29 +20,40 @@ class CatsPresenter(
     )
 
     fun onInitComplete() {
-        presenterScope.launch {
-            try {
-                doRequest()
-            } catch (e: SocketTimeoutException) {
-                showMessage(SOCKET_TIMEOUT_EXCEPTION_MESSAGE)
-            } catch (e: Exception) {
-                CrashMonitor.trackWarning(e)
-                showMessage(e.message)
+        presenterScope.launch() {
+            supervisorScope {
+                val factDeferred = async { loadFact() }
+                val imageDeferred = async { loadCatImage() }
+
+                val fact = runCustomCatch { factDeferred.await()?.fact }
+                val image = runCustomCatch { imageDeferred.await()?.file }
+
+                _catsView?.populate(
+                    CatsUiState(
+                        fact = fact ?: "",
+                        imageUrl = image
+                    )
+                )
             }
         }
     }
 
-    private suspend fun doRequest() {
+    private suspend fun loadFact(): Fact? {
         val response = catsService.getCatFact()
-        if (response.isSuccessful && response.body() != null) {
-            response.body()?.let { fact ->
-                _catsView?.populate(fact)
-            }
+        return if (response.isSuccessful && response.body() != null) {
+            response.body()
+        } else {
+            null
         }
     }
 
-    private fun showMessage(message: String?) {
-        _catsView?.showToast(message ?: UNKNOWN_ERROR)
+    private suspend fun loadCatImage(): Image? {
+        val response = imageService.getCatImage()
+        return if (response.isSuccessful && response.body() != null) {
+            response.body()
+        } else {
+            null
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -46,6 +63,23 @@ class CatsPresenter(
     fun detachView() {
         presenterScope.cancel()
         _catsView = null
+    }
+
+    private suspend fun <T> runCustomCatch(block: suspend () -> T?): T? {
+        return try {
+            block()
+        } catch (e: SocketTimeoutException) {
+            showMessage(SOCKET_TIMEOUT_EXCEPTION_MESSAGE)
+            null
+        } catch (e: Exception) {
+            CrashMonitor.trackWarning(e)
+            showMessage(e.message)
+            null
+        }
+    }
+
+    private fun showMessage(message: String?) {
+        _catsView?.showToast(message ?: UNKNOWN_ERROR)
     }
 
     private companion object {

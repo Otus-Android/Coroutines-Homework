@@ -8,7 +8,7 @@ object CrashMonitor {
      * Pretend this is Crashlytics/AppCenter
      */
     fun trackWarning(throwable: Throwable) {
-        val errorMessage = throwable.message ?: throwable.localizedMessage ?: ""
+        val errorMessage = throwable.message ?: throwable.localizedMessage ?: "Error"
         Log.e("CRASH_MONITOR", errorMessage)
     }
 }
