@@ -1,10 +1,11 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.ui
 
 import kotlinx.coroutines.*
+import otus.homework.coroutines.CrashMonitor
+import otus.homework.coroutines.model.CatsUiState
 import otus.homework.coroutines.model.Fact
 import otus.homework.coroutines.model.Image
 import otus.homework.coroutines.network.CatsService
-import otus.homework.coroutines.model.CatsUiState
 import otus.homework.coroutines.network.ImageService
 import java.net.SocketTimeoutException
 
@@ -20,7 +21,8 @@ class CatsPresenter(
     )
 
     fun onInitComplete() {
-        presenterScope.launch() {
+        presenterScope.launch {
+            _catsView?.loadingData(true)
             supervisorScope {
                 val factDeferred = async { loadFact() }
                 val imageDeferred = async { loadCatImage() }
@@ -34,6 +36,7 @@ class CatsPresenter(
                         imageUrl = image
                     )
                 )
+                _catsView?.loadingData(false)
             }
         }
     }

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<otus.homework.coroutines.CatsView xmlns:android="http://schemas.android.com/apk/res/android"
+<otus.homework.coroutines.ui.CatsView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/default_padding"
-    tools:context=".MainActivity">
+    tools:context=".ui.MainActivity">
 
     <ImageView
         android:id="@+id/cat_image_view"
@@ -39,4 +39,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/fact_textView" />
 
-</otus.homework.coroutines.CatsView>
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:elevation="@dimen/progress_elevation"
+        android:padding="@dimen/progress_padding"
+        app:layout_constraintBottom_toBottomOf="@id/button"
+        app:layout_constraintEnd_toEndOf="@id/button"
+        app:layout_constraintStart_toStartOf="@id/button"
+        app:layout_constraintTop_toTopOf="@id/button" />
+
+</otus.homework.coroutines.ui.CatsView>

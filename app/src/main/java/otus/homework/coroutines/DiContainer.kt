@@ -31,5 +31,4 @@ class DiContainer {
         Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
     }
 
-
 }
