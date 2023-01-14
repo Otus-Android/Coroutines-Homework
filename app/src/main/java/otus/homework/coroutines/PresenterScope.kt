@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlin.coroutines.CoroutineContext
 
 class PresenterScope : CoroutineScope {
@@ -14,6 +15,6 @@ class PresenterScope : CoroutineScope {
         get() = Dispatchers.Main + parentJob + CoroutineName("CatsCoroutine")
 
     fun onStop() {
-        parentJob.cancel()
+        coroutineContext.cancelChildren()
     }
 }

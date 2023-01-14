@@ -1,6 +1,7 @@
 package otus.homework.coroutines
 
 import android.os.Bundle
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import java.net.SocketTimeoutException
@@ -44,7 +45,7 @@ class CatsPresenter(
         } catch (e: SocketTimeoutException) {
             _catsView?.showToast("Не удалось получить ответ от сервером")
             null
-        } catch (e: Exception) {
+        } catch (e: CancellationException) {
             CrashMonitor.trackWarning()
             _catsView?.showToast(e.localizedMessage!!)
             null
