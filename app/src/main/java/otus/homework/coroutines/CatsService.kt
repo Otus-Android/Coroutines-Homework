@@ -12,3 +12,4 @@ interface CatsService {
     @GET
     suspend fun getImage(@Url url: String) : Response<FileCats>
 }
+
