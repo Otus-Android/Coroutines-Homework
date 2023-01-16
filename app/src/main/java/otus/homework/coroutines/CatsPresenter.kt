@@ -5,7 +5,8 @@ import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catsPicService: CatsPicService
 ) {
 
     private var _catsView: ICatsView? = null
@@ -16,7 +17,8 @@ class CatsPresenter(
         job = scope.launch {
             try {
                 val fact = getCatFact()
-                _catsView?.populate(fact)
+                val picUrl = getCatPictureUrl()
+                _catsView?.populate(fact, picUrl)
             } catch (e: Exception) {
                 when (e) {
                     is SocketTimeoutException -> _catsView?.showToast("Не удалось получить ответ от сервером")
@@ -30,6 +32,7 @@ class CatsPresenter(
     }
 
     private suspend fun getCatFact() = catsService.getCatFact()
+    private suspend fun getCatPictureUrl() = catsPicService.getCatPictureUrl().file
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
