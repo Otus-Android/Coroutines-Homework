@@ -40,7 +40,6 @@ class CatsPresenter(
 
     private suspend fun loadFact(): FactNew? = invokeSafely { catsService.getCatFact() } as FactNew?
 
-
     private suspend fun loadImageUrl(): CatImage? =
         invokeSafely { catsImageService.getCatImage() } as CatImage?
 
