@@ -6,24 +6,35 @@ import kotlin.coroutines.CoroutineContext
 
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val serviceImage: CatsService
 ) {
 
     private var _catsView: ICatsView? = null
     private val presenterScope = PresenterScope()
+    private var job: Job? = null
 
 
     fun onInitComplete() {
-        presenterScope.launch{
+        job = presenterScope.launch {
             try {
-                val fact = catsService.getCatFact()
-                _catsView?.populate(fact)
+                val jobImage = async {
+                    val catImage = serviceImage.getCatImage()
+                    _catsView?.populate(catImage)
+                }
+                val jobFact = async {
+                    val fact = catsService.getCatFact()
+                    _catsView?.populate(fact)
+                }
+                jobImage.join()
+                jobFact.join()
             } catch (e: SocketTimeoutException) {
-                _catsView?.CatsMessage("Не удалось получить ответ от сервера")
+                _catsView?.catsMessage("Не удалось получить ответ от сервера")
             } catch (e: Exception) {
                 CrashMonitor.trackWarning()
-                _catsView?.CatsMessage(e.message.toString())
+                _catsView?.catsMessage(e.message.toString())
             }
+
         }
     }
 
@@ -33,7 +44,7 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        presenterScope.cancel()
+        job?.cancel()
     }
 }
 
