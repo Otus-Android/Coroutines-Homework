@@ -9,4 +9,7 @@ interface CatsService {
 
     @GET("fact")
     suspend fun getCatFact(): Fact
+
 }
+
+

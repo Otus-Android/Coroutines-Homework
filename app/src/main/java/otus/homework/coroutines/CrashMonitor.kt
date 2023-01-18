@@ -1,10 +1,13 @@
 package otus.homework.coroutines
 
-object CrashMonitor {
+import android.util.Log
 
+object CrashMonitor {
     /**
      * Pretend this is Crashlytics/AppCenter
      */
-    fun trackWarning() {
+    fun trackWarning(TAG: String, e: Throwable) {
+        val message = e.message ?: "Неизвестная ошибка в CatsViewModel"
+        Log.e(TAG,message)
     }
 }
