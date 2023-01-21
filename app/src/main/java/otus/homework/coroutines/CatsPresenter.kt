@@ -11,17 +11,33 @@ class CatsPresenter(
     private val picturesService: PicturesService
 ) {
 
+
+    private val handler = CoroutineExceptionHandler { _, exception ->
+
+        println("CoroutineExceptionHandler got $exception")
+        CrashMonitor.trackWarning()
+
+        val error = when(exception){
+            is SocketTimeoutException -> {DisplayError.Timeout}
+            else -> {DisplayError.Other(exception.message ?: "Unknown Error")}
+        }
+
+        _catsView?.toast(error)
+
+
+    }
+
     private val presenterJob: Job = SupervisorJob()
-    private val presenterScope: CoroutineScope = CoroutineScope((Dispatchers.Main + presenterJob + CoroutineName("CatsCoroutine")))
+    private val presenterScope: CoroutineScope = CoroutineScope((Dispatchers.Main + presenterJob + CoroutineName("CatsCoroutine")) + handler)
 
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
 
-        presenterScope.launch(Dispatchers.IO + handler) {
+        presenterScope.launch {
             try {
-                val fact = async{ catsService.getCatFact() }
-                val picture =  async { picturesService.getRandomPicture() }
+                val fact = async(Dispatchers.IO){ catsService.getCatFact() }
+                val picture =  async(Dispatchers.IO){ picturesService.getRandomPicture() }
                 launch(Dispatchers.Main) {
                     _catsView?.populate(CatsViewState(fact.await(), picture.await()))
                 }
@@ -51,21 +67,5 @@ class CatsPresenter(
         _catsView = null
     }
 
-    private val handler = CoroutineExceptionHandler { _, exception ->
-
-        println("CoroutineExceptionHandler got $exception")
-        CrashMonitor.trackWarning()
-
-        val error = when(exception){
-            is SocketTimeoutException -> {DisplayError.Timeout}
-            else -> {DisplayError.Other(exception.message ?: "Unknown Error")}
-        }
-
-        presenterScope.launch {
-            _catsView?.toast(error)
-        }
-
-
-    }
 
 }
