@@ -22,9 +22,7 @@ class MainActivity : AppCompatActivity() {
 //        catsPresenter.attachView(view)
 //        catsPresenter.onInitComplete()
 
-        viewModel = ViewModelProvider(this)[CatsViewModel::class.java]
-        viewModel.catsService = diContainer.catService
-        viewModel.meowService = diContainer.meowService
+        viewModel = ViewModelProvider(this, CatsViewModelFactory(diContainer.catService, diContainer.meowService))[CatsViewModel::class.java]
 
         view.viewModel = viewModel
         viewModel.state.observe(this) {

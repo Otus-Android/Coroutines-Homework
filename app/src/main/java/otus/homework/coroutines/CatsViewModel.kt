@@ -7,10 +7,10 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
-class CatsViewModel : ViewModel() {
-
-    var catsService: CatsService? = null
-    var meowService: MeowService? = null
+class CatsViewModel(
+    private val catsService: CatsService,
+    private val meowService: MeowService
+) : ViewModel() {
 
     private val _state = MutableLiveData<Result>()
     val state: LiveData<Result> = _state
@@ -20,14 +20,13 @@ class CatsViewModel : ViewModel() {
     }
 
     fun onInitComplete() {
-        if (catsService == null || meowService == null) return
         viewModelScope.launch(exceptionHandler) {
             try {
-                val fact = async(Dispatchers.IO) {
-                    catsService!!.getCatFact()
+                val fact = async {
+                    catsService.getCatFact()
                 }
-                val imageUrl = async(Dispatchers.IO) {
-                    meowService!!.getMeow().file
+                val imageUrl = async {
+                    meowService.getMeow().file
                 }
                 _state.value = Result.Success(UiState(fact.await(), imageUrl.await()))
             } catch (e: Exception) {
