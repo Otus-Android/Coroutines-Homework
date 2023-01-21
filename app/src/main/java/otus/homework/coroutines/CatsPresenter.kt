@@ -19,9 +19,12 @@ class CatsPresenter(
         presenterScope.launch {
             try {
                 val vo = withContext(Dispatchers.IO) {
-                    val fact = catsService.getCatFact()
-                    val meow = meowService.getCatImage()
-                    CatsVO(fact = fact.fact, imageUrl = meow.imageUrl)
+                    val factDeferred = async { catsService.getCatFact() }
+                    val meowDeferred = async { meowService.getCatImage() }
+                    CatsVO(
+                        fact = factDeferred.await().fact,
+                        imageUrl = meowDeferred.await().imageUrl
+                    )
                 }
                 _catsView?.populate(vo)
             } catch (e: Exception) {

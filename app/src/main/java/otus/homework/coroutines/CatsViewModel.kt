@@ -6,10 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 import javax.inject.Inject
 
@@ -42,9 +39,12 @@ class CatsViewModel @Inject constructor(
         viewModelScope.launch(coroutineExceptionHandler) {
             _viewObject.value = ResultOf.Success(
                 value = withContext(Dispatchers.IO) {
-                    val fact = catsService.getCatFact()
-                    val meow = meowService.getCatImage()
-                    CatsVO(fact = fact.fact, imageUrl = meow.imageUrl)
+                    val factDeferred = async { catsService.getCatFact() }
+                    val meowDeferred = async { meowService.getCatImage() }
+                    CatsVO(
+                        fact = factDeferred.await().fact,
+                        imageUrl = meowDeferred.await().imageUrl
+                    )
                 }
             )
         }
