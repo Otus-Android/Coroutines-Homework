@@ -3,7 +3,6 @@ package otus.homework.coroutines
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityComponent
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -52,5 +51,4 @@ class DiContainer {
 annotation class FactRetrofit
 
 @Qualifier
-@Retention(AnnotationRetention.BINARY)
 annotation class MeowRetrofit
