@@ -20,33 +20,35 @@ class CatsViewModel @Inject constructor(
     val viewObject: LiveData<ResultOf<CatsVO>> = _viewObject
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        when (throwable) {
-            is SocketTimeoutException -> {
-                Log.e(TAG, "Не удалось получить ответ от сервера", throwable)
-                _viewObject.value = ResultOf.Failure(
-                    message = "Не удалось получить ответ от сервера",
-                    throwable = throwable
-                )
-            }
-            else -> {
-                Log.e(TAG, "Что-то пошло не так", throwable)
-                CrashMonitor.trackWarning()
-            }
-        }
+        Log.e(TAG, "Что-то пошло не так", throwable)
+        CrashMonitor.trackWarning()
     }
 
     fun onInitComplete() {
         viewModelScope.launch(coroutineExceptionHandler) {
-            _viewObject.value = ResultOf.Success(
-                value = withContext(Dispatchers.IO) {
-                    val factDeferred = async { catsService.getCatFact() }
-                    val meowDeferred = async { meowService.getCatImage() }
-                    CatsVO(
-                        fact = factDeferred.await().fact,
-                        imageUrl = meowDeferred.await().imageUrl
-                    )
+            try {
+                _viewObject.value = ResultOf.Success(
+                    value = withContext(Dispatchers.IO) {
+                        val factDeferred = async { catsService.getCatFact() }
+                        val meowDeferred = async { meowService.getCatImage() }
+                        CatsVO(
+                            fact = factDeferred.await().fact,
+                            imageUrl = meowDeferred.await().imageUrl
+                        )
+                    }
+                )
+            } catch (throwable: Throwable) {
+                when (throwable) {
+                    is SocketTimeoutException -> {
+                        Log.e(TAG, "Не удалось получить ответ от сервера", throwable)
+                        _viewObject.value = ResultOf.Failure(
+                            message = "Не удалось получить ответ от сервера",
+                            throwable = throwable
+                        )
+                    }
+                    else -> throw throwable
                 }
-            )
+            }
         }
     }
 
