@@ -15,7 +15,6 @@ class DiContainer {
 
     @FactRetrofit
     @Provides
-    @Singleton
     fun provideFactRetrofit(): Retrofit {
         return Retrofit.Builder()
             .baseUrl("https://catfact.ninja/")
@@ -25,7 +24,6 @@ class DiContainer {
 
     @MeowRetrofit
     @Provides
-    @Singleton
     fun provideMeowRetrofit(): Retrofit {
         return Retrofit.Builder()
             .baseUrl("https://aws.random.cat/")
@@ -34,20 +32,17 @@ class DiContainer {
     }
 
     @Provides
-    @Singleton
     fun provideCatsService(@FactRetrofit retrofit: Retrofit): CatsService {
         return retrofit.create(CatsService::class.java)
     }
 
     @Provides
-    @Singleton
     fun provideMeowService(@MeowRetrofit retrofit: Retrofit): MeowService {
         return retrofit.create(MeowService::class.java)
     }
 }
 
 @Qualifier
-@Retention(AnnotationRetention.BINARY)
 annotation class FactRetrofit
 
 @Qualifier
