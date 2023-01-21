@@ -11,11 +11,9 @@ class CatsPresenter(
     private var _catsView: ICatsView? = null
 
     private val presenterScope = CoroutineScope(CoroutineName("CatsCoroutine") + Job() + Dispatchers.Main)
-    private var job: Job = Job()
 
     fun onInitComplete() {
-        job.cancel()
-        job = presenterScope.launch {
+        presenterScope.launch {
             try {
                 val fact = async(Dispatchers.IO) {
                     catsService.getCatFact()
@@ -43,6 +41,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        job.cancel()
+        presenterScope.cancel()
     }
 }

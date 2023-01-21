@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,18 +12,16 @@ class CatsViewModel : ViewModel() {
     var catsService: CatsService? = null
     var meowService: MeowService? = null
 
-    val state = MutableLiveData<Result>()
-
-    private var job: Job = Job()
+    private val _state = MutableLiveData<Result>()
+    val state: LiveData<Result> = _state
 
     private val exceptionHandler = CoroutineExceptionHandler() { _, _ ->
         CrashMonitor.trackWarning()
     }
 
     fun onInitComplete() {
-        job.cancel()
         if (catsService == null || meowService == null) return
-        job = viewModelScope.launch(exceptionHandler) {
+        viewModelScope.launch(exceptionHandler) {
             try {
                 val fact = async(Dispatchers.IO) {
                     catsService!!.getCatFact()
@@ -30,21 +29,22 @@ class CatsViewModel : ViewModel() {
                 val imageUrl = async(Dispatchers.IO) {
                     meowService!!.getMeow().file
                 }
-                state.value = Result.Success(UiState(fact.await(), imageUrl.await()))
+                _state.value = Result.Success(UiState(fact.await(), imageUrl.await()))
             } catch (e: Exception) {
                 when(e) {
                     is CancellationException -> throw e
-                    is SocketTimeoutException -> state.value = Result.Error("Не удалось получить ответ от сервера")
+                    is SocketTimeoutException -> _state.value = Result.Error("Не удалось получить ответ от сервера")
                     else -> {
                         CrashMonitor.trackWarning()
-                        state.value = Result.Error(e.message ?: "")
+                        _state.value = Result.Error(e.message ?: "")
                     }
                 }
             }
         }
     }
 
-    fun release() {
-        job.cancel()
+    override fun onCleared() {
+        super.onCleared()
+        viewModelScope.cancel()
     }
 }
