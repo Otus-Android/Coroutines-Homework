@@ -1,14 +1,8 @@
 package otus.homework.coroutines
 
-import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.lang.Exception
 import kotlin.coroutines.CoroutineContext
 
 class PresenterScope : CoroutineScope {
@@ -23,16 +17,19 @@ class CatsPresenter(
     private val catsData: MutableLiveData<Result<CatsData>> = MutableLiveData()
     val _catsData: LiveData<Result<CatsData>> = catsData
     var getCatFact: Job? = null
-    private set
+        private set
+
     fun onInitComplete() {
         val scope = PresenterScope()
         getCatFact = scope.launch {
-            try {
+            supervisorScope {
                 val fact = async { catsService.getCatFact() }
                 val image = async { catsService.getImage() }
-                catsData.value = Result.Success(CatsData(fact.await().text, image.await().file))
-            } catch (e: Exception) {
-                catsData.value = Result.Error(e)
+                try {
+                    catsData.value = Result.Success(CatsData(fact.await().text, image.await().file))
+                } catch (e: Throwable) {
+                    catsData.value = Result.Error(e)
+                }
             }
         }
     }
