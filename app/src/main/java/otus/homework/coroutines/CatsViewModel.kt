@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,20 +12,21 @@ class CatsViewModel(
     private val meowService: MeowService
 ) : ViewModel() {
 
-    val result = MutableLiveData<Result>()
+    private val _result = MutableLiveData<Result>()
+    val result: LiveData<Result> = _result
 
     fun onInitComplete() {
         viewModelScope.launch(CoroutineExceptionHandler { _, _ -> CrashMonitor.trackWarning() }) {
             try {
-                val fact = async(Dispatchers.IO) { catsService.getCatFact() }
-                val image = async(Dispatchers.IO) { meowService.getImage() }
-                result.value = Result.Success(UiState(fact.await().text, image.await().url))
+                val fact = async { catsService.getCatFact() }
+                val image = async { meowService.getImage() }
+                _result.value = Result.Success(UiState(fact.await().text, image.await().url))
             } catch (e: Exception) {
                 when (e) {
                     is CancellationException -> throw e
-                    is SocketTimeoutException -> result.value = Result.Error("Не удалось получить ответ от сервером")
+                    is SocketTimeoutException -> _result.value = Result.Error("Не удалось получить ответ от сервером")
                     else -> {
-                        result.value = Result.Error(e.message.toString())
+                        _result.value = Result.Error(e.message.toString())
                         CrashMonitor.trackWarning()
                     }
                 }

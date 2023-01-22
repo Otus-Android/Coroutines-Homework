@@ -16,17 +16,19 @@ class CatsPresenter(
 
     fun onInitComplete() {
         presenterScope.launch {
-            try {
-                val fact = async(Dispatchers.IO) { catsService.getCatFact() }
-                val image = async(Dispatchers.IO) { meowService.getImage() }
-                _catsView?.populate(Result.Success(UiState(fact.await().text, image.await().url)))
-            } catch (e: Exception) {
-                when (e) {
-                    is CancellationException -> throw e
-                    is SocketTimeoutException -> _catsView?.populate(Result.Error("Не удалось получить ответ от сервером"))
-                    else -> {
-                        _catsView?.populate(Result.Error(e.message.toString()))
-                        CrashMonitor.trackWarning()
+            supervisorScope {
+                val fact = async { catsService.getCatFact() }
+                val image = async { meowService.getImage() }
+                try {
+                    _catsView?.populate(Result.Success(UiState(fact.await().text, image.await().url)))
+                } catch (e: Exception) {
+                    when (e) {
+                        is CancellationException -> throw e
+                        is SocketTimeoutException -> _catsView?.populate(Result.Error("Не удалось получить ответ от сервером"))
+                        else -> {
+                            _catsView?.populate(Result.Error(e.message.toString()))
+                            CrashMonitor.trackWarning()
+                        }
                     }
                 }
             }
@@ -38,7 +40,7 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        job.cancel()
+        presenterScope.cancel()
         _catsView = null
     }
 }
