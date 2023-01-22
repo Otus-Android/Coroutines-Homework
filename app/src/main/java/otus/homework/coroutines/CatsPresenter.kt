@@ -8,10 +8,9 @@ class CatsPresenter(private val catsService: CatsService) {
     private var _catsView: ICatsView? = null
     private val imageSource = "https://aws.random.cat/meow"
 
-    private val job = Job()
     private val coroutineName = "CatsCoroutine"
     private val presenterScope =
-        CoroutineScope(Dispatchers.Main + job + CoroutineName(coroutineName))
+        CoroutineScope(Dispatchers.Main + CoroutineName(coroutineName))
 
     fun onInitComplete() {
         presenterScope.launch {
@@ -45,7 +44,7 @@ class CatsPresenter(private val catsService: CatsService) {
     }
 
     fun detachView() {
-        job.cancel()
+        presenterScope.cancel()
         _catsView = null
     }
 }

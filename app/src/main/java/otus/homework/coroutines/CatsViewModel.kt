@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,20 +10,20 @@ import java.net.SocketTimeoutException
 class CatsViewModel(private val catsService: CatsService) : ViewModel() {
 
     val toastLD = MutableLiveData<String>()
-    val catsPopulationLD = MutableLiveData<CatModel>()
+    private val _catsPopulationLD = MutableLiveData<CatModel>()
+    val catsPopulationLD: LiveData<CatModel> = _catsPopulationLD
     private val imageSource = "https://aws.random.cat/meow"
 
-    private val job = Job()
     private val coroutineName = CoroutineName("CatsCoroutine")
     private val handler = CoroutineExceptionHandler { _, exception ->
         CrashMonitor.trackWarning(exception.message ?: "ERROR!")
     }
 
     fun onInitComplete() {
-        viewModelScope.launch(job + coroutineName + handler) {
+        viewModelScope.launch(coroutineName + handler) {
             when (val result = doTask()) {
                 is Result.Success<*> ->
-                    catsPopulationLD.postValue(result.model as? CatModel)
+                    _catsPopulationLD.postValue(result.model as? CatModel)
                 is Result.Error -> {
                     if (result.e is SocketTimeoutException)
                         toastLD.postValue("")
@@ -37,12 +38,12 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
         }
     }
 
-    private suspend fun doTask() = withContext(Dispatchers.IO) {
-        try {
-            val imageResponse = async(Dispatchers.IO) {
+    private suspend fun doTask(): Result {
+        return try {
+            val imageResponse = viewModelScope.async(Dispatchers.IO) {
                 catsService.getCatImage(imageSource)
             }
-            val factResponse = async(Dispatchers.IO) {
+            val factResponse = viewModelScope.async(Dispatchers.IO) {
                 catsService.getCatFact()
             }
             val imageBody = imageResponse.await().body()

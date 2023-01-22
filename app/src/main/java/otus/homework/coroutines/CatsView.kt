@@ -8,17 +8,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
-import kotlinx.coroutines.*
 
 class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView, CoroutineScope by MainScope() {
+) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
     private var presenter: CatsPresenter? = null
     private var viewModel: CatsViewModel? = null
-    private val job = Job()
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -30,9 +28,7 @@ class CatsView @JvmOverloads constructor(
 
     override fun populate(catModel: CatModel) {
         findViewById<TextView>(R.id.fact_textView).text = catModel.fact
-        launch(job) {
-            Picasso.get().load(catModel.imageUrl).into(findViewById<ImageView>(R.id.cat_image))
-        }
+        Picasso.get().load(catModel.imageUrl).into(findViewById<ImageView>(R.id.cat_image))
     }
 
     override fun showToast(text: String) {
@@ -54,10 +50,6 @@ class CatsView @JvmOverloads constructor(
 
     fun initViewModel(viewModel: CatsViewModel) {
         this.viewModel = viewModel
-    }
-
-    fun cancelJob() {
-        job.cancel()
     }
 }
 
