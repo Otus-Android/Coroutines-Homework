@@ -44,6 +44,8 @@ class CatsViewModel(
                 } catch (e: SocketTimeoutException) {
                     Toast.makeText(context, R.string.service_response_error, Toast.LENGTH_SHORT)
                         .show()
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Throwable) {
                     Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
                     CrashMonitor.trackWarning()
