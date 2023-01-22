@@ -4,16 +4,21 @@ import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val serviceRandomCatFact: CatsService,
+    private val serviceRandomCatImage: CatsService
 ) {
 
     private val scope = PresenterScope()
     private var _catsView: ICatsView? = null
+    private var job: Job? = null
+
     fun onInitComplete() {
-        scope.launch {
+        job = scope.launch {
             try {
-                val catFact = catsService.getCatFact()
-                _catsView?.populate(catFact)
+                val fact = async { serviceRandomCatFact.getCatFact() }
+                val image = async { serviceRandomCatImage.catImage() }
+                val catItem = CatItem(fact.await().fact, image.await().file)
+                _catsView?.populate(catItem)
             } catch (e: SocketTimeoutException) {
                 _catsView?.message(R.string.failed_response_server)
             } catch (e: Exception) {
@@ -28,7 +33,7 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        scope.cancel()
+        job?.cancel()
         _catsView = null
     }
 }

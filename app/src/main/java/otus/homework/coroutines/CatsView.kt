@@ -2,10 +2,14 @@ package otus.homework.coroutines
 
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.Button
+import android.view.View
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.squareup.picasso.Callback
+import com.squareup.picasso.Picasso
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -14,16 +18,35 @@ class CatsView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
     var presenter: CatsPresenter? = null
-
+    private val refresher by lazy { findViewById<SwipeRefreshLayout>(R.id.swipeRefresh) }
+    private val progressBar by lazy { findViewById<ProgressBar>(R.id.progressBar) }
     override fun onFinishInflate() {
         super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
+        refresher.setOnRefreshListener {
+            progressBar.visibility = View.VISIBLE
             presenter?.onInitComplete()
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+    override fun populate(item: CatItem) {
+        findViewById<TextView>(R.id.fact_textView).text = item.fact
+
+        Picasso.get()
+            .load(item.url)
+            .into(
+                findViewById(R.id.imageView),
+                object : Callback {
+                    override fun onSuccess() {
+                        progressBar.visibility = View.GONE
+                    }
+
+                    override fun onError(e: Exception?) {
+                        progressBar.visibility = View.GONE
+                        message(e.toString())
+                    }
+                }
+            )
+        refresher.isRefreshing = false
     }
 
     override fun message(resId: Int) {
@@ -37,7 +60,7 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(item: CatItem)
 
     fun message(resId: Int)
     fun message(text: String)
