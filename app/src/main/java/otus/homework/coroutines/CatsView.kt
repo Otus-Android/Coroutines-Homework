@@ -7,9 +7,12 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.namespace.R
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.launch
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -17,14 +20,16 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
+    var viewModel: CatsViewModel? = null
+    var lifecycleScope: LifecycleCoroutineScope? = null
+
     private val refresher by lazy { findViewById<SwipeRefreshLayout>(R.id.swipeRefresh) }
     private val progressBar by lazy { findViewById<ProgressBar>(R.id.progressBar) }
     override fun onFinishInflate() {
         super.onFinishInflate()
         refresher.setOnRefreshListener {
             progressBar.visibility = View.VISIBLE
-            presenter?.onInitComplete()
+            viewModel?.onInitComplete()
         }
     }
 
@@ -56,6 +61,22 @@ class CatsView @JvmOverloads constructor(
     override fun message(text: String) {
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
     }
+
+    override fun message(error: Result.Error) {
+        error.messageId?.let { message(error.messageId) }
+        error.text?.let { message(error.text) }
+    }
+
+    override fun subscribe() {
+        lifecycleScope?.launch {
+            viewModel?.catItem?.collect { item ->
+                populate(item)
+            }
+            viewModel?.error?.collect { err ->
+                message(err)
+            }
+        }
+    }
 }
 
 interface ICatsView {
@@ -64,4 +85,7 @@ interface ICatsView {
 
     fun message(resId: Int)
     fun message(text: String)
+    fun message(error: Result.Error)
+
+    fun subscribe()
 }

@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import com.example.namespace.R
 import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
@@ -22,7 +23,7 @@ class CatsPresenter(
             } catch (e: SocketTimeoutException) {
                 _catsView?.message(R.string.failed_response_server)
             } catch (e: Exception) {
-                CrashMonitor.trackWarning()
+                CrashMonitor.trackWarning(e)
                 _catsView?.message(e.message.toString())
             }
         }
