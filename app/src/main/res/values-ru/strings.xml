@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Факты о кошках</string>
+    <string name="more_facts">Больше фактов</string>
+    <string name="failed_response_server">Не удалось получить ответ от сервера</string>
+</resources>
