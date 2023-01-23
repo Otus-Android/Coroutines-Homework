@@ -2,36 +2,24 @@ package otus.homework.coroutines
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.*
 import otus.homework.coroutines.api_services.CatsService
 import otus.homework.coroutines.api_services.ImageCatsService
-import otus.homework.coroutines.data.Cat
 import otus.homework.coroutines.data.Result
 
-class CatsPresenter(
+class CatsViewModel(
     private val catsService: CatsService,
     private val imageCatsService: ImageCatsService
-) {
+) : ViewModel() {
 
-    private var _catsView: ICatsView? = null
-    private val scope = CoroutineScope(
-        SupervisorJob()
-                + Dispatchers.IO
-                + CoroutineName("CatsCoroutine")
-                + CoroutineExceptionHandler { _, t ->
-                CrashMonitor.trackWarning(
-                CrashMonitor.KEY_LOADING,
-                t
-            )
-        }
-    )
-    private var job: Job? = null
     private val _resultLoading = MutableLiveData<Result>()
     val resultLoading: LiveData<Result>
         get() = _resultLoading
 
     fun onInitComplete() {
-        job = scope.launch {
+        viewModelScope.launch {
             try {
                 val deferredFact = async {
                     catsService.getCatFact()
@@ -40,7 +28,12 @@ class CatsPresenter(
                     imageCatsService.getCatImage()
                 }
                 withContext(Dispatchers.Main) {
-                    _catsView?.populate(Cat(deferredFact.await().fact, deferredImage.await().file))
+                    _resultLoading.postValue(
+                        Result.Success(
+                            deferredFact.await().fact,
+                            deferredImage.await().file
+                        )
+                    )
                 }
             } catch (e: Throwable) {
                 if (e is CancellationException) throw e else {
@@ -51,15 +44,5 @@ class CatsPresenter(
                 }
             }
         }
-    }
-
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
-
-    fun detachView() {
-        job?.cancel()
-        job = null
-        _catsView = null
     }
 }
