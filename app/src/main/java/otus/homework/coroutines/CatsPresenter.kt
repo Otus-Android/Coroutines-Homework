@@ -16,16 +16,17 @@ class CatsPresenter(
 
 
     fun onInitComplete() = run {
-        factJob = PresenterScope.defaultScope.launch {
-            try {
-                val fact = async {
-                    catsService.getCatFact()
+        factJob = PresenterScope.defaultScope().launch {
+
+            val fact = async {
+                catsService.getCatFact()
+            }
+            val catImage = async(Dispatchers.IO) {
+                imageService.getCatImageUrl().urlImage.let {
+                    Picasso.get().load(it).get()
                 }
-                val catImage = async(Dispatchers.IO) {
-                    imageService.getCatImageUrl()?.urlImage?.let {
-                        Picasso.get().load(it).get()
-                    }
-                }
+            }
+            try{
                 _catsView?.populate(CatFact(catImage.await(), fact.await()))
             } catch (e: Exception) {
                 checkException(e)

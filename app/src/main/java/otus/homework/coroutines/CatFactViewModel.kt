@@ -3,8 +3,12 @@ package otus.homework.coroutines
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.squareup.picasso.Picasso
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
 private const val TIME_OUT_ERROR_TOAST_MSG = "Не удалось получить ответ от сервером"
@@ -20,10 +24,9 @@ class CatFactViewModel : ViewModel() {
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
 
-    private lateinit var factJob: Job
 
-    fun onInitComplete() = run {
-        factJob = PresenterScope.defaultScope.launch {
+    fun onInitComplete()  {
+        viewModelScope.launch {
             val fact = async {
                 if (getCatFact().success != null) {
                     getCatFact().success
@@ -65,11 +68,6 @@ class CatFactViewModel : ViewModel() {
         } catch (e: Exception) {
             Result.Error(getErrorMessage(e))
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        factJob.cancel()
     }
 
     private fun getErrorMessage(e: Exception): String {

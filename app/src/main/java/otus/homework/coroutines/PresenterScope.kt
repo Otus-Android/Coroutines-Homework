@@ -11,7 +11,7 @@ class PresenterScope(override val coroutineContext: CoroutineContext) : Coroutin
             CrashMonitor.trackWarning()
         }
 
-        val defaultScope = PresenterScope(
+        fun defaultScope() = PresenterScope(
             CoroutineName(COROUTINE_NAME)
                     + Dispatchers.Main
                     + SupervisorJob()
