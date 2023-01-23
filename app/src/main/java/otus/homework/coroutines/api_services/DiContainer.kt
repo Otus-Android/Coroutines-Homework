@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.api_services
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
