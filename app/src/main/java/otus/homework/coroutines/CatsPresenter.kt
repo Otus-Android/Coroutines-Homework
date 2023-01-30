@@ -1,16 +1,12 @@
 package otus.homework.coroutines
 
-import android.widget.Toast
-import androidx.core.content.ContextCompat
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
+import kotlinx.coroutines.*
 import retrofit2.Response
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
     private val catsService: CatsService,
+    private val picsService: CatsService,
 ) {
 
     private var _catsView: ICatsView? = null
@@ -19,12 +15,24 @@ class CatsPresenter(
     fun onInitComplete() {
         myScope.launch {
             try {
-                val fact = catsService.getCatFact()
-                _catsView?.populate(fact)
+                // delay для проверки работы myScope.cancel()
+                //delay(2000)
+
+                val fact = async {
+                    catsService.getCatFact()
+                }
+                val pic = async {
+                    picsService.getPic()
+                }
+
+                //throw SocketTimeoutException()
+                //throw Exception("exception")
+                _catsView?.populate(Pair(fact.await(), pic.await()))
             } catch (e: SocketTimeoutException) {
-                _catsView?.showToast(R.string.failed_response)
+                _catsView?.showToastFromRes(R.string.failed_response)
             } catch (e: Exception) {
                 CrashMonitor.trackWarning()
+                _catsView?.showToast(e.message)
             }
         }
     }
