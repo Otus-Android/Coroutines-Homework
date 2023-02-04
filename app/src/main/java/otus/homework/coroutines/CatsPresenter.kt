@@ -16,7 +16,9 @@ class CatsPresenter(
         presenterScope.launch() {
             try{
                 val cat = catsService.getCatFact()
-                _catsView?.populate(cat)
+                val pictureMeow = catsService.getPicture(url = "https://aws.random.cat/meow")
+                _catsView?.populate(CatModel(cat.fact,pictureMeow.file))
+
             }catch (e: Exception){
                 _catsView?.showException(e)
             }
