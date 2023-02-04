@@ -18,7 +18,7 @@ class CatsPresenter(
             try {
                 val fact = getCatFact()
                 val picUrl = getCatPictureUrl()
-                _catsView?.populate(fact, picUrl)
+                _catsView?.populate(mapResponse(fact, picUrl))
             } catch (e: Exception) {
                 when (e) {
                     is SocketTimeoutException -> _catsView?.showToast("Не удалось получить ответ от сервером")

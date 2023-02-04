@@ -2,7 +2,7 @@ package otus.homework.coroutines
 
 import com.google.gson.annotations.SerializedName
 
-data class Fact(
+data class FactResponse(
 	@field:SerializedName("createdAt")
 	val createdAt: String,
 	@field:SerializedName("deleted")
