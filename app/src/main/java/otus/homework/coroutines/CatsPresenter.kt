@@ -1,28 +1,33 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.*
 
 class CatsPresenter(
     private val catsService: CatsService
-) {
+): Presenter {
 
     private var _catsView: ICatsView? = null
 
+    private lateinit var presenterScope:CoroutineScope
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
-            }
+        presenterScope = CoroutineScope( CoroutineName("CatsCoroutine")+ Dispatchers.Main)
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
+        presenterScope.launch() {
+            try{
+                val cat = catsService.getCatFact()
+                val pictureMeow = catsService.getPicture(url = "https://aws.random.cat/meow")
+                _catsView?.populate(CatModel(cat.fact,pictureMeow.file))
+
+            }catch (e: Exception){
+                _catsView?.showException(e)
             }
-        })
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        presenterScope.coroutineContext.cancelChildren()
     }
 
     fun attachView(catsView: ICatsView) {

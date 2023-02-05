@@ -3,13 +3,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Fact(
+data class FileMeow(
 
-	@SerialName("fact")
-	val fact: String,
-
-	@SerialName("length")
-	val length: Int,
-
+	@SerialName("file")
+	val file: String,
 
 )
