@@ -2,9 +2,9 @@ package otus.homework.coroutines
 
 data class CatModel(
 
-	val fact: String,
+	val fact: String?=null,
 
-	val picture: String,
+	val picture: String?=null,
 
 
 )
