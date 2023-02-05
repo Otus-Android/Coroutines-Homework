@@ -30,7 +30,7 @@ class CatsView @JvmOverloads constructor(
         Picasso.get().load(catModel.picture).into(imageView)
     }
 
-    override fun showException(e: Exception) {
+    override fun showException(e: Throwable) {
        if(e is java.net.SocketTimeoutException) {
            val text = "Не удалось получить ответ от сервера"
            Toast.makeText(context, text, Toast.LENGTH_LONG).show()
@@ -40,17 +40,10 @@ class CatsView @JvmOverloads constructor(
        }
 
     }
-
-   /* override fun setPicture(picture: FileMeow) {
-        val imageView = findViewById<ImageView>(R.id.picture)
-        Log.i("picture", "${picture.file}")
-        Picasso.get().load(picture.file).into(imageView)
-
-    }*/
 }
 
 interface ICatsView {
 
     fun populate(catModel: CatModel)
-    fun showException(e:Exception)
+    fun showException(e:Throwable)
 }

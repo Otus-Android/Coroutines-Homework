@@ -5,7 +5,7 @@ object CrashMonitor {
     /**
      * Pretend this is Crashlytics/AppCenter
      */
-    fun trackWarning(e : Exception) {
+    fun trackWarning(e : Throwable) {
         logException(this@CrashMonitor, e.message.toString())
     }
 }
