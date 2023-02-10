@@ -9,8 +9,11 @@ class CatsPresenter(private val catsService: CatsService) {
     private val imageSource = "https://aws.random.cat/meow"
 
     private val coroutineName = "CatsCoroutine"
+    private val handler = CoroutineExceptionHandler { _, exception ->
+        CrashMonitor.trackWarning(exception.message ?: "ERROR!")
+    }
     private val presenterScope =
-        CoroutineScope(Dispatchers.Main + CoroutineName(coroutineName))
+        CoroutineScope(Dispatchers.Main + SupervisorJob() + CoroutineName(coroutineName) + handler)
 
     fun onInitComplete() {
         presenterScope.launch {
@@ -27,12 +30,12 @@ class CatsPresenter(private val catsService: CatsService) {
                     _catsView?.populate(CatModel(factText, imageUrl))
                 }
             } catch (e: Exception) {
-                if (e is SocketTimeoutException)
-                    _catsView?.showToast()
-                else {
-                    e.message?.let {
+                when (e) {
+                    is CancellationException -> throw e
+                    is SocketTimeoutException -> _catsView?.showToast()
+                    else -> e.message?.let {
+                        _catsView?.showToast()
                         CrashMonitor.trackWarning(it)
-                        _catsView?.showToast(it)
                     }
                 }
             }

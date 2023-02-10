@@ -22,16 +22,13 @@ class CatsViewModel(private val catsService: CatsService) : ViewModel() {
     fun onInitComplete() {
         viewModelScope.launch(coroutineName + handler) {
             when (val result = doTask()) {
-                is Result.Success<*> ->
-                    _catsPopulationLD.postValue(result.model as? CatModel)
-                is Result.Error -> {
-                    if (result.e is SocketTimeoutException)
-                        toastLD.postValue("")
-                    else {
-                        result.e.message?.let {
-                            CrashMonitor.trackWarning(it)
-                            toastLD.postValue(it)
-                        }
+                is Result.Success<*> -> _catsPopulationLD.postValue(result.model as? CatModel)
+                is Result.Error -> when (result.e) {
+                    is CancellationException -> throw result.e
+                    is SocketTimeoutException -> toastLD.postValue("")
+                    else -> result.e.message?.let {
+                        CrashMonitor.trackWarning(it)
+                        toastLD.postValue(it)
                     }
                 }
             }
