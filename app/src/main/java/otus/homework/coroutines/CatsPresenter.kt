@@ -2,11 +2,12 @@ package otus.homework.coroutines
 
 import kotlinx.coroutines.*
 import retrofit2.Response
+import java.net.SocketException
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
     private val catsService: CatsService,
-    private val picsService: CatsService,
+    //private val picsService: CatsService,
 ) {
 
     private var _catsView: ICatsView? = null
@@ -18,21 +19,30 @@ class CatsPresenter(
                 // delay для проверки работы myScope.cancel()
                 //delay(2000)
 
-                val fact = async {
+                val factResponse = async(Dispatchers.IO) {
                     catsService.getCatFact()
                 }
-                val pic = async {
-                    picsService.getPic()
+                val picResponse = async(Dispatchers.IO) {
+                    catsService.getPic(DiContainer.picUrl)
                 }
 
-                //throw SocketTimeoutException()
+                val fact = factResponse.await()
+                val pic = picResponse.await()
+
+                if (fact.body() != null && pic.body() != null) {
+                    _catsView?.populate(Pair(fact.body()!!, pic.body()!!))
+                }
+
                 //throw Exception("exception")
-                _catsView?.populate(Pair(fact.await(), pic.await()))
-            } catch (e: SocketTimeoutException) {
-                _catsView?.showToastFromRes(R.string.failed_response)
             } catch (e: Exception) {
-                CrashMonitor.trackWarning()
-                _catsView?.showToast(e.message)
+                // Тут выкидывает JobCancellationException, но в cause есть SocketTimeoutException
+                // Поэтому сделал проверку на оба случая
+                if (e.cause is SocketTimeoutException || e is SocketTimeoutException) {
+                    _catsView?.showToastFromRes(R.string.failed_response)
+                } else {
+                    CrashMonitor.trackWarning()
+                    _catsView?.showToast(e.message)
+                }
             }
         }
     }

@@ -18,15 +18,19 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        viewModel = ViewModelProvider(this, AndroidViewModelFactory(application)).get(CatsViewModel::class.java)
-        viewModel.catsService = diContainer.factSrvice
-        viewModel.picsService = diContainer.picsService
+        /*catsPresenter = CatsPresenter(diContainer.service)
+        view.presenter = catsPresenter
+        catsPresenter.attachView(view)
+        catsPresenter.onInitComplete()*/
+
+        viewModel = ViewModelProvider(this, AndroidViewModelFactory(application))[CatsViewModel::class.java]
+        viewModel.catsService = diContainer.service
         view.viewModel = viewModel
 
         viewModel.result.observe(this){
             when(it){
                 is Result.Success -> {
-                    view.populate(it.data as? Pair<Fact?, Picture?>)
+                    view.populate(it.data as Pair<Fact, Picture>)
                 }
                 is Result.Error -> {
                     when(it.message){
@@ -36,14 +40,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        viewModel.attachView(view)
         viewModel.onInitComplete()
     }
 
     override fun onStop() {
         if (isFinishing) {
-            //catsPresenter.detachView()
-            viewModel.detachView()
+            viewModel.onStop()
         }
         super.onStop()
     }
