@@ -1,6 +1,7 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.*
+import otus.homework.coroutines.model.CatModel
 
 class CatsPresenter(
     private val catsService: CatsService
@@ -16,7 +17,8 @@ class CatsPresenter(
         presenterScope.launch() {
             try{
                 val cat = catsService.getCatFact()
-                _catsView?.populate(cat)
+                val pictureMeow = catsService.getPicture(url = "https://aws.random.cat/meow")
+                _catsView?.populate(CatModel(cat.fact,pictureMeow.file))
             }catch (e: Exception){
                 _catsView?.showException(e)
             }
