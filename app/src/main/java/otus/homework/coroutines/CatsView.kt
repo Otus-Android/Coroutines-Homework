@@ -31,9 +31,6 @@ class CatsView @JvmOverloads constructor(
                     is Result.Error -> {
                         catsMessage(it.errorMessage)
                     }
-                    else -> {
-                        catsMessage(null)
-                    }
                 }
             })
         }

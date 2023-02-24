@@ -3,10 +3,7 @@ package otus.homework.coroutines
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.net.SocketTimeoutException
 
 class CatsViewModel : ViewModel() {
@@ -18,30 +15,45 @@ class CatsViewModel : ViewModel() {
         private const val TAG = "CatsViewModel"
     }
 
-    //    private val presenterScope = PresenterScope()
     val coroutineExceptionHandler =
-        CoroutineExceptionHandler { _, e -> CrashMonitor.trackWarning(TAG, e) }
-
+        CoroutineExceptionHandler { _, e ->
+            (when (e) {
+                is SocketTimeoutException -> {
+                    _catsLiveData.value =
+                        Result.Error(e, e.message ?: " SocketTimeoutException")
+                    CrashMonitor.trackWarning(TAG, e)
+                }
+                else -> {
+                    _catsLiveData.value =
+                        Result.Error(e, "Не удалось получить ответ от сервера")
+                    CrashMonitor.trackWarning(TAG, e)
+                }
+            })
+        }
 
     fun onInitComplete() {
+            val job = CoroutineScope(Dispatchers.Main +  coroutineExceptionHandler ).launch {
 
-        val job = viewModelScope.launch(coroutineExceptionHandler) {
             val jobImage =
-                async {
-                    var catImage = CatsImage("??")
-                    try {
-                        catImage = diConteiner.serviceImage.getCatImage()
-                    } catch (e: SocketTimeoutException) {
-                        _catsLiveData.value =
-                            Result.Error(e, "Не удалось получить ответ от сервера")
+                withContext(Dispatchers.IO) {
+                    async {
+                        diConteiner.serviceImage.getCatImage()
                     }
-                    catImage
                 }
 
-            val jobFact = async {
-                diConteiner.service.getCatFact()
-            }
-            _catsLiveData.value = Result.Success(CatsModel(jobFact.await(), jobImage.await()))
+            val jobFact =
+                withContext(Dispatchers.IO) {
+                    async {
+                        diConteiner.service.getCatFact()
+                    }
+                }
+
+            _catsLiveData.value =
+                Result.Success(CatsModel(jobFact.await(), jobImage.await()))
         }
+        if(job.isCompleted)
+                        job.cancel()
     }
+
 }
+
