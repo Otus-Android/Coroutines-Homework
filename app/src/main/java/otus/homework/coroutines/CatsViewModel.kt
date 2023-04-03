@@ -5,9 +5,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
@@ -44,18 +47,23 @@ class CatsViewModel(
     fun onInitComplete() {
         viewModelScope.launch(context = handler) {
             try {
-                val fact = async { catsService.getCatFact() }
-                val image = async { imageService.getCatImage() }
-                _catLiveData.value = Result.Success(
-                    response = Response(
-                        image = image.await().file,
-                        fact = fact.await().fact
+                supervisorScope {
+                    val fact = async {
+                        catsService.getCatFact()
+                    }
+                    val image = async { imageService.getCatImage() }
+                    _catLiveData.value = Result.Success(
+                        response = Response(
+                            image = image.await().file,
+                            fact = fact.await().fact
+                        )
                     )
-                )
+                }
             } catch (e: SocketTimeoutException) {
                 _toastMessage.value = Result.Error(message = "Не удалось получить ответ от сервера")
-            } catch (e: Exception) {
+            } catch (e: CancellationException) {
                 _toastMessage.value = Result.Error(message = e.message.toString())
+                throw e
             }
         }
     }
