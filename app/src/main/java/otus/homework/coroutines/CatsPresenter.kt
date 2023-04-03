@@ -1,28 +1,43 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
+import kotlin.coroutines.CoroutineContext
+
+class PresenterScope : CoroutineScope {
+    override val coroutineContext: CoroutineContext = Dispatchers.Main + CoroutineName("CatsCoroutine")
+}
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imageService: ImageService
 ) {
 
     private var _catsView: ICatsView? = null
+    private var scope = PresenterScope()
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
-            }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
+        scope.launch {
+            try {
+                val fact = async { catsService.getCatFact() }
+                val image = async { imageService.getCatImage() }
+                val response = Response(
+                    image = image.await().file,
+                    fact = fact.await().fact
+                )
+                _catsView?.populate(response)
+            } catch (e: SocketTimeoutException) {
+                _catsView?.showToast("Не удалось получить ответ от сервера")
+            } catch (e: Exception) {
                 CrashMonitor.trackWarning()
+                _catsView?.showToast(e.message.toString())
             }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -30,6 +45,7 @@ class CatsPresenter(
     }
 
     fun detachView() {
+        scope.cancel()
         _catsView = null
     }
 }
