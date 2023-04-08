@@ -6,7 +6,6 @@ import android.os.Bundle
 class MainActivity : AppCompatActivity() {
 
     lateinit var catsPresenter: CatsPresenter
-
     private val diContainer = DiContainer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,9 +15,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         catsPresenter = CatsPresenter(diContainer.service)
-        view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
+        view.presenter = catsPresenter
     }
 
     override fun onStop() {
