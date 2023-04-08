@@ -1,7 +1,9 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import otus.homework.coroutines.presenter.CatsPresenter
+import otus.homework.coroutines.view.CatsView
 
 class MainActivity : AppCompatActivity() {
 
