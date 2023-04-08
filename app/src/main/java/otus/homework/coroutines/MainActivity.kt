@@ -5,7 +5,7 @@ import android.os.Bundle
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
+    private lateinit var catsPresenter: CatsPresenter
 
     private val diContainer = DiContainer()
 
