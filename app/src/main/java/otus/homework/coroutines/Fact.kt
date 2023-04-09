@@ -22,3 +22,8 @@ data class Fact(
 	@field:SerializedName("updatedAt")
 	val updatedAt: String
 )
+
+data class CatImage(
+	@field:SerializedName("file")
+	val url: String,
+)
