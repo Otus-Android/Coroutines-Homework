@@ -1,31 +1,30 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import com.example.welcometothemooncompanion.util.observe
+import kotlinx.coroutines.flow.filterNotNull
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
-
     private val diContainer = DiContainer()
+    private val viewModel: MainViewModel by viewModels {
+        MainViewModel.factory(diContainer.catsImageService, diContainer.catFactService)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
-
-        catsPresenter = CatsPresenter(diContainer.catsImageService, diContainer.catFactService)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+        viewModel.uiState.filterNotNull().observe(this) {
+            view.populate(it)
         }
-        catsPresenter.onActivityStopped()
-        super.onStop()
+        viewModel.uiEvents.observe(this) {
+            view.showToast(it)
+        }
+        view.setClickListener {
+            viewModel.load()
+        }
     }
 }

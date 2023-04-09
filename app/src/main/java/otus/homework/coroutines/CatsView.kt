@@ -25,6 +25,12 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
+    fun setClickListener(onClick: () -> Unit) {
+        findViewById<Button>(R.id.button).setOnClickListener {
+            onClick()
+        }
+    }
+
     override fun populate(fact: CatInfo) {
         findViewById<TextView>(R.id.fact_textView).text = fact.fact
         Picasso.get().load(fact.imgUrl).into(findViewById<ImageView>(R.id.cat_image_view))
