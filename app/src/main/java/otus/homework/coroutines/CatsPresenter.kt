@@ -28,7 +28,7 @@ class CatsPresenter(
                     if (e is SocketTimeoutException) {
                         _catsView?.showToast("Не удалось получить ответ от сервером")
                     } else {
-                        CrashMonitor.trackWarning()
+                        CrashMonitor.trackWarning(e)
                         _catsView?.showToast(e.message)
                     }
                 }
@@ -41,7 +41,7 @@ class CatsPresenter(
                     if (e is SocketTimeoutException) {
                         _catsView?.showToast("Не удалось получить ответ от сервером")
                     } else {
-                        CrashMonitor.trackWarning()
+                        CrashMonitor.trackWarning(e)
                         _catsView?.showToast(e.message)
                     }
                 }
