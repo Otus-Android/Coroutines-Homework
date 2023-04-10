@@ -5,7 +5,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import otus.homework.coroutines.ICatsView
 import otus.homework.coroutines.usecase.CatInfoUseCase
 import java.net.SocketTimeoutException
 
