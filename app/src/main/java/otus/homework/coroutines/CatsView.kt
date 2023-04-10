@@ -1,11 +1,18 @@
 package otus.homework.coroutines
 
 import android.content.Context
+import android.telecom.Call
 import android.util.AttributeSet
 import android.widget.Button
+import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isVisible
+import com.squareup.picasso.Callback
+import com.squareup.picasso.Picasso
+import java.lang.Exception
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -13,17 +20,46 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
+    private lateinit var image: ImageView
+    private lateinit var text: TextView
+    private lateinit var button: Button
+    private lateinit var progressBar: ProgressBar
+
+    private val loadingCallback = object : Callback {
+        override fun onSuccess() = hideProgress()
+        override fun onError(e: Exception?) = hideProgress()
+    }
+
     var presenter: CatsPresenter? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+
+        image = findViewById(R.id.fact_imageView)
+        text = findViewById(R.id.fact_textView)
+        button = findViewById<Button>(R.id.button).apply {
+            setOnClickListener {
+                presenter?.onInitComplete()
+            }
         }
+        progressBar = findViewById(R.id.fact_progressBar)
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+    override fun populate(data: CatData) {
+        text.text = data.fact.text
+
+        showProgress()
+        Picasso.get()
+            .load(data.image.url)
+            .into(image, loadingCallback)
+    }
+
+    override fun showProgress() {
+        progressBar.isVisible = true
+    }
+
+    override fun hideProgress() {
+        progressBar.isVisible = false
     }
 
     override fun showError(message: String) {
@@ -34,5 +70,7 @@ class CatsView @JvmOverloads constructor(
 interface ICatsView {
 
     fun showError(message: String)
-    fun populate(fact: Fact)
+    fun populate(data: CatData)
+    fun showProgress()
+    fun hideProgress()
 }
