@@ -1,8 +1,8 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.network
 
-import android.util.Log
+import javax.inject.Inject
 
-class CatsRepository(
+class CatsRepository @Inject constructor(
     private val catsService: CatsService
 ) : BaseRepository() {
 

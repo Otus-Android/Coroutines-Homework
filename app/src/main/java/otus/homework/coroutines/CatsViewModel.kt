@@ -1,59 +1,56 @@
 package otus.homework.coroutines
 
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.isActive
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.network.CatsRepository
 import otus.homework.coroutines.network.Result
 import java.net.SocketTimeoutException
+import javax.inject.Inject
 
-class CatsPresenter(
+@HiltViewModel
+class CatsViewModel @Inject constructor(
     private val catsRepository: CatsRepository
-) {
+) : ViewModel() {
 
-    private var _catsView: ICatsView? = null
+    val populateDataValue = MutableLiveData<PopulateData>()
 
-    private val scope = PresenterScope()
+    val errorDataValue = MutableLiveData<String>()
+
+    private val handler = CoroutineExceptionHandler { _, exception ->
+        CrashMonitor.trackWarning(Exception(exception))
+    }
 
     fun onInitComplete() {
-
-        scope.launch {
-
+        viewModelScope.launch(handler) {
             val factResult = catsRepository.getCatFact()
             val picResult = catsRepository.getCatPic()
 
+
             if (factResult is Result.Success && picResult is Result.Success) {
-                _catsView?.populate(PopulateData(factResult.data.fact, picResult.data.url))
+                populateDataValue.value = PopulateData(factResult.data.fact, picResult.data.url)
             } else if (factResult is Result.Error) {
                 isError(factResult.exception)
             } else if (picResult is Result.Error) {
                 isError(picResult.exception)
             }
         }
-
     }
 
     private fun isError(exception: Exception) {
         when (exception) {
             is SocketTimeoutException -> {
-                _catsView?.error("Не удалось получить ответ от сервера")
+                errorDataValue.value = "Не удалось получить ответ от сервера"
             }
             else -> {
-                _catsView?.error(exception.message.toString())
+                errorDataValue.value = exception.message.toString()
                 CrashMonitor.trackWarning(exception)
             }
         }
     }
 
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
 
-    fun detachView() {
-        _catsView = null
-        if (scope.isActive)
-            scope.cancel()
-    }
 }
-
-data class PopulateData(val factText: String, val imageCat: String)

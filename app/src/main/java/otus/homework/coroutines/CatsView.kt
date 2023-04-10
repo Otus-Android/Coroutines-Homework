@@ -13,26 +13,40 @@ class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
+) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    var presenter :CatsPresenter? = null
+    lateinit var viewModel: CatsViewModel
 
     override fun onFinishInflate() {
         super.onFinishInflate()
+
+
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            viewModel.onInitComplete()
         }
     }
 
-    override fun populate(data: PopulateData) {
-        findViewById<TextView>(R.id.fact_textView).text = data.factText
-        Picasso.get()
-            .load("https://cataas.com"+data.imageCat)
-            .into( findViewById<ImageView>(R.id.pic_imageView))
+   fun startObserve(viewModel: CatsViewModel){
+       populateObserve()
+       errorObserve()
+   }
+
+    private fun populateObserve() {
+        val text = findViewById<TextView>(R.id.fact_textView)
+        val pic = findViewById<ImageView>(R.id.pic_imageView)
+        viewModel.populateDataValue?.observe(context as MainActivity) { data ->
+            text.text = data.factText
+            Picasso.get()
+                .load("https://cataas.com" + data.imageCat)
+                .into(pic)
+        }
     }
 
-    override fun error(errorText: String) {
-       Toast.makeText(context,errorText,Toast.LENGTH_LONG).show()
+    private fun errorObserve() {
+        viewModel.errorDataValue?.observe(context as MainActivity) { errorText ->
+            Toast.makeText(context, errorText, Toast.LENGTH_LONG).show()
+        }
+
     }
 }
 
@@ -40,5 +54,5 @@ interface ICatsView {
 
     fun populate(data: PopulateData)
 
-    fun error(errorText : String)
+    fun error(errorText: String)
 }
