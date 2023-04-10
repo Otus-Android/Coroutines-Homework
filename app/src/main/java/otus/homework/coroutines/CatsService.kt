@@ -7,4 +7,9 @@ interface CatsService {
 
     @GET("fact")
     suspend fun getCatFact() : Response<Fact>
+
+    @GET("https://cataas.com/cat?json=true")
+    suspend fun getCatPic() : Response<Pic>
+
+
 }

@@ -10,4 +10,8 @@ class CatsRepository(
         catsService.getCatFact()
     }
 
+    suspend fun getCatPic() = getResult {
+        catsService.getCatPic()
+    }
+
 }

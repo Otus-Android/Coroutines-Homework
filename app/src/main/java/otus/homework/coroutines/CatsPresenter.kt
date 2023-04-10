@@ -16,24 +16,31 @@ class CatsPresenter(
     fun onInitComplete() {
 
         scope.launch {
-            when (val result = catsRepository.getCatFact()) {
-                is Result.Error -> {
-                    when (result.exception) {
-                        is SocketTimeoutException -> {
-                            _catsView?.error("Не удалось получить ответ от сервера")
-                        }
-                        else -> {
-                            _catsView?.error(result.exception.message.toString())
-                            CrashMonitor.trackWarning(result.exception)
-                        }
-                    }
-                }
-                is Result.Success -> {
-                    _catsView?.populate(result.data)
-                }
+
+            val factResult = catsRepository.getCatFact()
+            val picResult = catsRepository.getCatPic()
+
+            if (factResult is Result.Success && picResult is Result.Success) {
+                _catsView?.populate(PopulateData(factResult.data.fact, picResult.data.url))
+            } else if (factResult is Result.Error) {
+                isError(factResult.exception)
+            } else if (picResult is Result.Error) {
+                isError(picResult.exception)
             }
         }
 
+    }
+
+    private fun isError(exception: Exception) {
+        when (exception) {
+            is SocketTimeoutException -> {
+                _catsView?.error("Не удалось получить ответ от сервера")
+            }
+            else -> {
+                _catsView?.error(exception.message.toString())
+                CrashMonitor.trackWarning(exception)
+            }
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -46,3 +53,5 @@ class CatsPresenter(
             scope.cancel()
     }
 }
+
+data class PopulateData(val factText: String, val imageCat: String)
