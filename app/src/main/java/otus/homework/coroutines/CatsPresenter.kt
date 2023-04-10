@@ -21,28 +21,49 @@ class CatsPresenter(
 
     fun onInitComplete() {
         job = scope.launch {
-            try {
-                val fact: Deferred<String> = async(Dispatchers.IO) {
+            val fact: Deferred<String> = async(Dispatchers.IO) {
+                try {
                     val response = catsService.getCatFact()
                     if (response.isSuccessful && response.body() != null) {
                         response.body()!!.fact
                     } else ""
-
+                } catch (e: java.net.SocketTimeoutException) {
+                    withContext(Dispatchers.Main) {
+                        _catsView?.showToast(R.string.socket_timeout_exception_message)
+                    }
+                    ""
+                } catch (e: java.lang.Exception) {
+                    withContext(Dispatchers.Main) {
+                        _catsView?.showToast("${e.message}")
+                    }
+                    ""
                 }
-                val image: Deferred<String> = async(Dispatchers.IO) {
+
+            }
+            val image: Deferred<String> = async(Dispatchers.IO) {
+                try {
                     val response = imageService.getImage()
                     if (response.isSuccessful && response.body() != null && response.body()!!
                             .isNotEmpty()
                     ) {
                         response.body()!![0].url
                     } else ""
+                } catch (e: java.net.SocketTimeoutException) {
+                    withContext(Dispatchers.Main) {
+                        _catsView?.showToast(R.string.socket_timeout_exception_message)
+                    }
+                    ""
+                } catch (e: java.lang.Exception) {
+                    withContext(Dispatchers.Main) {
+                        _catsView?.showToast("${e.message}")
+                    }
+                    ""
                 }
-                val factWithImage = FactWithImage(fact.await(), image.await())
+
+            }
+            val factWithImage = FactWithImage(fact.await(), image.await())
+            if (factWithImage.imageUrl.isNotEmpty()) {
                 _catsView?.populate(factWithImage)
-            } catch (e: java.net.SocketTimeoutException) {
-                _catsView?.showToast(R.string.socket_timeout_exception_message)
-            } catch (e: java.lang.Exception) {
-                _catsView?.showToast("${e.message}")
             }
 
         }
