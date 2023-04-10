@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.api
 
 import kotlinx.coroutines.Deferred
 import otus.homework.coroutines.model.Fact

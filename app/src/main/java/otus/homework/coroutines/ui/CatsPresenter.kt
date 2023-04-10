@@ -6,11 +6,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.ICatsView
-import otus.homework.coroutines.IFactRepository
+import otus.homework.coroutines.usecase.CatInfoUseCase
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val repository: IFactRepository
+    private val catInfoUseCase: CatInfoUseCase
 ) {
 
     private var _catsView: ICatsView? = null
@@ -22,8 +22,8 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterCoroutineScope.launch {
             try {
-                val fact = repository.getFactAsync()
-                _catsView?.populate(fact)
+                val catInfo = catInfoUseCase.getFactAndPicture()
+                _catsView?.populate(catInfo)
             } catch (socketTimeoutException: SocketTimeoutException) {
                 _catsView?.showTimeoutMessage()
             } catch (exception: Exception) {

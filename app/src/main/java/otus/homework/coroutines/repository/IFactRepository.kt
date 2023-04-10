@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.repository
 
 import otus.homework.coroutines.model.Fact
 
