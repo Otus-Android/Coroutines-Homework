@@ -2,10 +2,13 @@ package otus.homework.coroutines
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.Display
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import otus.homework.coroutines.model.CatFact
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -14,6 +17,7 @@ class CatsView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
     var presenter: CatsPresenter? = null
+    var imageLoader: ImageLoader? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -22,8 +26,9 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
+    override fun populate(catFact: CatFact) {
+        findViewById<TextView>(R.id.fact_textView).text = catFact.fact
+        imageLoader?.load(catFact.imageUrl, findViewById(R.id.cat_imageView))
     }
 
     override fun showErrorToast(isSocketTimeout: Boolean, message: String?) {
@@ -42,7 +47,7 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(catFact: CatFact)
 
     fun showErrorToast(isSocketTimeout: Boolean, message: String? = null)
 }

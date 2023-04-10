@@ -15,8 +15,13 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service, diContainer.crashMonitor)
+        catsPresenter = CatsPresenter(
+            catFactService = diContainer.catFactService,
+            catImageService = diContainer.catImageService,
+            crashMonitor = diContainer.crashMonitor
+        )
         view.presenter = catsPresenter
+        view.imageLoader = diContainer.imageLoader
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
     }
