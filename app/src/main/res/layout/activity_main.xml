@@ -5,11 +5,11 @@
     android:layout_width="match_parent"
     android:padding="16dp"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".ui.MainActivity">
 
     <TextView
         android:id="@+id/fact_textView"
-        android:textColor="@color/black"
+        android:textColor="@color/purple_200"
         android:textSize="24sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
