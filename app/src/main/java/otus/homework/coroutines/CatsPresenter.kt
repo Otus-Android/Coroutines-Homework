@@ -1,16 +1,12 @@
 package otus.homework.coroutines
 
 import android.util.Log
-import android.widget.Toast
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imageService: ImageService
 ) {
 
     private val presenterScope = PresenterScope()
@@ -20,7 +16,8 @@ class CatsPresenter(
         presenterScope.launch {
             try{
                 val fact = catsService.getCatFact()
-                _catsView?.populate(fact)
+                val img = imageService.getCatImg()
+                _catsView?.populate(Data(fact.text, img[0].url))
             }catch (e: java.net.SocketTimeoutException){
                 Util.showToast(R.string.no_connect_server)
             }catch (e:Exception){
