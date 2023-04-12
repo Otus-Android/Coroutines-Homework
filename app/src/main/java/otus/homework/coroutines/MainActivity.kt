@@ -2,11 +2,12 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
     private val diContainer = DiContainer()
+    lateinit var mainViewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -14,16 +15,19 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.serviceFact,diContainer.servicePic)
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-        view.presenter = catsPresenter
-    }
+        mainViewModel = ViewModelProvider(this,
+            MainViewModelFactory (diContainer.serviceFact, diContainer.servicePic)
+        ).get(MainViewModel::class.java)
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+        view.onInflate(mainViewModel)
+
+        mainViewModel.result.observe(this) { result ->
+            when (result) {
+                is Success -> view.populate(result.catData)
+                is Error -> {
+                    if(result.isSocketTimeoutException) view.showToast(result.errorMassage)
+                }
+            }
         }
-        super.onStop()
     }
 }
