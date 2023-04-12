@@ -2,9 +2,6 @@ package otus.homework.coroutines
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.Display
-import android.widget.Button
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -16,28 +13,21 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
-    var imageLoader: ImageLoader? = null
-
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
-        }
-    }
-
-    override fun populate(catFact: CatFact) {
+    override fun populate(catFact: CatFact, imageLoader: ImageLoader) {
         findViewById<TextView>(R.id.fact_textView).text = catFact.fact
-        imageLoader?.load(catFact.imageUrl, findViewById(R.id.cat_imageView))
+        imageLoader.load(catFact.imageUrl, findViewById(R.id.cat_imageView))
     }
 
-    override fun showErrorToast(isSocketTimeout: Boolean, message: String?) {
-        if (isSocketTimeout) Toast.makeText(
+    override fun showSocketTimeoutToast() {
+        Toast.makeText(
             this.context,
             this.context.getString(R.string.socket_timeout_ex),
             Toast.LENGTH_SHORT
         ).show()
-        else Toast.makeText(
+    }
+
+    override fun showErrorToast(message: String?) {
+        Toast.makeText(
             this.context,
             "${this.context.getString(R.string.loading_ex)} ${message ?: ""}",
             Toast.LENGTH_SHORT
@@ -47,7 +37,9 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(catFact: CatFact)
+    fun populate(catFact: CatFact, imageLoader: ImageLoader)
 
-    fun showErrorToast(isSocketTimeout: Boolean, message: String? = null)
+    fun showSocketTimeoutToast()
+
+    fun showErrorToast(message: String? = null)
 }
