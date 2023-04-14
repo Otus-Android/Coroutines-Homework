@@ -15,10 +15,10 @@ class CatsViewModel(
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         when (throwable) {
-            is SocketTimeoutException -> _state.value = Result.Error(throwable)
+            is SocketTimeoutException -> _state.value = Result.Error("Не удалось получить ответ от сервера")
             else -> {
                 CrashMonitor.trackWarning()
-                _state.value = Result.Error(throwable)
+                _state.value = throwable.message?.let { Result.Error(it) }
             }
         }
     }

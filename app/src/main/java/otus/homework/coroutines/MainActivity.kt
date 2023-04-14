@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.state.observe(this) { result ->
             when (result) {
                 is Result.Success<CatModel> -> view.populate(result.data)
-                is Result.Error -> result.error.message?.let { view.showToast(it) }
+                is Result.Error -> view.showToast(result.errorMsg)
             }
         }
 
