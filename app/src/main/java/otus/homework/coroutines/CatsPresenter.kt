@@ -1,38 +1,43 @@
 package otus.homework.coroutines
 
-import android.util.Log
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import otus.homework.coroutines.api.CatsImageService
+import otus.homework.coroutines.api.CatsService
+import otus.homework.coroutines.models.CatInfoDto
+import otus.homework.coroutines.utils.CrashMonitor
+import otus.homework.coroutines.utils.PresenterScope
 import java.net.SocketTimeoutException
 
-const val TAG = "CatsPresenter"
-
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catsImageService: CatsImageService
 ) {
 
     private var _catsView: ICatsView? = null
     private val baseScope = PresenterScope()
 
     fun onInitComplete() {
-        runBlocking(Dispatchers.IO) {
-            baseScope.launch {
-                try {
-                    val response = catsService.getCatFact()
-                    if (response.isSuccessful && response.body() != null) {
-                        _catsView?.populate(response.body()!!)
+        baseScope.launch {
+            val responseFact = async { catsService.getCatFact() }
+            val responseImage = async { catsImageService.getCatImage() }
+            try {
+                _catsView?.populate(
+                    CatInfoDto(
+                        text = responseFact.await().body()?.fact,
+                        imageUrl = responseImage.await().body()?.get(0)?.url,
+                    )
+                )
+            } catch (e: Exception) {
+                when (e) {
+                    is CancellationException -> {
+                        throw e
                     }
-                } catch (e: Exception) {
-                    when (e) {
-                        is SocketTimeoutException -> {
-                            _catsView?.showToast("Не удалось получить ответ от сервером")
-                        }
-                        else -> {
-                            CrashMonitor.trackWarning(e.message.toString())
-                            _catsView?.showToast(e.message.toString())
-                        }
+                    is SocketTimeoutException -> {
+                        _catsView?.showToast("Не удалось получить ответ от сервером")
+                    }
+                    else -> {
+                        CrashMonitor.trackWarning(e.message.toString())
+                        _catsView?.showToast(e.message.toString())
                     }
                 }
             }
