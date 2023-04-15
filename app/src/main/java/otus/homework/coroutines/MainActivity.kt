@@ -1,7 +1,11 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
+import android.annotation.SuppressLint
 import android.os.Bundle
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import otus.homework.coroutines.utils.DiContainer
 
 class MainActivity : AppCompatActivity() {
@@ -10,6 +14,7 @@ class MainActivity : AppCompatActivity() {
 
     private val diContainer = DiContainer()
 
+    @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -17,9 +22,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         catsPresenter = CatsPresenter(diContainer.service, diContainer.catsImageService)
+
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
+
+        val viewModel: MainViewModel by viewModels {
+            object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    @Suppress("UNCHECKED_CAST")
+                    return MainViewModel(diContainer.service, diContainer.catsImageService) as T
+                }
+            }
+        }
+
     }
 
     override fun onStop() {
