@@ -19,10 +19,6 @@ class CatViewModel(private val catsService: CatsService) : ViewModel() {
         MutableStateFlow<Result>(Result.Success(CatModel(null, null)))
     val catUiState: StateFlow<Result> = _catUiState
 
-    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
-        logException(this, exception.message.toString())
-        _catUiState.value = Result.Error(exception)
-    }
 
     init {
         getCat()
