@@ -5,6 +5,9 @@ import com.google.gson.annotations.SerializedName
 
 data class FileMeow(
 
-    @field:SerializedName("file")
+//    @field:SerializedName("file")
+//    val file: String,
+
+    @field:SerializedName("url")
     val file: String,
 )

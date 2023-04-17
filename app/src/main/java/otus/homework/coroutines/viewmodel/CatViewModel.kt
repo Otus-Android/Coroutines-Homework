@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -29,11 +30,12 @@ class CatViewModel(private val catsService: CatsService) : ViewModel() {
 
     fun getCat() {
 
-        viewModelScope.launch(Dispatchers.IO + coroutineExceptionHandler) {
-            val cat = catsService.getCatFact()
-            val pictureMeow = catsService.getPicture(url = "https://aws.random.cat/meow")
+        viewModelScope.launch(Dispatchers.IO) {
 
-            _catUiState.value = Result.Success(CatModel(cat.fact, pictureMeow.file))
+            val cat = async { catsService.getCatFact() }
+            val pictureMeow = async { catsService.getPicture(url = "https://random.dog/woof.json") }
+
+            _catUiState.value = Result.Success(CatModel(cat.await().fact, pictureMeow.await().file))
         }
     }
 }
