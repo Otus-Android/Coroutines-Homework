@@ -49,7 +49,6 @@ class MainVMActivity : AppCompatActivity() {
             is Result.Error -> {
                 CrashMonitor.trackWarning(stateUi.error)
             }
-            else -> {}
         }
     }
 

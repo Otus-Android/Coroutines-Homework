@@ -5,29 +5,28 @@ import otus.homework.coroutines.model.CatModel
 
 class CatsPresenter(
     private val catsService: CatsService
-): Presenter {
+) {
 
     private var _catsView: ICatsView? = null
 
-    private lateinit var presenterScope:CoroutineScope
+    private lateinit var presenterScope: CoroutineScope
     fun onInitComplete() {
 
-        presenterScope = CoroutineScope( CoroutineName("CatsCoroutine")+ Dispatchers.Main)
+        presenterScope =
+            CoroutineScope(SupervisorJob() + CoroutineName("CatsCoroutine") + Dispatchers.Main)
 
         presenterScope.launch() {
-            try{
-                val cat = catsService.getCatFact()
-                val pictureMeow = catsService.getPicture(url = "https://aws.random.cat/meow")
-                _catsView?.populate(CatModel(cat.fact,pictureMeow.file))
-            }catch (e: Exception){
-                _catsView?.showException(e)
+            supervisorScope {
+                val cat = async { catsService.getCatFact() }
+                val pictureMeow = async { catsService.getPicture(url = "https://aws.random.cat/meow") }
+
+                try {
+                    _catsView?.populate(CatModel(cat.await().fact, pictureMeow.await().file))
+                } catch (e: Exception) {
+                    _catsView?.showException(e)
+                }
             }
         }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        presenterScope.coroutineContext.cancelChildren()
     }
 
     fun attachView(catsView: ICatsView) {
@@ -36,5 +35,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+        presenterScope.coroutineContext.cancelChildren()
     }
 }
