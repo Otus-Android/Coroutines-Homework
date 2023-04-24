@@ -7,7 +7,8 @@ import java.lang.Exception
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catsImageService: CatImageService
 ) {
 
     private var _catsView: ICatsView? = null
@@ -17,9 +18,15 @@ class CatsPresenter(
     fun onInitComplete() {
         scope.launch {
             try {
-                val fact = async { catsService.getCatFact() }
+                val fact = async { catsService.getCatFact().fact }
+                val url = async { catsImageService.getImage()[0].url }
                 try {
-                    _catsView?.populate(fact.await().fact)
+                    _catsView?.populate(
+                        CatData(
+                        fact = fact.await(),
+                        url = url.await()
+                    )
+                    )
                 } catch (exc: Exception) {
                     _catsView?.showToast(exc.message.toString())
                 }
