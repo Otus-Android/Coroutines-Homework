@@ -20,5 +20,8 @@ data class Fact(
 	@field:SerializedName("user")
 	val user: String,
 	@field:SerializedName("updatedAt")
-	val updatedAt: String
+	val updatedAt: String,
+	@field:SerializedName("fact")
+	val fact: String
+
 )
