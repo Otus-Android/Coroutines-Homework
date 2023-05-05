@@ -47,7 +47,6 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        _catsView = null
         scope.cancel()
     }
 
