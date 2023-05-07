@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service, diContainer.imageService)
+        catsPresenter = CatsPresenter(diContainer.service, diContainer.imageService, applicationContext)
         mViewModel = ViewModelProvider(
             this,
             CatsViewModelFactory(diContainer.service, diContainer.imageService)

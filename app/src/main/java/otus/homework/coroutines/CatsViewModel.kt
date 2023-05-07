@@ -1,8 +1,12 @@
 package otus.homework.coroutines
 
+import android.util.Log
 import androidx.lifecycle.*
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import java.net.SocketException
+import java.net.SocketTimeoutException
 
 class CatsViewModel(
     private val catsService: CatsService,
@@ -18,10 +22,17 @@ class CatsViewModel(
             _viewState.value =
                 Error(error.message.toString())
         }) {
-                val fact = catsService.getCatFact()
-                val img = imageService.getCatImg()
-                _viewState.value =
-                    Success<Data>(Data(fact.text, img[0].url))
+                val fact = async {catsService.getCatFact() }
+                val img = async { imageService.getCatImg() }
+           try {
+               _viewState.value =
+                   Success<Data>(Data(fact.await().text, img.await()[0].url))
+           }catch (error: SocketTimeoutException){
+               CrashMonitor.trackWarning()
+               _viewState.value =
+                   Error(error.message.toString())
+           }
+
         }
     }
 
