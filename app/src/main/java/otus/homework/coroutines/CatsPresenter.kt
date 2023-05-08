@@ -4,6 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
+@Deprecated("Changed to ViewModel")
 class CatsPresenter(
     private val catsService: CatsService,
     private val catsImagesService: CatsImagesService

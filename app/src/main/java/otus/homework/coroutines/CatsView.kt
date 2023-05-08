@@ -16,12 +16,14 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
+//    var presenter: CatsPresenter? = null
+    private var refreshButtonListener: () -> Unit = {}
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+//            presenter?.onInitComplete()
+            refreshButtonListener()
         }
     }
 
@@ -38,6 +40,10 @@ class CatsView @JvmOverloads constructor(
 
     override fun showShortToast(text: String) {
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+    }
+
+    fun setOnClickRefreshButtonListener(listener: () -> Unit ) {
+        refreshButtonListener = listener
     }
 }
 
