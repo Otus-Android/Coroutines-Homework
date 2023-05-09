@@ -1,6 +1,5 @@
 package otus.homework.coroutines
 
-import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import otus.homework.coroutines.api.CatsService
 import otus.homework.coroutines.api.PODService
 import otus.homework.coroutines.repository.FactRepositoryImpl
@@ -15,7 +14,6 @@ class DiContainer {
         Retrofit.Builder()
             .baseUrl("https://catfact.ninja/")
             .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(CoroutineCallAdapterFactory())
             .build()
     }
 
@@ -23,7 +21,6 @@ class DiContainer {
         Retrofit.Builder()
             .baseUrl("https://api.nasa.gov/")
             .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(CoroutineCallAdapterFactory())
             .build()
     }
 

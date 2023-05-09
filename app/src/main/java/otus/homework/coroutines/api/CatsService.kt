@@ -7,5 +7,5 @@ import retrofit2.http.GET
 interface CatsService {
 
     @GET("fact")
-    fun getCatFact() : Deferred<Fact>
+    suspend fun getCatFact() : Fact
 }

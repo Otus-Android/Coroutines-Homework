@@ -8,7 +8,7 @@ import retrofit2.http.Query
 interface PODService {
 
     @GET("planetary/apod")
-    fun getPictureOfTheDayByDateAsync(
+    suspend fun getPictureOfTheDayByDate(
         @Query("api_key") apiKey: String
-    ): Deferred<PODServerResponseData>
+    ): PODServerResponseData
 }
