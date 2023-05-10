@@ -14,6 +14,10 @@ class MainActivity : AppCompatActivity() {
 
     private val diContainer = DiContainer()
 
+/*
+    lateinit var catsPresenter: CatsPresenter
+*/
+
     private val catsViewModel: CatsViewModel by viewModels {
         CatsViewModel.Factory(
             diContainer.catFactService,
@@ -31,6 +35,19 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.button).setOnClickListener {
             catsViewModel.loadCatFact()
         }
+
+/*
+        catsPresenter = CatsPresenter(
+            catFactService = diContainer.catFactService,
+            catImageService = diContainer.catImageService,
+            crashMonitor = diContainer.crashMonitor,
+            imageLoader = diContainer.imageLoader
+        )
+        view.presenter = catsPresenter
+        catsPresenter.attachView(view)
+        catsPresenter.onInitComplete()
+*/
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 catsViewModel.viewState.collectLatest { result ->
@@ -46,4 +63,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+/*
+    override fun onStop() {
+        if (isFinishing) {
+            catsPresenter.detachView()
+            catsPresenter.cancelJob()
+        }
+        super.onStop()
+    }
+*/
 }

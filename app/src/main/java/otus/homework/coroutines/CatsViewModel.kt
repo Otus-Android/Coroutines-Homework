@@ -4,11 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import otus.homework.coroutines.model.CatFact
+import otus.homework.coroutines.model.CatImage
+import otus.homework.coroutines.model.Fact
 import otus.homework.coroutines.service.CatFactService
 import otus.homework.coroutines.service.CatImageService
 import java.net.SocketTimeoutException
@@ -23,27 +26,34 @@ class CatsViewModel(
     val viewState: StateFlow<Result> = _viewState
 
     private val handler = CoroutineExceptionHandler { _, exception ->
-        when (exception) {
-            is SocketTimeoutException -> _viewState.value = Result.SocketTimeoutException(exception)
-            else -> {
-                crashMonitor.trackWarning(TAG, exception.message, exception.stackTraceToString())
-                _viewState.value = Result.Error(exception)
-            }
-        }
+        crashMonitor.trackWarning(TAG, exception.message, exception.stackTraceToString())
+        _viewState.value = Result.Error(exception)
     }
 
-    private var loadingJob: Job? = null
+    private var loadingFactJob: Deferred<Fact>? = null
+    private var loadingImageJob: Deferred<List<CatImage>>? = null
 
     init {
         loadCatFact()
     }
 
-    fun loadCatFact() {
-        loadingJob?.cancel()
-        loadingJob = viewModelScope.launch(handler) {
-            val catFact = catFactService.getCatFact()
-            val catImage = catImageService.getCatImage()
-            _viewState.value = Result.Success(CatFact(catFact.fact, catImage.first().url))
+    fun loadCatFact() = viewModelScope.launch(handler) {
+        loadingFactJob?.cancel()
+        loadingImageJob?.cancel()
+        loadingFactJob = viewModelScope.async {
+            catFactService.getCatFact()
+        }
+        loadingImageJob = viewModelScope.async {
+            catImageService.getCatImage()
+        }
+        try {
+            val fact = loadingFactJob?.await()?.fact
+            val imageUrl = loadingImageJob?.await()?.first()?.url
+            if (fact != null && imageUrl != null) {
+                _viewState.value = Result.Success(CatFact(fact, imageUrl))
+            }
+        } catch (ex: SocketTimeoutException) {
+            _viewState.value = Result.SocketTimeoutException(ex)
         }
     }
 
