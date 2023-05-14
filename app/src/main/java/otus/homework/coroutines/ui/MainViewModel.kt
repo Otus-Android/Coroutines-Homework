@@ -6,14 +6,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.CrashMonitor
-import otus.homework.coroutines.usecase.CatInfoUseCase
+import otus.homework.coroutines.model.CatInfo
+import otus.homework.coroutines.repository.IFactRepository
+import otus.homework.coroutines.repository.IPODRepository
+import java.net.SocketTimeoutException
 
-class MainViewModel(private val catInfoUseCase: CatInfoUseCase) : ViewModel() {
+class MainViewModel(
+    private val factRepository: IFactRepository,
+    private val podRepository: IPODRepository
+) : ViewModel() {
+
+    private companion object {
+        const val API_KEY = "2zmSP2v2vx8eYc1Y3mKL7UhSag0kIj7pdkYf0v1p"
+    }
 
     private val liveDataForViewToObserve = MutableLiveData<CatInfoState>()
-    private val liveData: LiveData<CatInfoState> = liveDataForViewToObserve
+    val liveData: LiveData<CatInfoState> = liveDataForViewToObserve
 
     private fun handleError(throwable: Throwable) {
         liveDataForViewToObserve.value = CatInfoState.Error(throwable)
@@ -23,21 +34,26 @@ class MainViewModel(private val catInfoUseCase: CatInfoUseCase) : ViewModel() {
         viewModelScope.launch {
             CoroutineExceptionHandler { _, throwable ->
                 CrashMonitor.trackWarning()
+                handleError(throwable)
             }
             try {
-                val result = catInfoUseCase.getFactAndPicture()
+                //val result = catInfoUseCase.getFactAndPicture() // При этой реализации exception ловится нормально
+                val fact = async { factRepository.getFact() }
+                val picture = async { podRepository.getPicture(apiKey = API_KEY) }
+                val result = CatInfo(fact = fact.await().fact, pictureUrl = picture.await().url ?: "") // так exception не ловится
                 liveDataForViewToObserve.value = CatInfoState.Success(result)
-            } catch (e: Exception) {
+            } catch (e: SocketTimeoutException) {
                 handleError(e)
             }
         }
     }
 
-    fun subscribeToLiveData() = liveData
-
-    class Factory(val catInfoUseCase: CatInfoUseCase) : ViewModelProvider.Factory {
+    class Factory(
+        private val factRepository: IFactRepository,
+        private val podRepository: IPODRepository
+    ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return modelClass.getConstructor(CatInfoUseCase::class.java).newInstance(catInfoUseCase) as T
+            return MainViewModel(factRepository, podRepository) as T
         }
 
     }

@@ -20,8 +20,12 @@ class MainActivity : AppCompatActivity() {
         catInfoView = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(catInfoView)
 
-        viewModel = MainViewModel.Factory(catInfoUseCase = diContainer.catInfoUseCase).create(MainViewModel::class.java)
-        viewModel.subscribeToLiveData().observe(this,  this::renderData)
+        viewModel = MainViewModel.Factory(
+            factRepository = diContainer.factRepositoryImpl,
+            podRepository = diContainer.podRepositoryImpl
+        ).create(MainViewModel::class.java)
+
+        viewModel.liveData.observe(this, this::renderData)
 
         catInfoView.addOnClickListener { viewModel.getCatInfo() }
 
@@ -33,7 +37,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun renderData(state: CatInfoState?) {
-        when(state) {
+        when (state) {
             is CatInfoState.Success -> {
                 catInfoView.populate(catInfo = state.serverResponseData)
             }
@@ -45,7 +49,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleError(throwable: Throwable) {
-        when(throwable) {
+        when (throwable) {
             is SocketTimeoutException -> catInfoView.showTimeoutMessage()
             else -> catInfoView.showMessage(throwable.message)
         }

@@ -26,8 +26,8 @@ class DiContainer {
 
     private val factService by lazy { retrofitFact.create(CatsService::class.java) }
     private val podService by lazy { retrofitPOD.create(PODService::class.java) }
-    private val factRepositoryImpl by lazy { FactRepositoryImpl(factService) }
-    private val podRepositoryImpl by lazy { PODRepositoryImpl(podService) }
+    val factRepositoryImpl by lazy { FactRepositoryImpl(factService) }
+    val podRepositoryImpl by lazy { PODRepositoryImpl(podService) }
     val catInfoUseCase by lazy {
         CatInfoUseCase(factRepository = factRepositoryImpl, podRepository = podRepositoryImpl)
     }
