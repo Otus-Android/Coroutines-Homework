@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,30 +14,35 @@ class CatsViewModel(
     private val picsService: PicsService
 ) : ViewModel() {
 
-    var catFact = MutableLiveData<Result<CatFact>>()
+    private var _catFact = MutableLiveData<Result<CatFact>>()
+    var catFact: LiveData<Result<CatFact>> = _catFact
 
     private val coroutineExceptionHandler =
         CoroutineExceptionHandler { coroutineContext, throwable ->
             CrashMonitor.trackWarning(throwable)
-            catFact.value = if (throwable is SocketTimeoutException) {
-                Result.Error("Не удалось получить ответ от сервером")
-            } else {
-                Result.Error(throwable.message)
-            }
         }
 
     fun getData() {
 
         viewModelScope.launch(coroutineExceptionHandler) {
-            val desc = async { catsService.getCatFact() }.await()
-            val pic = async { picsService.getPics() }.await()
+            try {
+                val desc = async { catsService.getCatFact() }.await()
+                val pic = async { picsService.getPics() }.await()
 
-            catFact.value = Result.Success(
-                CatFact(
-                    factText = desc.text,
-                    imageUrl = pic.first().url
+                _catFact.value = Result.Success(
+                    CatFact(
+                        factText = desc.text,
+                        imageUrl = pic.first().url
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                _catFact.value = if (e is SocketTimeoutException) {
+                    Result.Error("Не удалось получить ответ от сервером")
+                } else {
+                    Result.Error(e.message)
+                }
+            }
+
         }
     }
 
