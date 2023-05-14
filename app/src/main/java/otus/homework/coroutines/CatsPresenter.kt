@@ -1,13 +1,10 @@
 package otus.homework.coroutines
 
 import android.content.Context
-import android.util.Log
-import android.widget.Toast
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.net.SocketTimeoutException
 
 class CatsPresenter(
     private val catsService: CatsService,
@@ -19,22 +16,19 @@ class CatsPresenter(
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        val fact = presenterScope.async {
-            catsService.getCatFact()
-        }
-        val img = presenterScope.async { imageService.getCatImg() }
         presenterScope.launch {
+            val fact = async {
+                catsService.getCatFact()
+            }
+            val img = async { imageService.getCatImg() }
+
             try {
                 _catsView?.populate(Data(fact.await().text, img.await()[0].url))
             } catch (e: java.net.SocketTimeoutException) {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.no_connect_server),
-                    Toast.LENGTH_LONG
-                ).show()
+                _catsView?.showError(context.getString(R.string.no_connect_server))
             } catch (e: Exception) {
                 CrashMonitor.trackWarning()
-                Toast.makeText(context, e.message.toString(), Toast.LENGTH_LONG).show()
+                _catsView?.showError(e.message.toString())
                 if (e is CancellationException) throw e
             }
 

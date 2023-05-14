@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 
@@ -32,9 +33,20 @@ class CatsView @JvmOverloads constructor(
             .load(data.image)
             .into(findViewById<ImageView>(R.id.imageIV))
     }
+
+    override fun showError(error: String) {
+        Log.d("MyLogS", "showError ")
+        Toast.makeText(
+            context,
+           error,
+            Toast.LENGTH_LONG
+        ).show()
+    }
 }
 
 interface ICatsView {
 
     fun populate(data: Data)
+
+    fun showError(error:String)
 }
