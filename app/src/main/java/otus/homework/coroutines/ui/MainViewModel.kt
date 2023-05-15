@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.model.CatInfo
 import otus.homework.coroutines.repository.IFactRepository
@@ -30,20 +31,22 @@ class MainViewModel(
         liveDataForViewToObserve.value = CatInfoState.Error(throwable)
     }
 
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        CrashMonitor.trackWarning()
+        handleError(throwable)
+    }
+
     fun getCatInfo() {
-        viewModelScope.launch {
-            CoroutineExceptionHandler { _, throwable ->
-                CrashMonitor.trackWarning()
-                handleError(throwable)
-            }
-            try {
-                //val result = catInfoUseCase.getFactAndPicture() // При этой реализации exception ловится нормально
-                val fact = async { factRepository.getFact() }
-                val picture = async { podRepository.getPicture(apiKey = API_KEY) }
-                val result = CatInfo(fact = fact.await().fact, pictureUrl = picture.await().url ?: "") // так exception не ловится
-                liveDataForViewToObserve.value = CatInfoState.Success(result)
-            } catch (e: SocketTimeoutException) {
-                handleError(e)
+        viewModelScope.launch(exceptionHandler) {
+            supervisorScope {
+                try {
+                    val fact = async { factRepository.getFact() }
+                    val picture = async { podRepository.getPicture(apiKey = API_KEY) }
+                    val result = CatInfo(fact = fact.await().fact, pictureUrl = picture.await().url ?: "")
+                    liveDataForViewToObserve.value = CatInfoState.Success(result)
+                } catch (e: SocketTimeoutException) {
+                    handleError(e)
+                }
             }
         }
     }
