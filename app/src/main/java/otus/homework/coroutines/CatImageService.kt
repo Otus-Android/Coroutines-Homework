@@ -5,5 +5,5 @@ import retrofit2.http.GET
 interface CatImageService {
 
     @GET("search")
-    suspend fun getImage() : ArrayList<CatImage>
+    suspend fun getImage() : List<CatImage>
 }

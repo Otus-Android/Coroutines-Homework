@@ -1,22 +1,21 @@
 package otus.homework.coroutines
 
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import android.annotation.SuppressLint
+import androidx.lifecycle.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.lang.Exception
 import java.net.SocketTimeoutException
+
 
 class CatViewModel(
     private val catsService: CatsService,
     private val catsImageService: CatImageService
 ) : ViewModel()  {
 
-    private var _result = MutableLiveData<Result>()
-    val result = _result
+    private var _result: MutableLiveData<Result> = MutableLiveData<Result>()
+    val result: LiveData<Result> = _result
 
     private val handler = CoroutineExceptionHandler { _, exc ->
         val msg = exc.message.toString()
@@ -32,13 +31,10 @@ class CatViewModel(
                         url = url.await(),
                         fact = fact.await())
                 )
-
-            } catch (exc: Exception) {
-                if (exc is SocketTimeoutException) {
-                    _result.value = Error("Не удалось получить ответ от сервера")
-                } else {
-                    _result.value = Error(exc.message.toString())
-                }
+            } catch (exc: SocketTimeoutException) {
+                _result.value = Error("Не удалось получить ответ от сервера")
+            } catch (exc: CancellationException) {
+                throw exc
             }
         }
     }
@@ -48,6 +44,7 @@ class CatViewModel(
         private val catsService: CatsService,
         private val catsImageService: CatImageService
     ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return CatViewModel(catsService, catsImageService) as T
         }
