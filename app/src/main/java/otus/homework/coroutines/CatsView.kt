@@ -8,6 +8,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import otus.homework.coroutines.network.Result
+import java.net.SocketTimeoutException
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -26,27 +28,37 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-   fun startObserve(viewModel: CatsViewModel){
-       populateObserve()
-       errorObserve()
-   }
+    fun startObserve(viewModel: CatsViewModel) {
+        populateObserve()
+        errorObserve()
+    }
 
     private fun populateObserve() {
         val text = findViewById<TextView>(R.id.fact_textView)
         val pic = findViewById<ImageView>(R.id.pic_imageView)
-        viewModel.populateDataValue?.observe(context as MainActivity) { data ->
-            text.text = data.factText
-            Picasso.get()
-                .load("https://cataas.com" + data.imageCat)
-                .into(pic)
+        viewModel.factDataValue.observe(context as MainActivity) { result ->
+            when (result) {
+                is Result.Error -> viewModel.isError(result.exception)
+                is Result.Success -> text.text = result.data.fact
+            }
+        }
+        viewModel.picDataValue.observe(context as MainActivity) { result ->
+            when (result) {
+                is Result.Error -> viewModel.isError(result.exception)
+                is Result.Success -> {
+                    Picasso.get()
+                        .load("https://cataas.com" + result.data.url)
+                        .into(pic)
+                }
+            }
+
         }
     }
 
     private fun errorObserve() {
-        viewModel.errorDataValue?.observe(context as MainActivity) { errorText ->
+        viewModel.errorDataValue.observe(context as MainActivity) { errorText ->
             Toast.makeText(context, errorText, Toast.LENGTH_LONG).show()
         }
-
     }
 }
 
