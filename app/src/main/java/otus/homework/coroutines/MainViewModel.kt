@@ -18,19 +18,17 @@ class MainViewModel (
 
     fun getCatData(){
         viewModelScope.launch (handler){
+            try {
                 val fact = async { factService.getCatFact().fact }
                 val picUrl = async { picService.getCatPic()[0].url }
                 val catData = CatData(picUrl.await(), fact.await())
                 resultMutable.value = Success(catData)
+            } catch (e:SocketTimeoutException){
+                resultMutable.value = Error("Не удалось получить ответ от сервера", true)
+            }
         }
     }
 
     private val handler = CoroutineExceptionHandler { _, throwable ->
-        CrashMonitor.trackWarning(throwable.message.toString())
-        if (throwable is SocketTimeoutException) {
-            resultMutable.value = Error("Не удалось получить ответ от сервера", true)
-        } else {
-            resultMutable.value = Error(throwable.message.toString(), false)
-        }
-    }
+        CrashMonitor.trackWarning(throwable.message.toString())}
 }
