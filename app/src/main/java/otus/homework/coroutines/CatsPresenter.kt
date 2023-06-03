@@ -1,28 +1,39 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import java.net.SocketTimeoutException
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
+@Deprecated("Changed to ViewModel")
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catsImagesService: CatsImagesService
 ) {
 
     private var _catsView: ICatsView? = null
+    private val scope = PresenterScope()
 
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+        scope.launch(CoroutineExceptionHandler { _, throwable ->
+            _catsView?.showShortToast(throwable.message.toString())
+            CrashMonitor.trackWarning()
+        }) {
+            try {
+                val fact = async { catsService.getCatFact() }
+                val image = async { catsImagesService.getCatImages().first() }
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
-            }
+                val factWithImage = FactWithImage(
+                    fact.await().fact,
+                    image.await().url
+                )
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
+                _catsView?.populate(factWithImage)
+            } catch (e: SocketTimeoutException) {
+                _catsView?.showShortToast(R.string.server_not_responding)
             }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -30,6 +41,7 @@ class CatsPresenter(
     }
 
     fun detachView() {
+        scope.cancel()
         _catsView = null
     }
 }
