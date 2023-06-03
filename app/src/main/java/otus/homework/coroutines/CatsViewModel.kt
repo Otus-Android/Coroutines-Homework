@@ -8,10 +8,8 @@ import androidx.lifecycle.viewModelScope
 import java.lang.Error
 import java.net.SocketTimeoutException
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class CatsViewModel(
     private val catsService: CatsService,
@@ -44,15 +42,13 @@ class CatsViewModel(
             CrashMonitor.trackWarning()
         }) {
             try {
-                val factWithImage = withContext(Dispatchers.IO) {
-                    val fact = async { catsService.getCatFact() }
-                    val image = async { catsImagesService.getCatImages().first() }
+                val fact = async { catsService.getCatFact() }
+                val image = async { catsImagesService.getCatImages().first() }
 
-                    return@withContext FactWithImage(
-                        fact.await().fact,
-                        image.await().url
-                    )
-                }
+                val factWithImage = FactWithImage(
+                    fact.await().fact,
+                    image.await().url
+                )
                 _stateLiveData.value = Result.Success(factWithImage)
 
             } catch (e: SocketTimeoutException) {
@@ -61,7 +57,6 @@ class CatsViewModel(
                 // Однако это вне рамок задачи
                 _stateLiveData.value =
                     Result.Error(Error("Не удалось получить ответ от сервера"))
-
             }
         }
     }

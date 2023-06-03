@@ -1,5 +1,7 @@
 package otus.homework.coroutines
 
+import java.net.SocketTimeoutException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -14,7 +16,10 @@ class CatsPresenter(
     private val scope = PresenterScope()
 
     fun onInitComplete() {
-        scope.launch {
+        scope.launch(CoroutineExceptionHandler { _, throwable ->
+            _catsView?.showShortToast(throwable.message.toString())
+            CrashMonitor.trackWarning()
+        }) {
             try {
                 val fact = async { catsService.getCatFact() }
                 val image = async { catsImagesService.getCatImages().first() }
@@ -25,17 +30,8 @@ class CatsPresenter(
                 )
 
                 _catsView?.populate(factWithImage)
-            } catch (e: Exception) {
-                when (e) {
-                    java.net.SocketTimeoutException() -> {
-                        _catsView?.showShortToast(R.string.server_not_responding)
-                    }
-
-                    else -> {
-                        _catsView?.showShortToast(e.message.toString())
-                        CrashMonitor.trackWarning()
-                    }
-                }
+            } catch (e: SocketTimeoutException) {
+                _catsView?.showShortToast(R.string.server_not_responding)
             }
         }
     }
