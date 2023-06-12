@@ -9,11 +9,9 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
 
-    private lateinit var presenterScope: CoroutineScope
-    fun onInitComplete() {
+    private var presenterScope: CoroutineScope = CoroutineScope(SupervisorJob() + CoroutineName("CatsCoroutine") + Dispatchers.Main)
 
-        presenterScope =
-            CoroutineScope(SupervisorJob() + CoroutineName("CatsCoroutine") + Dispatchers.Main)
+    fun onInitComplete() {
 
         presenterScope.launch() {
             supervisorScope {
@@ -24,6 +22,9 @@ class CatsPresenter(
                     _catsView?.populate(CatModel(cat.await().fact, pictureMeow.await().file))
                 } catch (e: Exception) {
                     _catsView?.showException(e)
+                    if (e is CancellationException) {
+                        throw e
+                    }
                 }
             }
         }

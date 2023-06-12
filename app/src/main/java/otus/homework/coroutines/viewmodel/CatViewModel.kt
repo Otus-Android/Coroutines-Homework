@@ -21,10 +21,10 @@ class CatViewModel(private val catsService: CatsService) : ViewModel() {
     }
 
     fun getCat() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch() {
             supervisorScope {
-                val cat = async { catsService.getCatFact() }
-                val pictureMeow = async {
+                val cat = async(Dispatchers.IO) { catsService.getCatFact() }
+                val pictureMeow = async(Dispatchers.IO) {
                     catsService.getPicture(url = "https://random.dog/woof.json") }
 //                    catsService.getPicture(url = "https://aws.random.cat/meow")}
 
@@ -32,6 +32,9 @@ class CatViewModel(private val catsService: CatsService) : ViewModel() {
                     _catUiState.value = Result.Success(CatModel(cat.await().fact, pictureMeow.await().file))
                 } catch (exception: Exception) {
                     _catUiState.value = Result.Error(exception)
+                    if (exception is CancellationException) {
+                        throw exception
+                    }
                 }
             }
         }
