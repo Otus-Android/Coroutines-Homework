@@ -1,10 +1,13 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
 import retrofit2.http.GET
 
-interface CatsService {
-
+interface CatsFactService {
     @GET("fact")
-    fun getCatFact() : Call<Fact>
+    suspend fun getCatFact(): Fact
+}
+
+interface CatsImageLinkService {
+    @GET("meow")
+    suspend fun getImageLink(): String
 }
