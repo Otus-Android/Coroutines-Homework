@@ -2,7 +2,9 @@ package otus.homework.coroutines
 
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.CreationExtras
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
@@ -13,31 +15,26 @@ class CatsViewModel(
     private val _viewState = MutableLiveData<Result>()
     val viewState: LiveData<Result> = _viewState
 
-    private lateinit var job: Job
-
     fun getFactAndImage() {
-        if (::job.isInitialized) {
-            job.cancel()
-        }
-        job = viewModelScope.launch(handler) {
-            ensureActive()
-            val factAsync = async { catsService.getCatFact() }
-            val imageAsync = async { imageService.getImage() }
-            _viewState.value = Success(
-                CatData(
-                    imageAsync.await().url,
-                    factAsync.await().fact
+        viewModelScope.launch(handler) {
+            try {
+                val factAsync = async { catsService.getCatFact() }
+                val imageAsync = async { imageService.getImage() }
+                _viewState.value = Success(
+                    CatData(
+                        imageAsync.await().url,
+                        factAsync.await().fact
+                    )
                 )
-            )
+            } catch (e: SocketTimeoutException) {
+                _viewState.value = Error("Не удалось получить ответ от сервера")
+            }
         }
     }
 
     private val handler = CoroutineExceptionHandler { _, exception ->
         CrashMonitor.trackWarning()
-        _viewState.value = when (exception) {
-            is SocketTimeoutException -> SocketExceptionError
-            else -> Error(exception.message.toString())
-        }
+        _viewState.value = Error(exception.message.toString())
     }
 
     class Factory(

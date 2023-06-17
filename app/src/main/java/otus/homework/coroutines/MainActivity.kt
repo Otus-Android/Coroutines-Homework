@@ -31,7 +31,6 @@ class MainActivity : AppCompatActivity() {
             when (result) {
                 is Success -> view.populate(result.catData)
                 is Error -> view.showToast(result.message)
-                SocketExceptionError -> view.showToast(R.string.error_message)
             }
         }
     }
