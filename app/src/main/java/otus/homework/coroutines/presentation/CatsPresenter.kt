@@ -5,11 +5,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import otus.homework.coroutines.network.CatsImageService
-import otus.homework.coroutines.network.CatsService
 import otus.homework.coroutines.network.DiContainer
 import otus.homework.coroutines.utils.PresenterScope
-import otus.homework.coroutines.utils.orEmpty
 
 class CatsPresenter(
     private val catsService: DiContainer
@@ -22,11 +19,11 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                _catsView?.populate(
-                    fact = (catsService.choiceUrlForRetrofit(isFact = true) as? CatsService)?.getCatFact().orEmpty(),
-                    catsImage = (catsService.choiceUrlForRetrofit(isFact = false) as? CatsImageService)?.getCatImageUrl()
-                        .orEmpty()
-                )
+//                _catsView?.populate(
+//                    fact = (catsService.choiceUrlForRetrofit(isFact = true) as? CatsService)?.getCatFact().orEmpty(),
+//                    catsImage = (catsService.choiceUrlForRetrofit(isFact = false) as? CatsImageService)?.getCatImageUrl()
+//                        .orEmpty()
+//                )
             } catch (t: Throwable) {
                 _errorsState.send(t)
             }

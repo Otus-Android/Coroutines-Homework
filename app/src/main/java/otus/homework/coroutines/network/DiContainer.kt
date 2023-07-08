@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class DiContainer {
 
     fun choiceUrlForRetrofit(isFact: Boolean): Any {
-        val urlForRetrofit = if (isFact) "https://catfact.ninja/" else "https://catfact.ninja/"
+        val urlForRetrofit = if (isFact) "https://catfact.ninja/" else "https://aws.random.cat/"
         val retrofit by lazy {
             Retrofit.Builder()
                 .baseUrl(urlForRetrofit)

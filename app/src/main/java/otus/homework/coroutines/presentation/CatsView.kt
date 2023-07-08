@@ -5,11 +5,15 @@ import android.util.AttributeSet
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.R
-import otus.homework.coroutines.network.models.CatsImage
-import otus.homework.coroutines.network.models.Fact
+import otus.homework.coroutines.R.string
+import otus.homework.coroutines.utils.CrashMonitor
+import otus.homework.coroutines.utils.Result.Error
+import otus.homework.coroutines.utils.Result.Success
+import java.net.SocketTimeoutException
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -17,22 +21,43 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter : CatsPresenter? = null
-
+    private val viewModel = CatsViewModel()
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            viewModel.onInitComplete()
+            populate()
         }
     }
 
-    override fun populate(fact: Fact, catsImage: CatsImage) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
-        Picasso.get().load(catsImage.catsUrl).into(findViewById<ImageView>(R.id.imageView))
+    override fun populate() {
+        when (viewModel.result.value) {
+            is Success -> {
+                val resultSuccess = (viewModel.result.value as? Success)
+                findViewById<TextView>(R.id.fact_textView).text = resultSuccess?.catsModel?.fact?.fact
+                Picasso.get()
+                    .load(resultSuccess?.catsModel?.catsImage?.url)
+                    .into(findViewById<ImageView>(R.id.imageView))
+            }
+
+            else -> {
+                showToastException(exceptions = (viewModel.result.value as? Error)?.error, context = context)
+            }
+        }
+    }
+
+    private fun showToastException(exceptions: Throwable?, context: Context) {
+        val message = if (exceptions is SocketTimeoutException) {
+            context.getString(string.socket_timeout_exception)
+        } else {
+            CrashMonitor.trackWarning(exceptionMessage = exceptions?.message.orEmpty())
+            exceptions?.message
+        }
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
 }
 
 interface ICatsView {
 
-    fun populate(fact: Fact,catsImage:CatsImage)
+    fun populate()
 }

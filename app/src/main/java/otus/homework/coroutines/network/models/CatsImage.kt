@@ -1,3 +1,8 @@
 package otus.homework.coroutines.network.models
 
-data class CatsImage(val catsUrl:String)
+import com.google.gson.annotations.SerializedName
+
+data class CatsImage(
+    @field: SerializedName("url")
+    val url:String = ""
+)
