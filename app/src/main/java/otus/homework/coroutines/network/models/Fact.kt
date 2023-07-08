@@ -1,10 +1,10 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.network.models
 
 import com.google.gson.annotations.SerializedName
 
 data class Fact(
 	@field:SerializedName("fact")
-	val fact: String,
+	val fact: String = "",
 	@field:SerializedName("length")
-	val length: Int
+	val length: Int = 0
 )
