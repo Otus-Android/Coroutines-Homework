@@ -1,28 +1,36 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import android.content.Context
+import android.widget.Toast
+import androidx.annotation.StringRes
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.lang.Exception
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val coroutineScope: CoroutineScope
 ) {
 
     private var _catsView: ICatsView? = null
 
-    fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
+    fun onInitComplete(context: Context) {
+        coroutineScope.launch {
+            try {
+                _catsView?.populate(getCatFact())
             }
+            catch (e: SocketTimeoutException) {
+                showToast(context, R.string.socket_timeout_error)
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
                 CrashMonitor.trackWarning()
             }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -31,5 +39,18 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+    }
+
+    private suspend fun getCatFact(): Fact {
+        return withContext(Dispatchers.IO) {
+            catsService.getCatFact()
+        }
+    }
+
+    private fun showToast(
+        context: Context,
+        @StringRes message: Int
+    ) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 }

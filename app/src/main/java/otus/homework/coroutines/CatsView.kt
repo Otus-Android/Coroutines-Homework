@@ -17,12 +17,12 @@ class CatsView @JvmOverloads constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            presenter?.onInitComplete(context)
         }
     }
 
     override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+        findViewById<TextView>(R.id.fact_textView).text = fact.fact
     }
 }
 
