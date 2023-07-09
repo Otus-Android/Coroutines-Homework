@@ -1,9 +1,5 @@
 package otus.homework.coroutines.di
 
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import otus.homework.coroutines.model.mapper.FactDtoToEntityMapper
 import otus.homework.coroutines.model.network.CatsApiService
 import otus.homework.coroutines.model.network.CatsFactService
@@ -14,12 +10,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class DiContainer {
-
-    val presenterScope by lazy {
-        CoroutineScope(
-            context = SupervisorJob() + Dispatchers.Main + CoroutineName("CatsCoroutine")
-        )
-    }
 
     val catsUseCase by lazy {
         CatsUseCase(catsRepository, FactDtoToEntityMapper())

@@ -9,32 +9,22 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.R
 import otus.homework.coroutines.model.entity.Fact
-import otus.homework.coroutines.presenter.CatsPresenter
 
 class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
+) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    var presenter: CatsPresenter? = null
-
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete(context)
-        }
+    fun onMoreButtonCallback(callback: () -> Unit) {
+        findViewById<Button>(R.id.button)
+            .setOnClickListener { callback.invoke() }
     }
 
-    override fun populate(fact: Fact) {
+    fun populate(fact: Fact) {
         findViewById<TextView>(R.id.fact_textView).text = fact.text
         Picasso.get()
             .load(fact.imageUrl)
             .into(findViewById<ImageView>(R.id.cat_imageView))
     }
-}
-
-interface ICatsView {
-
-    fun populate(fact: Fact)
 }
