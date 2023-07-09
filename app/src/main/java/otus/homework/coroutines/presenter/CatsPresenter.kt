@@ -1,18 +1,19 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presenter
 
 import android.content.Context
 import android.widget.Toast
 import androidx.annotation.StringRes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.lang.Exception
+import otus.homework.coroutines.R
+import otus.homework.coroutines.model.CrashMonitor
+import otus.homework.coroutines.model.usecase.CatsUseCase
+import otus.homework.coroutines.view.ICatsView
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService,
+    private val catsUseCase: CatsUseCase,
     private val coroutineScope: CoroutineScope
 ) {
 
@@ -21,9 +22,8 @@ class CatsPresenter(
     fun onInitComplete(context: Context) {
         coroutineScope.launch {
             try {
-                _catsView?.populate(getCatFact())
-            }
-            catch (e: SocketTimeoutException) {
+                _catsView?.populate(catsUseCase.getCatFact())
+            } catch (e: SocketTimeoutException) {
                 showToast(context, R.string.socket_timeout_error)
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
@@ -39,12 +39,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-    }
-
-    private suspend fun getCatFact(): Fact {
-        return withContext(Dispatchers.IO) {
-            catsService.getCatFact()
-        }
     }
 
     private fun showToast(
