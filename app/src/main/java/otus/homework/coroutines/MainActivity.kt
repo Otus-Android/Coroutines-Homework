@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
         if (isFinishing) {
             catsPresenter.detachView()
         }
+        catsPresenter.onStop()
         super.onStop()
     }
 }
