@@ -37,16 +37,31 @@ class CatsViewModel : ViewModel() {
     fun onInitComplete() {
         viewModelScope.launch(coroutineExceptionHandler) {
             val catsFact = async {
-                (diContainer.choiceUrlForRetrofit(isFact = true) as? CatsService)
-                    ?.getCatFact()
-                    .orEmpty()
+                try {
+                    (diContainer.choiceUrlForRetrofit(isFact = true) as? CatsService)
+                        ?.getCatFact()
+                        .orEmpty()
+                } catch (e: Throwable) {
+                    Fact()
+                }
             }
             val catsImage = async {
-                (diContainer.choiceUrlForRetrofit(isFact = false) as? CatsImageService)
-                    ?.getCatImageUrl()
-                    .orEmpty()
+                try {
+                    (diContainer.choiceUrlForRetrofit(isFact = false) as? CatsImageService)
+                        ?.getCatImageUrl()
+                        .orEmpty()
+                } catch (e: Throwable) {
+                    CatsImage()
+                }
             }
-            _result.emit(Success(CatsModel(catsImage = catsImage.await(), fact = catsFact.await())))
+            _result.emit(
+                Success(
+                    CatsModel(
+                        catsImage = catsImage.await(),
+                        fact = catsFact.await()
+                    )
+                )
+            )
         }
     }
 }

@@ -35,9 +35,11 @@ class CatsView @JvmOverloads constructor(
             is Success -> {
                 val resultSuccess = (viewModel.result.value as? Success)
                 findViewById<TextView>(R.id.fact_textView).text = resultSuccess?.catsModel?.fact?.fact
-                Picasso.get()
-                    .load(resultSuccess?.catsModel?.catsImage?.url)
-                    .into(findViewById<ImageView>(R.id.imageView))
+                if (resultSuccess?.catsModel?.catsImage?.url?.isNotEmpty() == true) {
+                    Picasso.get()
+                        .load(resultSuccess.catsModel.catsImage.url)
+                        .into(findViewById<ImageView>(R.id.imageView))
+                }
             }
 
             else -> {
