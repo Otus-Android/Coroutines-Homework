@@ -52,8 +52,12 @@ class CatsView @JvmOverloads constructor(
         val message = if (exceptions is SocketTimeoutException) {
             context.getString(string.socket_timeout_exception)
         } else {
-            CrashMonitor.trackWarning(exceptionMessage = exceptions?.message.orEmpty())
-            exceptions?.message
+            val exceptionMessage = exceptions
+                ?.toString()
+                ?.substringAfter(delimiter = context.getString(string.substring_for_exception))
+                .orEmpty()
+            CrashMonitor.trackWarning(exceptionMessage = exceptionMessage)
+            exceptionMessage
         }
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
