@@ -1,5 +1,7 @@
 package otus.homework.coroutines
 
+import android.util.Log
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
@@ -30,11 +32,17 @@ class CatsPresenter(
 
                     _catsView?.populate(catModel)
                 } catch (e: Exception) {
-                    if (e is SocketTimeoutException) {
-                        _catsView?.showToast("Не удалось получить ответ от сервера")
-                    } else {
-                        CrashMonitor.trackWarning(e.message.toString())
-                        _catsView?.showToast(e.message.toString())
+                    when (e) {
+                        is SocketTimeoutException -> {
+                            _catsView?.showToast("Не удалось получить ответ от сервера")
+                        }
+                        is CancellationException ->  {
+                            throw e
+                        }
+                        else -> {
+                            CrashMonitor.trackWarning(e.message.toString())
+                            _catsView?.showToast(e.message.toString())
+                        }
                     }
                 }
             }
