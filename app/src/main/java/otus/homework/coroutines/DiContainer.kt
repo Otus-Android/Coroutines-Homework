@@ -8,18 +8,18 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class DiContainer {
 
-    private val retrofit by lazy {
-
-
+    private val okHttpClient by lazy {
         val httpLoggingInterceptor = HttpLoggingInterceptor { s ->
             Log.i("HttpLog", s)
         }
         httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
 
-        val okHttpClient = OkHttpClient.Builder()
+        OkHttpClient.Builder()
             .addInterceptor(httpLoggingInterceptor)
             .build()
+    }
 
+    private val catsRetrofit by lazy {
         Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl("https://catfact.ninja/")
@@ -27,5 +27,16 @@ class DiContainer {
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+    private val imgRetrofit by lazy {
+        Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl("https://dog.ceo/api/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+
+    val catsService by lazy { catsRetrofit.create(CatsService::class.java) }
+
+    val imgService by lazy { imgRetrofit.create(ImgService::class.java) }
 }

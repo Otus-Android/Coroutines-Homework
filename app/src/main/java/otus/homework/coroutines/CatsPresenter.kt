@@ -1,23 +1,39 @@
 package otus.homework.coroutines
 
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imgService: ImgService
 ) {
 
     private val scope = PresenterScope()
     private var _catsView: ICatsView? = null
 
-    private var catsServiceJob: Job? = null
+    private var catsDeferred: Deferred<String>? = null
+    private var imgDeferred: Deferred<String>? = null
 
     fun onInitComplete() {
-        catsServiceJob?.cancel()
-        catsServiceJob = scope.launch {
+
+        scope.launch {
             try {
-                val fact = catsService.getCatFact()
+                catsDeferred?.cancel()
+                imgDeferred?.cancel()
+
+                catsDeferred = scope.async {
+                    catsService.getCatFact().fact
+                }
+                catsDeferred!!.start()
+
+                imgDeferred = scope.async {
+                    imgService.getRandomImg().message
+                }
+                imgDeferred!!.start()
+
+                val fact = PresentationFact(catsDeferred!!.await(), imgDeferred!!.await())
                 _catsView?.populate(fact)
 
             } catch (e: SocketTimeoutException) {
@@ -32,7 +48,8 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        catsServiceJob?.cancel()
+        catsDeferred?.cancel()
+        imgDeferred?.cancel()
         _catsView = null
     }
 }
