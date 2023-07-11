@@ -2,29 +2,62 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import androidx.lifecycle.ViewModelProvider
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import otus.homework.coroutines.view_models.PresenterViewModel
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
+    private lateinit var viewModel: PresenterViewModel
+    private var _catsView: ICatsView? = null
+    private val scope by lazy { CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine")) }
 
-    private val diContainer = DiContainer()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel = ViewModelProvider(this)[PresenterViewModel::class.java]
 
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
+        attachView(view)
+        view.callback = {downloadData()}
+        downloadData()
+        viewModel.data.observe(this){
+            _catsView?.populate(it)
 
-        catsPresenter = CatsPresenter(diContainer.service)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+        }
+
+
+
+    }
+    private fun downloadData(){
+        scope.launch {
+
+            viewModel.getDataFromNet()
+        }
+
+    }
+    private fun attachView(catsView: ICatsView) {
+        _catsView = catsView
+    }
+
+    private fun detachView() {
+        _catsView = null
     }
 
     override fun onStop() {
         if (isFinishing) {
-            catsPresenter.detachView()
+            detachView()
         }
         super.onStop()
+        scope.cancel()
+        Log.d("CatsCoroutine", "Coroutine canceled" )
+
     }
 }
