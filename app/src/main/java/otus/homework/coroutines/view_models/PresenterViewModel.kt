@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import otus.homework.coroutines.CrashMonitor
+import otus.homework.coroutines.DataType
 import otus.homework.coroutines.DiContainer
 import otus.homework.coroutines.data.CatsRepositoryImpl
 import otus.homework.coroutines.domain.GetFactUseCase
@@ -70,12 +71,7 @@ class PresenterViewModel(application: Application) : AndroidViewModel(applicatio
         Log.d("PVM", "Coroutine canceled" )
     }
 
-    companion object{
-        enum class DataType{
-            FACT,
-            CAT_IMAGE
-        }
-    }
+
 
 
 }

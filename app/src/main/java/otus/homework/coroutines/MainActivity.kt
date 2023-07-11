@@ -41,8 +41,8 @@ class MainActivity : AppCompatActivity() {
     }
     private fun downloadData(){
         scope.launch {
-            viewModel.getDataFromNet(PresenterViewModel.Companion.DataType.FACT)
-            viewModel.getDataFromNet(PresenterViewModel.Companion.DataType.CAT_IMAGE)
+            viewModel.getDataFromNet(DataType.FACT)
+            viewModel.getDataFromNet(DataType.CAT_IMAGE)
         }
 
     }
