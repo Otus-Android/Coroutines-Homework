@@ -5,24 +5,24 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.models.CatsModel
 import otus.homework.coroutines.network.CatsImageService
 import otus.homework.coroutines.network.CatsService
 import otus.homework.coroutines.network.DiContainer
-import otus.homework.coroutines.network.models.CatsImage
 import otus.homework.coroutines.network.models.Fact
+import otus.homework.coroutines.utils.Result
 import otus.homework.coroutines.utils.Result.Error
 import otus.homework.coroutines.utils.Result.Success
 import otus.homework.coroutines.utils.orEmpty
 
 class CatsViewModel : ViewModel() {
 
-    private val _result = MutableStateFlow<otus.homework.coroutines.utils.Result>(
-        Success(CatsModel(catsImage = CatsImage(), fact = Fact()))
+    private val _result = MutableStateFlow<Result>(
+        Success(CatsModel(catsImage = emptyList(), fact = Fact()))
     )
-    val result: StateFlow<otus.homework.coroutines.utils.Result> get() = _result
+    val result = _result.asStateFlow()
     private val diContainer = DiContainer()
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
         viewModelScope.launch {
@@ -51,7 +51,7 @@ class CatsViewModel : ViewModel() {
                         ?.getCatImageUrl()
                         .orEmpty()
                 } catch (e: Throwable) {
-                    CatsImage()
+                    emptyList()
                 }
             }
             _result.emit(

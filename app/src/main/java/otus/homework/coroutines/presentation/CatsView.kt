@@ -35,9 +35,9 @@ class CatsView @JvmOverloads constructor(
             is Success -> {
                 val resultSuccess = (viewModel.result.value as? Success)
                 findViewById<TextView>(R.id.fact_textView).text = resultSuccess?.catsModel?.fact?.fact
-                if (resultSuccess?.catsModel?.catsImage?.url?.isNotEmpty() == true) {
+                if (resultSuccess?.catsModel?.catsImage?.isNotEmpty() == true) {
                     Picasso.get()
-                        .load(resultSuccess.catsModel.catsImage.url)
+                        .load(resultSuccess.catsModel.catsImage.random().url)
                         .into(findViewById<ImageView>(R.id.imageView))
                 }
             }
@@ -61,9 +61,4 @@ class CatsView @JvmOverloads constructor(
         }
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
-}
-
-interface ICatsView {
-
-    fun populate()
 }
