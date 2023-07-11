@@ -8,8 +8,8 @@ import retrofit2.http.GET
 interface CatsService {
 
     @GET("fact")
-    suspend fun getCatFact() : Response<Fact>
+    suspend fun getCatFact(): Response<Fact>
 
     @GET("meow")
-    suspend fun getCatImage() : Response<CatImage>
+    suspend fun getCatImage(): Response<CatImage>
 }

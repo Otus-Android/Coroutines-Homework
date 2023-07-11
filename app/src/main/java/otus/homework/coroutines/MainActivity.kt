@@ -18,7 +18,6 @@ class MainActivity : AppCompatActivity() {
     private val scope by lazy { CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine")) }
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this)[PresenterViewModel::class.java]
@@ -31,21 +30,22 @@ class MainActivity : AppCompatActivity() {
             downloadData()
         }
         downloadData()
-        viewModel.data.observe(this){
+        viewModel.data.observe(this) {
             _catsView?.populate(it)
 
         }
 
 
-
     }
-    private fun downloadData(){
+
+    private fun downloadData() {
         scope.launch {
             viewModel.getDataFromNet(DataType.FACT)
             viewModel.getDataFromNet(DataType.CAT_IMAGE)
         }
 
     }
+
     private fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
         }
         super.onStop()
         scope.cancel()
-        Log.d("CatsCoroutine", "Coroutine canceled" )
+        Log.d("CatsCoroutine", "Coroutine canceled")
 
     }
 }

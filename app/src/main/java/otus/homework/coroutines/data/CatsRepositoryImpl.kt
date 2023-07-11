@@ -14,7 +14,7 @@ import java.io.IOException
 import java.net.SocketTimeoutException
 
 
-class CatsRepositoryImpl(private val service: CatsService):CatsRepository<Result<Any>> {
+class CatsRepositoryImpl(private val service: CatsService) : CatsRepository<Result<Any>> {
 
 
     override suspend fun getFact() = downloadData(DataType.FACT)
@@ -23,9 +23,9 @@ class CatsRepositoryImpl(private val service: CatsService):CatsRepository<Result
     override suspend fun getImage() = downloadData(DataType.CAT_IMAGE)
 
 
-    private suspend fun downloadData(dataType: DataType):Result<Any>{
+    private suspend fun downloadData(dataType: DataType): Result<Any> {
         return try {
-            val data = when(dataType){
+            val data = when (dataType) {
                 DataType.FACT -> service.getCatFact()
                 DataType.CAT_IMAGE -> service.getCatImage()
             }
@@ -33,26 +33,19 @@ class CatsRepositoryImpl(private val service: CatsService):CatsRepository<Result
 
             if (data.isSuccessful && body != null) Success(body)
             else Error(data.code(), data.message())
-        }
-        catch (e: SocketTimeoutException) {
+        } catch (e: SocketTimeoutException) {
             ResultException(SOCKET_TIMEOUT_EXCEPTION_MESSAGE)
-        }
-
-        catch (e: IOException){
+        } catch (e: IOException) {
             ResultException(e.message)
-        }
-
-        catch (e: HttpException){
+        } catch (e: HttpException) {
             ResultException(e.message)
-        }
-
-        catch (e: Throwable){
+        } catch (e: Throwable) {
             ResultException(e.message)
         }
 
     }
 
-    companion object{
+    companion object {
         const val SOCKET_TIMEOUT_EXCEPTION_MESSAGE = "Не удалось получить ответ от сервера"
 
     }

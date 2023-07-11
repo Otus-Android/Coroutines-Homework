@@ -24,8 +24,9 @@ import com.google.gson.annotations.SerializedName
 //)
 
 data class Fact(
-	val fact:String,
-	val length:Int
+    val fact: String,
+    val length: Int
 
 )
+
 

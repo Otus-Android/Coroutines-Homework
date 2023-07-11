@@ -1,6 +1,5 @@
 package otus.homework.coroutines
 
-import android.util.Log
 import otus.homework.coroutines.domain.Error
 import otus.homework.coroutines.domain.ResultException
 
@@ -11,14 +10,18 @@ object CrashMonitor {
      */
 
     fun trackWarning(result: Any): String {
-        val e:String
-        when(result) {
+        val e: String
+        when (result) {
             is Error<*> -> {
                 e = "Error: Error code: ${result.errorCode}(${result.errorMessage})"
-                Log.d("CrashMonitor", e)}
-            is ResultException<*> ->{
+                println(e)
+            }
+
+            is ResultException<*> -> {
                 e = "Exception: ${result.exceptionMessage}"
-                Log.d("CrashMonitor", e)}
+                println(e)
+            }
+
             else -> e = UNKNOWN_EXCEPTION
         }
 

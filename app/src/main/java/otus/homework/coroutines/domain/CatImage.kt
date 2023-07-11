@@ -4,3 +4,4 @@ data class CatImage(
     val id: Int,
     val url: String
 )
+

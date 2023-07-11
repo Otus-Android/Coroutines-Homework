@@ -32,11 +32,11 @@ class PresenterViewModel(application: Application) : AndroidViewModel(applicatio
     private val getImageUseCase = GetImageUseCase(catImage)
 
 
-    suspend fun getDataFromNet(flag: DataType){
+    suspend fun getDataFromNet(flag: DataType) {
         scope = CoroutineScope(Dispatchers.IO)
-        var result:Any? = null
+        var result: Any? = null
         scope.async {
-            result = when(flag){
+            result = when (flag) {
                 DataType.FACT -> getFactUseCase.getFact()
                 DataType.CAT_IMAGE -> getImageUseCase.getImage()
             }
@@ -61,17 +61,14 @@ class PresenterViewModel(application: Application) : AndroidViewModel(applicatio
         }
 
 
-
     }
 
 
     override fun onCleared() {
         super.onCleared()
         scope.cancel()
-        Log.d("PVM", "Coroutine canceled" )
+        Log.d("PVM", "Coroutine canceled")
     }
-
-
 
 
 }

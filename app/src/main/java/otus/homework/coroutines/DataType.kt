@@ -1,7 +1,7 @@
 package otus.homework.coroutines
 
 
-enum class DataType{
+enum class DataType {
     FACT,
     CAT_IMAGE
 }
