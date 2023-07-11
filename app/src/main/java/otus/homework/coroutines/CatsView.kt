@@ -3,8 +3,11 @@ package otus.homework.coroutines
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.squareup.picasso.Picasso
+import otus.homework.coroutines.domain.CatImage
 import otus.homework.coroutines.domain.Fact
 
 class CatsView @JvmOverloads constructor(
@@ -16,19 +19,32 @@ class CatsView @JvmOverloads constructor(
 
     var callback:(()->Unit)? = null
     lateinit var button: Button
+    lateinit var textView: TextView
+    lateinit var imageView: ImageView
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         button = findViewById(R.id.button)
         button.setOnClickListener{callback?.invoke()}
+        textView = findViewById(R.id.fact_textView)
+        imageView = findViewById(R.id.cat_image_view)
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
+    override fun populate(data: Any) {
+        if(data is Fact) textView.text = data.fact
+        else if(data is CatImage) {
+            Picasso.get()
+                .load(data.url)
+                .error(R.drawable.baseline_image_not_supported_24)
+                .centerCrop()
+                .fit()
+                .into(imageView)
+        }
+
     }
 }
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(data: Any)
 }

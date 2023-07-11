@@ -26,7 +26,10 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
         attachView(view)
-        view.callback = {downloadData()}
+        view.callback = {
+            viewModel.scope.cancel()
+            downloadData()
+        }
         downloadData()
         viewModel.data.observe(this){
             _catsView?.populate(it)
@@ -38,8 +41,8 @@ class MainActivity : AppCompatActivity() {
     }
     private fun downloadData(){
         scope.launch {
-
-            viewModel.getDataFromNet()
+            viewModel.getDataFromNet(PresenterViewModel.Companion.DataType.FACT)
+            viewModel.getDataFromNet(PresenterViewModel.Companion.DataType.CAT_IMAGE)
         }
 
     }

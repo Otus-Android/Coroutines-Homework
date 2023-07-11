@@ -9,38 +9,36 @@
 
     <ImageView
         android:id="@+id/cat_image_view"
-        android:layout_width="0dp"
+        android:layout_width="300dp"
         android:layout_height="0dp"
         android:layout_marginTop="10dp"
-        android:layout_marginBottom="30dp"
-        android:layout_marginHorizontal="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/fact_textView"
+        app:layout_constraintBottom_toBottomOf="parent"
         tools:srcCompat="@tools:sample/avatars[3]" />
 
     <TextView
         android:id="@+id/fact_textView"
         android:textColor="@color/black"
         android:textSize="24sp"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
         android:layout_marginBottom="10dp"
-        app:layout_constraintBottom_toBottomOf="@id/button"
+        app:layout_constraintBottom_toTopOf="@id/button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cat_image_view" />
+        app:layout_constraintStart_toEndOf="@id/cat_image_view"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="20dp"
         android:text="@string/more_facts"
-        app:layout_constraintTop_toBottomOf="@id/fact_textView"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="@id/fact_textView"
+        app:layout_constraintStart_toStartOf="@id/fact_textView" />
 
 </otus.homework.coroutines.CatsView>

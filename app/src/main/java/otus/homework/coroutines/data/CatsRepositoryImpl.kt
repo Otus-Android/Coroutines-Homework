@@ -7,6 +7,7 @@ import otus.homework.coroutines.domain.Error
 import otus.homework.coroutines.domain.Result
 import otus.homework.coroutines.domain.ResultException
 import otus.homework.coroutines.domain.Success
+import retrofit2.HttpException
 import java.io.IOException
 
 import java.net.SocketTimeoutException
@@ -31,6 +32,33 @@ class CatsRepositoryImpl(private val service: CatsService):CatsRepository<Result
             ResultException(e.message)
         }
 
+
+    }
+
+    override suspend fun getImage(): Result<Any> {
+        return try {
+            val data = service.getCatImage()
+            val body = data.body()
+
+            if (data.isSuccessful && body != null) Success(body)
+            else Error(data.code(), data.message())
+        }
+
+        catch (e: SocketTimeoutException) {
+            ResultException(SOCKET_TIMEOUT_EXCEPTION_MESSAGE)
+        }
+
+        catch (e: IOException){
+            ResultException(e.message)
+        }
+
+        catch (e: HttpException){
+            ResultException(e.message)
+        }
+
+        catch (e: Throwable){
+            ResultException(e.message)
+        }
 
     }
 
