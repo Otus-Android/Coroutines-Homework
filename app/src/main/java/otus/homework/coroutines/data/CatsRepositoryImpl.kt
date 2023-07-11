@@ -25,12 +25,23 @@ class CatsRepositoryImpl(private val service: CatsService):CatsRepository<Result
 
             if (data.isSuccessful && body != null) Success(body)
             else Error(data.code(), data.message())
-        } catch (e: SocketTimeoutException) {
+        }
+        catch (e: SocketTimeoutException) {
             ResultException(SOCKET_TIMEOUT_EXCEPTION_MESSAGE)
         }
+
         catch (e: IOException){
             ResultException(e.message)
         }
+
+        catch (e: HttpException){
+            ResultException(e.message)
+        }
+
+        catch (e: Throwable){
+            ResultException(e.message)
+        }
+
 
 
     }
