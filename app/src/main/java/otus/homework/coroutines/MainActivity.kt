@@ -16,4 +16,5 @@ class MainActivity : AppCompatActivity() {
 
         ViewModelProvider(this)[CatsViewModel::class.java]
     }
+
 }
