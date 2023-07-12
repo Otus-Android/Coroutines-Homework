@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import otus.homework.coroutines.domain.Error
 import otus.homework.coroutines.domain.ResultException
+import java.net.SocketTimeoutException
 
 object CrashMonitor {
 
@@ -18,7 +19,8 @@ object CrashMonitor {
             }
 
             is ResultException<*> -> {
-                e = "Exception: ${result.exceptionMessage}"
+                e = if (result.throwable is SocketTimeoutException) SOCKET_TIMEOUT_EXCEPTION_MESSAGE
+                else "Exception: ${result.throwable.message}"
                 println(e)
             }
 
@@ -28,6 +30,8 @@ object CrashMonitor {
         return e
 
     }
+
+    private const val SOCKET_TIMEOUT_EXCEPTION_MESSAGE = "Не удалось получить ответ от сервера"
 
     private const val UNKNOWN_EXCEPTION = "Unknown Exception"
 }

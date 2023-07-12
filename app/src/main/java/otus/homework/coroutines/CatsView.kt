@@ -25,7 +25,9 @@ class CatsView @JvmOverloads constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         button = findViewById(R.id.button)
-        button.setOnClickListener { callback?.invoke() }
+        button.setOnClickListener {
+            callback?.invoke()
+        }
         textView = findViewById(R.id.fact_textView)
         imageView = findViewById(R.id.cat_image_view)
     }

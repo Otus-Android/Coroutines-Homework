@@ -2,7 +2,6 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -15,20 +14,18 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: PresenterViewModel
     private var _catsView: ICatsView? = null
-    private val scope by lazy { CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine")) }
+    private lateinit var view: CatsView
+    private var scope: CoroutineScope? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this)[PresenterViewModel::class.java]
-
-        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
+        CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
+        view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
+        scope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
         setContentView(view)
         attachView(view)
-        view.callback = {
-            viewModel.scope.cancel()
-            downloadData()
-        }
         downloadData()
         viewModel.data.observe(this) {
             _catsView?.populate(it)
@@ -38,8 +35,15 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun moreFactsButtonOnClick() {
+        view.callback = {
+            viewModel.scope.cancel()
+            downloadData()
+        }
+    }
+
     private fun downloadData() {
-        scope.launch {
+        scope?.launch {
             viewModel.getDataFromNet(DataType.FACT)
             viewModel.getDataFromNet(DataType.CAT_IMAGE)
         }
@@ -52,6 +56,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun detachView() {
         _catsView = null
+
     }
 
     override fun onStop() {
@@ -59,8 +64,16 @@ class MainActivity : AppCompatActivity() {
             detachView()
         }
         super.onStop()
-        scope.cancel()
-        Log.d("CatsCoroutine", "Coroutine canceled")
+        scope?.cancel()
+
+
+    }
+
+    override fun onResume() {
+        scope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
+        super.onResume()
+        moreFactsButtonOnClick()
+
 
     }
 }

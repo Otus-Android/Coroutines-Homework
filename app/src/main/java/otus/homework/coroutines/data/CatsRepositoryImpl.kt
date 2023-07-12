@@ -34,19 +34,16 @@ class CatsRepositoryImpl(private val service: CatsService) : CatsRepository<Resu
             if (data.isSuccessful && body != null) Success(body)
             else Error(data.code(), data.message())
         } catch (e: SocketTimeoutException) {
-            ResultException(SOCKET_TIMEOUT_EXCEPTION_MESSAGE)
+            ResultException(e)
         } catch (e: IOException) {
-            ResultException(e.message)
+            ResultException(e)
         } catch (e: HttpException) {
-            ResultException(e.message)
+            ResultException(e)
         } catch (e: Throwable) {
-            ResultException(e.message)
+            ResultException(e)
         }
 
     }
 
-    companion object {
-        const val SOCKET_TIMEOUT_EXCEPTION_MESSAGE = "Не удалось получить ответ от сервера"
 
-    }
 }
