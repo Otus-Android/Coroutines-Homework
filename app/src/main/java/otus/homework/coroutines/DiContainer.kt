@@ -1,9 +1,10 @@
 package otus.homework.coroutines
 
+import android.content.Context
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class DiContainer {
+class DiContainer(private val context: Context) {
 
     private val retrofit by lazy {
         Retrofit.Builder()
@@ -12,5 +13,7 @@ class DiContainer {
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+    val service: CatsService by lazy { retrofit.create(CatsService::class.java) }
+
+    val stringProvider: StringProvider by lazy { StringProviderImpl(context) }
 }
