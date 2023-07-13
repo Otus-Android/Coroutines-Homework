@@ -9,7 +9,7 @@ class CatsViewModelFactory : ViewModelProvider.Factory {
     private val catsService: CatsService = diContainer.catService
     private val catImageService: CatImageService = diContainer.catImageService
 
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return CatsViewModel(catsService, catImageService) as T
     }
 }

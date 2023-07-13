@@ -8,6 +8,6 @@ object CrashMonitor {
      * Pretend this is Crashlytics/AppCenter
      */
     fun trackWarning(tag: String, t: Throwable) {
-        Log.e(tag, t.message ?: "Unknown error" )
+        Log.e(tag, t.message ?: "Unknown error")
     }
 }
