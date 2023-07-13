@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Cat Facts </string>
     <string name="more_facts">More Facts</string>
+    <string name="active_request_warning">Запрос в процессе выполнения. Пожалуйста, подождите</string>
     <string name="timeout_server_error">Не удалось получить ответ от сервера</string>
     <string name="default_request_error">Произошла ошибка во время выполнения запроса</string>
 </resources>

@@ -1,7 +1,8 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.utils
 
 import android.app.Application
 import android.content.Context
+import otus.homework.coroutines.di.DiContainer
 
 class CustomApplication : Application() {
 

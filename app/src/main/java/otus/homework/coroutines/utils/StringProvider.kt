@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.utils
 
 import androidx.annotation.StringRes
 

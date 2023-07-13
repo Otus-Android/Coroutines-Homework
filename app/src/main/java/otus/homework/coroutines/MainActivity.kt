@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import otus.homework.coroutines.utils.CustomApplication
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,9 +20,8 @@ class MainActivity : AppCompatActivity() {
         catsPresenter.onInitComplete()
     }
 
-    private fun createCatsPresenter(): CatsPresenter {
-        val diContainer = CustomApplication.diContainer(this)
-        return CatsPresenter(diContainer.service, diContainer.stringProvider, PresenterScope())
+    private fun createCatsPresenter() = with(CustomApplication.diContainer(this)) {
+        CatsPresenter(catRepository, stringProvider, dispatcher)
     }
 
     override fun onStop() {

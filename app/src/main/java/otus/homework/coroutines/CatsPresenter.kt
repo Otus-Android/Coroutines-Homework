@@ -1,27 +1,36 @@
 package otus.homework.coroutines
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import otus.homework.coroutines.domain.CatRepository
+import otus.homework.coroutines.utils.CrashMonitor
+import otus.homework.coroutines.utils.StringProvider
+import otus.homework.coroutines.utils.coroutines.Dispatcher
+import otus.homework.coroutines.utils.coroutines.PresenterScope
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService,
+    private val repository: CatRepository,
     private val stringProvider: StringProvider,
-    private val scope: CoroutineScope
+    dispatcher: Dispatcher
 ) {
 
     private var _catsView: ICatsView? = null
 
+    private val scope = PresenterScope(dispatcher)
+
     private var job: Job? = null
 
     fun onInitComplete() {
-        if (job?.isActive == true) return
+        if (job?.isActive == true) {
+            _catsView?.warn(message = stringProvider.getString(R.string.active_request_warning))
+            return
+        }
 
         job = scope.launch {
             try {
-                val fact = catsService.getCatFact()
-                _catsView?.populate(fact)
+                val catInfo = repository.getCatInfo()
+                _catsView?.populate(catInfo)
             } catch (e: Exception) {
                 if (e is SocketTimeoutException) {
                     _catsView?.warn(message = stringProvider.getString(R.string.timeout_server_error))
