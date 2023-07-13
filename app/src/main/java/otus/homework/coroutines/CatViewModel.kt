@@ -19,14 +19,6 @@ class CatViewModel(
 ) : ViewModel() {
     val catModel = MutableLiveData<Result>()
 
-    class CatsViewModelFactory(private val factService: CatsFactService,
-                               private val imageService: CatsImageService) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return CatViewModel(factService, imageService) as T
-        }
-    }
-
     fun onInitComplete() {
         loadData()
     }

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import otus.homework.coroutines.model.CatsViewModelFactory
 
 
 class MainActivity : AppCompatActivity() {
@@ -25,7 +26,7 @@ class MainActivity : AppCompatActivity() {
 
         catViewModel = ViewModelProvider(
             this,
-            CatViewModel.CatsViewModelFactory(diContainer.serviceFact, diContainer.serviceImage)
+            CatsViewModelFactory(diContainer.serviceFact, diContainer.serviceImage)
         )[CatViewModel::class.java]
 
         view.viewModel = catViewModel

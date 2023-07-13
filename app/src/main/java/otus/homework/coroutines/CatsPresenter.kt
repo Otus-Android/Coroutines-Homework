@@ -1,6 +1,5 @@
 package otus.homework.coroutines
 
-import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -8,7 +7,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import otus.homework.coroutines.model.CatModel
-import java.lang.Exception
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
