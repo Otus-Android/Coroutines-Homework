@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Cat Facts </string>
     <string name="more_facts">More Facts</string>
+    <string name="error_failed_to_get_response_from_server">Не удалось получить ответ от сервера</string>
+    <string name="error_unknown">Неизвестная ошибка</string>
+    <string name="content_description_cat_image">Cat image</string>
 </resources>
