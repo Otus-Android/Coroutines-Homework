@@ -8,4 +8,8 @@ interface CatsFactService {
 
     @GET("fact")
     suspend fun getCatFact() : Response<Fact>
+
+    companion object {
+        const val BASE_URL = "https://catfact.ninja/"
+    }
 }

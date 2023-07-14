@@ -29,7 +29,7 @@ class DiContainer {
     private val retrofitCatFact by lazy {
         Retrofit.Builder()
             .client(okHttpClient)
-            .baseUrl("https://catfact.ninja/")
+            .baseUrl(CatsFactService.BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

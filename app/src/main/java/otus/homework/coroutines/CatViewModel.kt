@@ -1,8 +1,8 @@
 package otus.homework.coroutines
 
+import android.content.res.Resources
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -26,7 +26,7 @@ class CatViewModel(
     private val handler = CoroutineExceptionHandler { _, throwable ->
         when (throwable) {
             is SocketTimeoutException -> {
-                catModel.value = Result.Error(Throwable("Не удалось получить ответ от сервера"))
+                catModel.value = Result.Error(Throwable(Resources.getSystem().getString(R.string.error_connection)))
             }
             is CancellationException -> {
                 throw throwable

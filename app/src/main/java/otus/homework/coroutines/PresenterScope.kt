@@ -9,5 +9,9 @@ import kotlin.coroutines.CoroutineContext
 class PresenterScope : CoroutineScope {
 
     override val coroutineContext: CoroutineContext
-        get() = Job() + Dispatchers.Main + CoroutineName("CatsCoroutine")
+        get() = Job() + Dispatchers.Main + CoroutineName(CATS_COROUTINE)
+
+    companion object {
+        const val CATS_COROUTINE = "CatsCoroutine"
+    }
 }

@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.model.CatModel
@@ -33,13 +34,18 @@ class CatsView @JvmOverloads constructor(
         Picasso.get().load(catModel.imageUrl).into(imageView)
     }
 
-    override fun showToast(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    override fun showToast(messageRes: Int) {
+        Toast.makeText(context, messageRes, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun showToast(messageRes: String) {
+        Toast.makeText(context, messageRes, Toast.LENGTH_SHORT).show()
     }
 }
 
 interface ICatsView {
 
     fun populate(catModel: CatModel)
-    fun showToast(message: String)
+    fun showToast(@StringRes messageRes: Int)
+    fun showToast(messageRes: String)
 }

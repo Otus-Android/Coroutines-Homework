@@ -32,7 +32,7 @@ class CatsPresenter(
                 } catch (e: Exception) {
                     when (e) {
                         is SocketTimeoutException -> {
-                            _catsView?.showToast("Не удалось получить ответ от сервера")
+                            _catsView?.showToast(R.string.error_connection)
                         }
                         is CancellationException ->  {
                             throw e
