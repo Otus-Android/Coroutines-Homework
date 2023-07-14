@@ -1,7 +1,8 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation.presenter
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import otus.homework.coroutines.R
 import otus.homework.coroutines.domain.CatRepository
 import otus.homework.coroutines.utils.CrashMonitor
 import otus.homework.coroutines.utils.StringProvider

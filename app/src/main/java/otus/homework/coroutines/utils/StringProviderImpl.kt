@@ -7,4 +7,6 @@ class StringProviderImpl(
 ) : StringProvider {
 
     override fun getString(res: Int) = context.getString(res)
+
+    override fun getString(res: Int, vararg args: Any) = context.getString(res, args)
 }

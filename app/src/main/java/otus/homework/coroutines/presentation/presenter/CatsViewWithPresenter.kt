@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation.presenter
 
 import android.content.Context
 import android.util.AttributeSet
@@ -8,6 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import otus.homework.coroutines.R
 import otus.homework.coroutines.models.Cat
 import otus.homework.coroutines.utils.CustomApplication
 
