@@ -5,6 +5,9 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import otus.homework.coroutines.R
 
+/**
+ * `Activity` с `custom view` с информацией о случайном коте, построенной на основе применения `ViewModel`
+ */
 class CatsActivity : AppCompatActivity() {
 
     @SuppressLint("InflateParams")

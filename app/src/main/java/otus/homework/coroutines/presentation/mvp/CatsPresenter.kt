@@ -10,6 +10,13 @@ import otus.homework.coroutines.utils.coroutines.Dispatcher
 import otus.homework.coroutines.utils.coroutines.PresenterScope
 import java.net.SocketTimeoutException
 
+/**
+ * Презентер получения информации о случайном коте
+ *
+ * @param repository репозиторий информации о кошке
+ * @param stringProvider поставщик строковых значений
+ * @param dispatcher обертка получения `coroutine dispatcher`
+ */
 class CatsPresenter(
     private val repository: CatRepository,
     private val stringProvider: StringProvider,
@@ -22,7 +29,8 @@ class CatsPresenter(
 
     private var job: Job? = null
 
-    fun onInitComplete() {
+    /** Получить информацию о случайном коте */
+    fun getRandomCat() {
         if (job?.isActive == true) {
             _catsView?.warn(message = stringProvider.getString(R.string.active_request_warning))
             return
@@ -46,10 +54,12 @@ class CatsPresenter(
     private fun Exception.messageOrDefault() =
         this.message ?: stringProvider.getString(R.string.default_request_error)
 
+    /** Подключить обработчик информации о кошке [ICatsView] */
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
     }
 
+    /** Отключить обработчик информации о кошке [ICatsView] */
     fun detachView() {
         _catsView = null
         job?.cancel()

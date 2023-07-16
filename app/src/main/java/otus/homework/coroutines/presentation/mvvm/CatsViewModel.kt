@@ -14,13 +14,20 @@ import otus.homework.coroutines.utils.CrashMonitor
 import otus.homework.coroutines.utils.StringProvider
 import java.net.SocketTimeoutException
 
+/**
+ * [ViewModel] получения информации о случайном коте
+ *
+ * @param repository репозиторий информации о кошке
+ * @param stringProvider поставщик строковых значений
+ */
 class CatsViewModel(
     private val repository: CatRepository,
     private val stringProvider: StringProvider,
 ) : ViewModel() {
 
+    /** UI состояние информации о случайном коте */
+    val uiState: StateFlow<CatUiState> get() = _uiState.asStateFlow()
     private val _uiState = MutableStateFlow<CatUiState>(CatUiState.Idle)
-    val uiState: StateFlow<CatUiState> = _uiState.asStateFlow()
 
     private var job: Job? = null
 
@@ -35,6 +42,13 @@ class CatsViewModel(
         }
     }
 
+    /**
+     * Получить информацию о случайном коте
+     *
+     * @param force признак форсированной загрузки.
+     * Принудительное выполнение загрузки - `true`. Ленивое выполнение загрузки - `false`
+     * (загрузка будет выполняться только в случае, если она еще не проводилась)
+     */
     fun getRandomCat(force: Boolean) {
         if (!force && uiState.value !is CatUiState.Idle) {
             return
@@ -58,6 +72,7 @@ class CatsViewModel(
         }
     }
 
+    /** Обработать отображение ошибки */
     fun onErrorShown() = _uiState.update { state ->
         if (state is CatUiState.Error) {
             state.copy(isShown = true)
@@ -87,6 +102,12 @@ class CatsViewModel(
 
     companion object {
 
+        /**
+         * Получить фабрику по созданию [CatsViewModel].
+         *
+         * @param repository репозиторий информации о кошке
+         * @param stringProvider поставщик строковых значений
+         */
         @Suppress("UNCHECKED_CAST")
         fun provideFactory(
             repository: CatRepository,

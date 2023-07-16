@@ -6,6 +6,9 @@ import androidx.appcompat.app.AppCompatActivity
 import otus.homework.coroutines.R
 import otus.homework.coroutines.utils.CustomApplication
 
+/**
+ * `Activity` с `custom view` с информацией о случайном коте, построенной на основе применения презентера
+ */
 class CatsActivity : AppCompatActivity() {
 
     private lateinit var catsPresenter: CatsPresenter
@@ -20,7 +23,7 @@ class CatsActivity : AppCompatActivity() {
         catsPresenter = createCatsPresenter()
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+        catsPresenter.getRandomCat()
     }
 
     private fun createCatsPresenter() = with(CustomApplication.diContainer(this)) {

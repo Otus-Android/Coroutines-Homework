@@ -16,6 +16,12 @@ import otus.homework.coroutines.models.presentation.CatUiState
 import otus.homework.coroutines.presentation.mvvm.CatsViewModel
 import otus.homework.coroutines.utils.CustomApplication
 
+/**
+ * `Custom view` и информацией о случайном коте.
+ *
+ * Построено на основе использования [ViewModel] и `custom` [ViewModelStoreOwner], [LifecycleOwner].
+ * Отличительная особенность: обработка данных производится в рамках своего жизненного цикла.
+ */
 class CatsView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ViewModelStoreOwner, LifecycleOwner {

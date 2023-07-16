@@ -15,8 +15,14 @@ import otus.homework.coroutines.utils.coroutines.DispatcherImpl
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+/**
+ * Контейнер необходимых зависимостей
+ *
+ * @param context `application context`
+ */
 class DiContainer(private val context: Context) {
 
+    /** Репозиторий информации о кошке */
     val catRepository: CatRepository by lazy(LazyThreadSafetyMode.NONE) {
         CatRepositoryImpl(provideFactService(), provideImagesService(), CatConverter())
     }
@@ -40,6 +46,7 @@ class DiContainer(private val context: Context) {
         StringProviderImpl(context)
     }
 
+    /** `Picasso` для загрузки изображений */
     val picasso: Picasso by lazy(LazyThreadSafetyMode.NONE) { Picasso.Builder(context).build() }
 
     val dispatcher: Dispatcher by lazy(LazyThreadSafetyMode.NONE) { DispatcherImpl() }

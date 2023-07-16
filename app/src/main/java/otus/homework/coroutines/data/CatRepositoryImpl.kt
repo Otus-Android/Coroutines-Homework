@@ -4,8 +4,17 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import otus.homework.coroutines.data.converter.CatConverter
 import otus.homework.coroutines.domain.CatRepository
+import otus.homework.coroutines.models.data.Fact
+import otus.homework.coroutines.models.data.Image
 import otus.homework.coroutines.models.domain.Cat
 
+/**
+ * Репозиторий информации о кошке [CatRepository]
+ *
+ * @param factService сервис получения случайного факта
+ * @param imageService сервис получения случайных изображений
+ * @param converter конвертер данных из [Fact] и списка [Image] в данные с информацией о кошке [Cat]
+ */
 class CatRepositoryImpl(
     private val factService: FactService,
     private val imageService: ImagesService,

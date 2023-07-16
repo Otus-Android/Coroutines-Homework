@@ -15,6 +15,14 @@ import otus.homework.coroutines.R
 import otus.homework.coroutines.models.presentation.CatUiState
 import otus.homework.coroutines.utils.CustomApplication
 
+/**
+ * `Custom view` и информацией о случайном коте.
+ *
+ * Построено на основе использования [ViewModel].
+ * Отличительная особенность: используются данные ближайших компонентов вверх по иерархии для
+ * получения [ViewModelStoreOwner] и [LifecycleOwner], на основе которых и производится обработка
+ * данныхю.
+ */
 class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -40,8 +48,8 @@ class CatsView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        initObservers()
         viewModel.getRandomCat(false)
+        initObservers()
     }
 
     private fun initObservers() {
@@ -51,7 +59,6 @@ class CatsView @JvmOverloads constructor(
                     viewModel.uiState.collect { state -> update(state) }
                 }
             }
-
         }
     }
 

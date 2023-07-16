@@ -12,6 +12,11 @@ import otus.homework.coroutines.R
 import otus.homework.coroutines.models.domain.Cat
 import otus.homework.coroutines.utils.CustomApplication
 
+/**
+ * `Custom view` и информацией о случайном коте.
+ *
+ * Построено на основе использования презентера
+ */
 class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -30,7 +35,7 @@ class CatsView @JvmOverloads constructor(
         textView = findViewById(R.id.fact_text_view)
         imageView = findViewById(R.id.image_view)
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            presenter?.getRandomCat()
             picasso.cancelRequest(imageView)
         }
     }
@@ -48,8 +53,14 @@ class CatsView @JvmOverloads constructor(
     }
 }
 
+/**
+ * Интерфейс взаимодействия с `View`
+ */
 interface ICatsView {
+
+    /** Обновить данные о коте [Cat] */
     fun populate(cat: Cat)
 
+    /** Оповестить о возникшей ошибке с причиной [message] */
     fun warn(message: String)
 }

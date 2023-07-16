@@ -4,8 +4,12 @@ import android.app.Application
 import android.content.Context
 import otus.homework.coroutines.di.DiContainer
 
+/**
+ * `Custom application`, предоставляющий контейнер зависимостей
+ */
 class CustomApplication : Application() {
 
+    /** Контейнер зависимостей */
     lateinit var diContainer: DiContainer
 
     override fun onCreate() {
@@ -15,6 +19,7 @@ class CustomApplication : Application() {
 
     companion object {
 
+        /** Получить контейнер зависимостей на основе контекста [Context] */
         fun diContainer(context: Context) =
             (context.applicationContext as CustomApplication).diContainer
     }

@@ -1,5 +1,7 @@
 # Coroutines Homework
 
+## Задача
+
 ### Перейти с коллбеков на саспенд функции и корутины
 
 1. Поменять возвращаемый тип в `CatsService` и добавить модификатор `suspend`
@@ -19,3 +21,16 @@
 1. Реализовать наследника `ViewModel` и продублировать в нем логику из `CatsPresenter`, с необходимыми изменениями. Используйте `viewModelScope` в качестве скоупа.
 2. Добавить логирование ошибок через CoroutineExceptionHanlder. Используйте класс CrashMonitor в качестве фейкового CrashMonitor инструмента
 3. Создать sealed класс `Result`. Унаследовать от него классы `Success<T>`, `Error`. Использовать эти классы как стейт необходимый для рендеринга/отображени ошибки
+
+
+## Решение
+
+Приложение переведено на coroutines.
+
+В качестве сервиса получения случайных картинок используется [TheCat](https://developers.thecatapi.com/view-account/ylX4blBYT9FaoVd6OhvR?report=bOoHBz-8t), позволяющий получить список случайных изображений.
+
+Представлены три варианта реализации задачи, находящиеся в ```app/src/main/java/otus/homework/coroutines/presentation```
+
+1. ```/mvp``` - реализация *custom view* на основе презентера
+2. ```/mvvm``` - реализация *custom view* на основе ```ViewModel```
+3. ```/mvvm/owners``` - реализация *custom view* на основе ```ViewModel``` и *custom* ```ViewModelStoreOwner, LifecycleOwner```
