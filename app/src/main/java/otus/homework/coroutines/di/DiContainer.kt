@@ -2,7 +2,7 @@ package otus.homework.coroutines.di
 
 import android.content.Context
 import com.squareup.picasso.Picasso
-import otus.homework.coroutines.presentation.viewmodel.CatsViewModel
+import otus.homework.coroutines.presentation.mvvm.CatsViewModel
 import otus.homework.coroutines.data.converter.CatConverter
 import otus.homework.coroutines.data.FactService
 import otus.homework.coroutines.data.ImagesService

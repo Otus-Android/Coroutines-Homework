@@ -1,4 +1,4 @@
-package otus.homework.coroutines.presentation.presenter
+package otus.homework.coroutines.presentation.mvp
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

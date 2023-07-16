@@ -1,22 +1,21 @@
-package otus.homework.coroutines.presentation.viewmodel
+package otus.homework.coroutines.presentation.mvvm
 
 import android.content.Context
+import android.os.Build
 import android.util.AttributeSet
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.findViewTreeLifecycleOwner
-import androidx.lifecycle.findViewTreeViewModelStoreOwner
+import androidx.lifecycle.*
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.launch
 import otus.homework.coroutines.R
-import otus.homework.coroutines.models.Cat
-import otus.homework.coroutines.models.CatState
+import otus.homework.coroutines.models.presentation.CatUiState
 import otus.homework.coroutines.utils.CustomApplication
 
-class CatsViewWithViewModel @JvmOverloads constructor(
+class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
@@ -34,7 +33,7 @@ class CatsViewWithViewModel @JvmOverloads constructor(
         textView = findViewById(R.id.fact_text_view)
         imageView = findViewById(R.id.image_view)
         findViewById<Button>(R.id.button).setOnClickListener {
-            viewModel.getRandomCat()
+            viewModel.getRandomCat(true)
             picasso.cancelRequest(imageView)
         }
     }
@@ -42,35 +41,57 @@ class CatsViewWithViewModel @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         initObservers()
-        viewModel.getRandomCat()
+        viewModel.getRandomCat(false)
     }
 
     private fun initObservers() {
         findViewTreeLifecycleOwner()?.let { lifecycleOwner ->
-            viewModel.resultLiveData.observe(lifecycleOwner) { result ->
-                when (result) {
-                    is CatState.Idle -> onIdle()
-                    is CatState.Success -> onSuccess(result.cat)
-                    is CatState.Error -> onError(result.message)
+            lifecycleOwner.lifecycleScope.launch {
+                lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModel.uiState.collect { state -> update(state) }
                 }
             }
+
         }
     }
+
+    private fun update(state: CatUiState) {
+        when (state) {
+            is CatUiState.Idle -> onIdle()
+            is CatUiState.Success -> onSuccess(state)
+            is CatUiState.Error -> onError(state)
+        }
+    }
+
 
     private fun onIdle() {
         imageView.setImageDrawable(null)
     }
 
-    private fun onSuccess(cat: Cat) {
-        textView.text = cat.fact
+    private fun onSuccess(state: CatUiState.Success) {
+        textView.text = state.cat.fact
         picasso
-            .load(cat.image)
+            .load(state.cat.image)
             .placeholder(R.drawable.question_mark)
             .into(imageView)
     }
 
-    private fun onError(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    private fun onError(state: CatUiState.Error) {
+        if (!state.isShown) {
+            val toast = Toast.makeText(context, state.message, Toast.LENGTH_SHORT)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                toast.addCallback(object : Toast.Callback() {
+                    override fun onToastHidden() {
+                        viewModel.onErrorShown()
+                        toast.removeCallback(this)
+                    }
+                })
+                toast.show()
+            } else {
+                toast.show()
+                viewModel.onErrorShown()
+            }
+        }
     }
 
     private fun initViewModel(): CatsViewModel =

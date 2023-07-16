@@ -1,11 +1,9 @@
 package otus.homework.coroutines
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
-import otus.homework.coroutines.presentation.presenter.ViewWithPresenterActivity
-import otus.homework.coroutines.presentation.viewmodel.ViewWithViewModelActivity
+import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,11 +17,27 @@ class MainActivity : AppCompatActivity() {
 
     private fun initView() {
         findViewById<Button>(R.id.view_with_presenter_button).setOnClickListener {
-            startActivity(Intent(this, ViewWithPresenterActivity::class.java))
+            startActivity(
+                Intent(
+                    this, otus.homework.coroutines.presentation.mvp.CatsActivity::class.java
+                )
+            )
         }
 
         findViewById<Button>(R.id.view_with_view_model_button).setOnClickListener {
-            startActivity(Intent(this, ViewWithViewModelActivity::class.java))
+            startActivity(
+                Intent(
+                    this, otus.homework.coroutines.presentation.mvvm.CatsActivity::class.java
+                )
+            )
+        }
+
+        findViewById<Button>(R.id.view_with_custom_owners_button).setOnClickListener {
+            startActivity(
+                Intent(
+                    this, otus.homework.coroutines.presentation.mvvm.owners.CatsActivity::class.java
+                )
+            )
         }
     }
 }

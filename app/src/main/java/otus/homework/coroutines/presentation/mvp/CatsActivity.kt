@@ -1,14 +1,16 @@
-package otus.homework.coroutines.presentation.presenter
+package otus.homework.coroutines.presentation.mvp
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import otus.homework.coroutines.R
 import otus.homework.coroutines.utils.CustomApplication
 
-class ViewWithPresenterActivity : AppCompatActivity() {
+class CatsActivity : AppCompatActivity() {
 
     private lateinit var catsPresenter: CatsPresenter
 
+    @SuppressLint("InflateParams")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

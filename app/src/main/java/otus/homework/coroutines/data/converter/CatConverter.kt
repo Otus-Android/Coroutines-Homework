@@ -1,8 +1,8 @@
 package otus.homework.coroutines.data.converter
 
-import otus.homework.coroutines.models.Fact
-import otus.homework.coroutines.models.Image
-import otus.homework.coroutines.models.Cat
+import otus.homework.coroutines.models.data.Fact
+import otus.homework.coroutines.models.data.Image
+import otus.homework.coroutines.models.domain.Cat
 
 class CatConverter {
 

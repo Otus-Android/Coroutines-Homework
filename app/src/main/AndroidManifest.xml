@@ -13,10 +13,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Coroutines">
         <activity
-            android:name=".presentation.presenter.ViewWithPresenterActivity"
+            android:name=".presentation.mvp.CatsActivity"
             android:exported="false" />
         <activity
-            android:name=".presentation.viewmodel.ViewWithViewModelActivity"
+            android:name=".presentation.mvvm.CatsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".presentation.mvvm.owners.CatsActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

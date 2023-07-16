@@ -1,4 +1,4 @@
-package otus.homework.coroutines.presentation.presenter
+package otus.homework.coroutines.presentation.mvp
 
 import android.content.Context
 import android.util.AttributeSet
@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.R
-import otus.homework.coroutines.models.Cat
+import otus.homework.coroutines.models.domain.Cat
 import otus.homework.coroutines.utils.CustomApplication
 
 class CatsView @JvmOverloads constructor(

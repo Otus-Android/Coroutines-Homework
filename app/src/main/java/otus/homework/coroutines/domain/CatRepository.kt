@@ -1,6 +1,6 @@
 package otus.homework.coroutines.domain
 
-import otus.homework.coroutines.models.Cat
+import otus.homework.coroutines.models.domain.Cat
 
 interface CatRepository {
 

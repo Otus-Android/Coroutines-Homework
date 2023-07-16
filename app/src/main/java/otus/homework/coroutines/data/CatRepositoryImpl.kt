@@ -4,7 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import otus.homework.coroutines.data.converter.CatConverter
 import otus.homework.coroutines.domain.CatRepository
-import otus.homework.coroutines.models.Cat
+import otus.homework.coroutines.models.domain.Cat
 
 class CatRepositoryImpl(
     private val factService: FactService,
