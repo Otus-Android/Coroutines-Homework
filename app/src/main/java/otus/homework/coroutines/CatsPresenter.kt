@@ -8,21 +8,28 @@ class CatsPresenter(
     private val imageService: CatsImageService
 ) {
 
-    private val scope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
+    private val scope = PresenterScope()
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        CrashMonitor.trackWarning()
+        throwable.message?.let { _catsView?.showToast(it) }
+    }
 
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
-        scope.launch {
+        scope.launch(exceptionHandler) {
             try {
-                val fact = catsService.getCatFact()
-                val image = imageService.getCatImage().first()
-                _catsView?.populate(CatModel(fact, image))
+                val fact = async { catsService.getCatFact() }
+                val image = async { imageService.getCatImage().first() }
+
+                _catsView?.populate(
+                    CatModel(
+                        fact.await(),
+                        image.await()
+                    )
+                )
             } catch (e: SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
-            } catch (e: Exception) {
-                CrashMonitor.trackWarning()
-                e.message?.let { _catsView?.showToast(it) }
             }
         }
     }

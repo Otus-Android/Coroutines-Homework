@@ -2,8 +2,8 @@ package otus.homework.coroutines
 
 import androidx.lifecycle.*
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.net.SocketTimeoutException
 
 class CatsViewModel(
     private val catsFactService: CatsFactService,
@@ -14,20 +14,20 @@ class CatsViewModel(
     val state: LiveData<Result<CatModel>> get() = _state
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        when (throwable) {
-            is SocketTimeoutException -> _state.value = Result.Error("Не удалось получить ответ от сервера")
-            else -> {
-                CrashMonitor.trackWarning()
-                _state.value = throwable.message?.let { Result.Error(it) }
-            }
-        }
+        CrashMonitor.trackWarning()
+        _state.value = throwable.message?.let { Result.Error(it) }
     }
 
     fun fetchData() {
         viewModelScope.launch(exceptionHandler) {
-            val fact = catsFactService.getCatFact()
-            val image = catsImageService.getCatImage().first()
-            _state.postValue(Result.Success(CatModel(fact, image)))
+            val fact = async { catsFactService.getCatFact() }
+            val image = async { catsImageService.getCatImage().first() }
+
+            _state.value = Result.Success(
+                CatModel(
+                    fact.await(), image.await()
+                )
+            )
         }
     }
 
