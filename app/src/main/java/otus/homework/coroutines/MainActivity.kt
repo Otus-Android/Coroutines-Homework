@@ -14,9 +14,7 @@ class MainActivity : AppCompatActivity() {
 
     private val mainViewModel by lazy { MainViewModel(
         diContainer.factService,
-        diContainer.imageService,
-        diContainer.mainDispatcher,
-        diContainer.ioDispatcher    // DI for tests
+        diContainer.imageService
     ) }
 
     private val diContainer = DiContainer()
@@ -30,8 +28,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 mainViewModel.state
-                    .onEach { result -> view.populate(result) }
-                    .collect()
+                    .collect { result -> view.populate(result) }
             }
         }
         view.refreshFun = object : Refresh {
@@ -40,5 +37,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
         mainViewModel.refresh()
+
+        /* For test CatsPresenter
+        CatsPresenter(diContainer.factService,
+            diContainer.imageService,
+            applicationContext,
+            diContainer.mainDispatcher)
+            .onInitComplete() // */
     }
 }

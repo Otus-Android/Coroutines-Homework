@@ -1,31 +1,39 @@
 package otus.homework.coroutines
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 import java.lang.Exception
+import kotlin.coroutines.cancellation.CancellationException
 
 class CatsPresenter(
     private val catsService: CatsService,
     private val imageService: ImageService,
     private val context: Context,
     mainDispatcher: CoroutineDispatcher,
-    private val ioDispatcher: CoroutineDispatcher
 ) {
     private var _catsView: ICatsView? = null
-    private var PresenterScope = CoroutineScope(mainDispatcher + CoroutineName("CatsCoroutine"))
+    private var presenterScope = CoroutineScope(mainDispatcher + CoroutineName("CatsCoroutine"))
 
     fun onInitComplete() {
 
-        PresenterScope.launch() {
+        presenterScope.launch() {
             try {
-                //_catsView?.populate(updateFact(), updataImage())
+                val factStr: Deferred<String> = async { updateFact() }
+                val imageUrl: Deferred<String> = async { updateImage() }
+                fakePopulate(factStr.await(), imageUrl.await())
+                //_catsView?.populate(factStr, imageUrl)
+            } catch (cancel: CancellationException) {
+                throw cancel
             } catch (error: java.net.SocketTimeoutException) { // add java.net.UnknownHostException ???
                 Toast.makeText(context, "Не удалось получить ответ от сервером", Toast.LENGTH_LONG)
                     .show()
@@ -37,24 +45,32 @@ class CatsPresenter(
         }
     }
 
-    suspend fun updateFact(): String {
-        val response: Response<Fact> = withContext(ioDispatcher) {
-            return@withContext catsService.getCatFact()
+    private fun fakePopulate(factStr: String, imageUrl: String){}
+
+    private suspend fun updateFact(): String {
+        Log.i("HW1_TEST_TAG", "updateFact start")
+        val response: Response<Fact> = catsService.getCatFact()
+        try {
+            if (response.isSuccessful && response.body() != null) {
+                return response.body()!!.text
+            }
+            return ""
+        } finally {
+            Log.i("HW1_TEST_TAG", "updateFact end")
         }
-        if (response.isSuccessful && response.body() != null) {
-            return response.body()!!.text
-        }
-        return ""
     }
 
-    suspend fun updataImage(): String {
-        val response: Response<ArrayList<Image>> = withContext(ioDispatcher) {
-            return@withContext imageService.getCatImage()
+    private suspend fun updateImage(): String {
+        Log.i("HW1_TEST_TAG", "updateImage start")
+        val response: Response<ArrayList<Image>> = imageService.getCatImage()
+        try {
+            if (response.isSuccessful && response.body() != null) {
+                return response.body()!![0].url
+            }
+            return ""
+        } finally {
+            Log.i("HW1_TEST_TAG", "updateImage end")
         }
-        if (response.isSuccessful && response.body() != null) {
-            return response.body()!![0].url
-        }
-        return ""
     }
 
     fun attachView(catsView: ICatsView) {
@@ -63,6 +79,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-        PresenterScope.cancel()
+        presenterScope.cancel()
     }
 }
