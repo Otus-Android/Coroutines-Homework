@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,10 +21,9 @@ class CatsPresenter(
     private val presenterScope: PresenterScope = PresenterScope()
 
     private var _catsView: ICatsView? = null
-    private var job: Job? = null
 
-    fun onInitComplete() {
-        job = presenterScope.launch {
+    fun onInitComplete() =
+        presenterScope.launch {
             try {
                 coroutineScope {
                     val fact = async { catsRepository.getCatFact() }
@@ -33,9 +33,9 @@ class CatsPresenter(
                 }
             } catch (e: Exception) {
                 onFailure(e)
+                throw CancellationException()
             }
         }
-    }
 
 
     private fun onFailure(e: Exception) {
@@ -51,10 +51,5 @@ class CatsPresenter(
 
     fun attachView(catsView: ICatsView) {
         _catsView = catsView
-    }
-
-    fun detachView() {
-        _catsView = null
-        job?.cancel()
     }
 }

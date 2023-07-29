@@ -5,7 +5,7 @@ import android.os.Bundle
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
+    private lateinit var catsPresenter: CatsPresenter
 
     private val diContainer = DiContainer()
 
@@ -20,12 +20,5 @@ class MainActivity : AppCompatActivity() {
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
-        }
-        super.onStop()
     }
 }
