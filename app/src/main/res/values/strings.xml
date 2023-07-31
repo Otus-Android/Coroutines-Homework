@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Cat Facts </string>
-    <string name="more_facts">More Facts</string>
+    <string name="more_facts_pr">More Facts (presenter)</string>
+    <string name="more_facts_vm">More Facts (viewmodel)</string>
 </resources>
