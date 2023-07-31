@@ -30,12 +30,14 @@ class AnimalViewModel: ViewModel() {
     fun getData() {
 
         state = Result.Loading
+        liveData.postValue(TextWithPicture("", ""))
 
         viewModelScope.launch {
 
             val scope = CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { coroutineContext, throwable ->
                 CrashMonitor.trackWarning()
                 state = Result.Error
+                liveData.postValue(TextWithPicture("", ""))
                 Log.d("Exception", throwable.toString())
             })
 
