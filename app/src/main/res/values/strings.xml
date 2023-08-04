@@ -2,6 +2,7 @@
     <string name="view_with_presenter_button">View with Presenter</string>
     <string name="view_with_view_model_button">View with ViewModel</string>
     <string name="view_with_custom_owners_button">View with ViewModel and custom owners</string>
+    <string name="view_with_mvi_button">View with MVI</string>
 
     <string name="app_name">Cat Facts </string>
     <string name="more_facts">More Facts</string>
