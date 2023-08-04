@@ -1,6 +1,6 @@
 package otus.homework.coroutines.data
 
-import otus.homework.coroutines.models.data.Image
+import otus.homework.coroutines.data.models.Image
 import retrofit2.http.GET
 
 /**

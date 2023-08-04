@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.view_with_view_model_button).setOnClickListener {
             startActivity(
                 Intent(
-                    this, otus.homework.coroutines.presentation.mvvm.CatsActivity::class.java
+                    this, otus.homework.coroutines.presentation.mvvm.parent.CatsActivity::class.java
                 )
             )
         }
@@ -39,6 +39,14 @@ class MainActivity : AppCompatActivity() {
             startActivity(
                 Intent(
                     this, otus.homework.coroutines.presentation.mvvm.owners.CatsActivity::class.java
+                )
+            )
+        }
+
+        findViewById<Button>(R.id.view_with_mvi_button).setOnClickListener {
+            startActivity(
+                Intent(
+                    this, otus.homework.coroutines.presentation.mvi.CatsActivity::class.java
                 )
             )
         }

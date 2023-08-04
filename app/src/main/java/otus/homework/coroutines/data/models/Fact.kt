@@ -1,4 +1,4 @@
-package otus.homework.coroutines.models.data
+package otus.homework.coroutines.data.models
 
 import com.google.gson.annotations.SerializedName
 

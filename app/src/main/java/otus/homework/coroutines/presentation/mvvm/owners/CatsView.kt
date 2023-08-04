@@ -1,25 +1,32 @@
 package otus.homework.coroutines.presentation.mvvm.owners
 
 import android.content.Context
-import android.os.Build
 import android.util.AttributeSet
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.R
-import otus.homework.coroutines.models.presentation.CatUiState
-import otus.homework.coroutines.presentation.mvvm.CatsViewModel
+import otus.homework.coroutines.presentation.mvvm.owners.models.CatUiState
 import otus.homework.coroutines.utils.CustomApplication
 
 /**
- * `Custom view` и информацией о случайном коте.
+ * `Custom view` с информацией о случайном коте.
  *
- * Построено на основе использования [ViewModel] и `custom` [ViewModelStoreOwner], [LifecycleOwner].
+ * Построено на основе паттерна `MVVM` с использованием [CatsViewModel],
+ * `custom` [ViewModelStoreOwner] и [LifecycleOwner].
  * Отличительная особенность: обработка данных производится в рамках своего жизненного цикла.
  */
 class CatsView @JvmOverloads constructor(
@@ -60,7 +67,12 @@ class CatsView @JvmOverloads constructor(
     private fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.uiState.collect { state -> update(state) }
+                launch {
+                    viewModel.uiState.collect { state -> update(state) }
+                }
+                launch(Dispatchers.Main.immediate) {
+                    viewModel.errorEvents.collect { message -> onError(message) }
+                }
             }
         }
     }
@@ -69,7 +81,6 @@ class CatsView @JvmOverloads constructor(
         when (state) {
             is CatUiState.Idle -> onIdle()
             is CatUiState.Success -> onSuccess(state)
-            is CatUiState.Error -> onError(state)
         }
     }
 
@@ -82,23 +93,8 @@ class CatsView @JvmOverloads constructor(
         picasso.load(state.cat.image).placeholder(R.drawable.question_mark).into(imageView)
     }
 
-    private fun onError(state: CatUiState.Error) {
-        if (!state.isShown) {
-            val toast = Toast.makeText(context, state.message, Toast.LENGTH_SHORT)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                toast.addCallback(object : Toast.Callback() {
-                    override fun onToastHidden() {
-                        viewModel.onErrorShown()
-                        toast.removeCallback(this)
-                    }
-                })
-                toast.show()
-            } else {
-                toast.show()
-                viewModel.onErrorShown()
-            }
-        }
-    }
+    private fun onError(message: String) =
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
     override fun onDetachedFromWindow() {
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
@@ -107,7 +103,9 @@ class CatsView @JvmOverloads constructor(
     }
 
     private fun initViewModel(): CatsViewModel = ViewModelProvider(
-        this, CustomApplication.diContainer(context).catsViewModelFactory
+        this, with(CustomApplication.diContainer(context)) {
+            CatsViewModel.provideFactory(catRepository, stringProvider, dispatcher)
+        }
     )[CatsViewModel::class.java]
 
     override fun getViewModelStore() = viewModelStore

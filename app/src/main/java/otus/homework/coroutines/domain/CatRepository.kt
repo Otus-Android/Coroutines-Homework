@@ -1,6 +1,6 @@
 package otus.homework.coroutines.domain
 
-import otus.homework.coroutines.models.domain.Cat
+import otus.homework.coroutines.domain.models.Cat
 
 /**
  * Репозиторий информации о кошке

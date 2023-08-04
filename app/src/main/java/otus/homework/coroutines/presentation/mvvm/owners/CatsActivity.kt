@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModelStoreOwner
 import otus.homework.coroutines.R
 
 /**
- * `Activity` с `custom view` с информацией о случайном коте, построенной на основе применения `ViewModel
+ * `Activity` с `custom view` с информацией о случайном коте, построенной на основе паттерна `MVVM`
  * и `custom` реализаций [ViewModelStoreOwner] и [LifecycleOwner]
  */
 class CatsActivity : AppCompatActivity() {

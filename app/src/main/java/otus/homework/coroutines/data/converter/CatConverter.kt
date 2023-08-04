@@ -1,8 +1,8 @@
 package otus.homework.coroutines.data.converter
 
-import otus.homework.coroutines.models.data.Fact
-import otus.homework.coroutines.models.data.Image
-import otus.homework.coroutines.models.domain.Cat
+import otus.homework.coroutines.data.models.Fact
+import otus.homework.coroutines.data.models.Image
+import otus.homework.coroutines.domain.models.Cat
 
 /**
  * Конвертер данных из [Fact] и списка [Image] в данные с информацией о кошке [Cat]

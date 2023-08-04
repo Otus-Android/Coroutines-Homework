@@ -9,13 +9,13 @@ import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.R
-import otus.homework.coroutines.models.domain.Cat
+import otus.homework.coroutines.domain.models.Cat
 import otus.homework.coroutines.utils.CustomApplication
 
 /**
  * `Custom view` и информацией о случайном коте.
  *
- * Построено на основе использования презентера
+ * Построено на основе паттерна `MVP` использования презентера [CatsPresenter]
  */
 class CatsView @JvmOverloads constructor(
     context: Context,

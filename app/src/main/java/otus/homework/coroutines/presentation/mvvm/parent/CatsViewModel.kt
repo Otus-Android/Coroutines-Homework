@@ -1,4 +1,4 @@
-package otus.homework.coroutines.presentation.mvvm
+package otus.homework.coroutines.presentation.mvvm.parent
 
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.*
@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import otus.homework.coroutines.R
 import otus.homework.coroutines.domain.CatRepository
-import otus.homework.coroutines.models.presentation.CatUiState
+import otus.homework.coroutines.presentation.mvvm.parent.models.CatUiState
 import otus.homework.coroutines.utils.CrashMonitor
 import otus.homework.coroutines.utils.StringProvider
 import java.net.SocketTimeoutException
@@ -63,10 +63,9 @@ class CatsViewModel(
             try {
                 val catInfo = repository.getCatInfo()
                 _uiState.update { CatUiState.Success(catInfo) }
-            } catch (e: Exception) {
-                onError(e)
-                if (e is CancellationException) {
-                    throw e
+            } catch (e: SocketTimeoutException) {
+                _uiState.update {
+                    CatUiState.Error(stringProvider.getString(R.string.timeout_server_error))
                 }
             }
         }
@@ -78,18 +77,6 @@ class CatsViewModel(
             state.copy(isShown = true)
         } else {
             state
-        }
-    }
-
-    private fun onError(e: Exception) {
-        _uiState.update {
-            CatUiState.Error(
-                if (e is SocketTimeoutException) {
-                    stringProvider.getString(R.string.timeout_server_error)
-                } else {
-                    e.messageOrDefault()
-                }
-            )
         }
     }
 

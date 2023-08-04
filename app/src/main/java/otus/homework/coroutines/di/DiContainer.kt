@@ -2,12 +2,11 @@ package otus.homework.coroutines.di
 
 import android.content.Context
 import com.squareup.picasso.Picasso
-import otus.homework.coroutines.presentation.mvvm.CatsViewModel
-import otus.homework.coroutines.data.converter.CatConverter
+import otus.homework.coroutines.data.CatRepositoryImpl
 import otus.homework.coroutines.data.FactService
 import otus.homework.coroutines.data.ImagesService
+import otus.homework.coroutines.data.converter.CatConverter
 import otus.homework.coroutines.domain.CatRepository
-import otus.homework.coroutines.data.CatRepositoryImpl
 import otus.homework.coroutines.utils.StringProvider
 import otus.homework.coroutines.utils.StringProviderImpl
 import otus.homework.coroutines.utils.coroutines.Dispatcher
@@ -42,6 +41,7 @@ class DiContainer(private val context: Context) {
         .build()
 
 
+    /** Поставщик строковых значений */
     val stringProvider: StringProvider by lazy(LazyThreadSafetyMode.NONE) {
         StringProviderImpl(context)
     }
@@ -49,9 +49,8 @@ class DiContainer(private val context: Context) {
     /** `Picasso` для загрузки изображений */
     val picasso: Picasso by lazy(LazyThreadSafetyMode.NONE) { Picasso.Builder(context).build() }
 
+    /** Обертка получения `coroutine dispatcher` */
     val dispatcher: Dispatcher by lazy(LazyThreadSafetyMode.NONE) { DispatcherImpl() }
-
-    val catsViewModelFactory get() = CatsViewModel.provideFactory(catRepository, stringProvider)
 
     private companion object {
         const val FACT_BASE_URL = "https://catfact.ninja/"

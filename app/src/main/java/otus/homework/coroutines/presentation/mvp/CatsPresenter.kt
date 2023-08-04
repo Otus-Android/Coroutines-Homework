@@ -1,5 +1,6 @@
 package otus.homework.coroutines.presentation.mvp
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.R
@@ -40,13 +41,13 @@ class CatsPresenter(
             try {
                 val catInfo = repository.getCatInfo()
                 _catsView?.populate(catInfo)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: SocketTimeoutException) {
+                _catsView?.warn(message = stringProvider.getString(R.string.timeout_server_error))
             } catch (e: Exception) {
-                if (e is SocketTimeoutException) {
-                    _catsView?.warn(message = stringProvider.getString(R.string.timeout_server_error))
-                } else {
-                    CrashMonitor.trackWarning(e)
-                    _catsView?.warn(message = e.messageOrDefault())
-                }
+                CrashMonitor.trackWarning(e)
+                _catsView?.warn(message = e.messageOrDefault())
             }
         }
     }

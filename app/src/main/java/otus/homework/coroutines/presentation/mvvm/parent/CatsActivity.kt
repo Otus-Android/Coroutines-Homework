@@ -1,4 +1,4 @@
-package otus.homework.coroutines.presentation.mvvm
+package otus.homework.coroutines.presentation.mvvm.parent
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import otus.homework.coroutines.R
 
 /**
- * `Activity` с `custom view` с информацией о случайном коте, построенной на основе применения `ViewModel`
+ * `Activity` с `custom view` с информацией о случайном коте, построенной на основе паттерна `MVVM`
  */
 class CatsActivity : AppCompatActivity() {
 

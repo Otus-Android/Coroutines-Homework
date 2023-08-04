@@ -31,6 +31,7 @@
 
 Представлены три варианта реализации задачи, находящиеся в ```app/src/main/java/otus/homework/coroutines/presentation```
 
-1. ```/mvp``` - реализация *custom view* на основе презентера
-2. ```/mvvm``` - реализация *custom view* на основе ```ViewModel```
-3. ```/mvvm/owners``` - реализация *custom view* на основе ```ViewModel``` и *custom* ```ViewModelStoreOwner, LifecycleOwner```
+1. ```/mvp``` - реализация *custom view* на основе паттеран `MVP`
+2. ```/mvvm/parent``` - реализация *custom view* на основе паттерна ```MVVM``` и `findViewTreeViewModelStoreOwner`
+3. ```/mvvm/owners``` - реализация *custom view* на основе паттерна ```MVVM``` и *custom* ```ViewModelStoreOwner, LifecycleOwner```
+4. ```/mvi``` - реализация *custom view* на основе паттерна ```MVI``` и библиотеки ```MVICore```

@@ -8,4 +8,6 @@ import kotlinx.coroutines.Dispatchers
 class DispatcherImpl : Dispatcher {
 
     override val main = Dispatchers.Main
+
+    override val mainImmediate = Dispatchers.Main.immediate
 }

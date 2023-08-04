@@ -2,6 +2,7 @@ package otus.homework.coroutines.utils.coroutines
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -12,6 +13,6 @@ import kotlin.coroutines.CoroutineContext
 class PresenterScope(private val dispatcher: Dispatcher) : CoroutineScope {
 
     override val coroutineContext: CoroutineContext
-        get() = dispatcher.main + CoroutineName("CatsCoroutine")
+        get() = SupervisorJob() + dispatcher.main + CoroutineName("CatsCoroutine")
 
 }

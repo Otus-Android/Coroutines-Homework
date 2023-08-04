@@ -1,6 +1,6 @@
 package otus.homework.coroutines.data
 
-import otus.homework.coroutines.models.data.Fact
+import otus.homework.coroutines.data.models.Fact
 import retrofit2.http.GET
 
 /**

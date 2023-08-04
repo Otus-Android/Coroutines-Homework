@@ -9,4 +9,7 @@ interface Dispatcher {
 
     /** `main coroutine dispatcher` */
     val main: CoroutineDispatcher
+
+    /** `main immediate coroutine dispatcher` */
+    val mainImmediate: CoroutineDispatcher
 }

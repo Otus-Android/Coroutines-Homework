@@ -1,4 +1,4 @@
-package otus.homework.coroutines.presentation.mvvm
+package otus.homework.coroutines.presentation.mvvm.parent
 
 import android.content.Context
 import android.os.Build
@@ -8,20 +8,27 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.findViewTreeViewModelStoreOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.R
-import otus.homework.coroutines.models.presentation.CatUiState
+import otus.homework.coroutines.presentation.mvvm.parent.models.CatUiState
 import otus.homework.coroutines.utils.CustomApplication
 
 /**
- * `Custom view` и информацией о случайном коте.
+ * `Custom view` с информацией о случайном коте.
  *
- * Построено на основе использования [ViewModel].
+ * Построено на основе паттерна `MVVM` с использованием [CatsViewModel].
  * Отличительная особенность: используются данные ближайших компонентов вверх по иерархии для
  * получения [ViewModelStoreOwner] и [LifecycleOwner], на основе которых и производится обработка
- * данныхю.
+ * данных.
  */
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -105,7 +112,9 @@ class CatsView @JvmOverloads constructor(
         findViewTreeViewModelStoreOwner()?.let { viewModelStoreOwner ->
             ViewModelProvider(
                 viewModelStoreOwner,
-                CustomApplication.diContainer(context).catsViewModelFactory
+                with(CustomApplication.diContainer(context)) {
+                    CatsViewModel.provideFactory(catRepository, stringProvider)
+                }
             )[CatsViewModel::class.java]
         } ?: throw IllegalStateException()
 }

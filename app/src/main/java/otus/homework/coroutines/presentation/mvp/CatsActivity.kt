@@ -7,7 +7,7 @@ import otus.homework.coroutines.R
 import otus.homework.coroutines.utils.CustomApplication
 
 /**
- * `Activity` с `custom view` с информацией о случайном коте, построенной на основе применения презентера
+ * `Activity` с `custom view` с информацией о случайном коте, построенной на основе паттерна `MVP
  */
 class CatsActivity : AppCompatActivity() {
 
