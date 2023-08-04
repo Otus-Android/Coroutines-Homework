@@ -1,30 +1,54 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 
+/**
+ * Базовая `activity`
+ */
 class MainActivity : AppCompatActivity() {
-
-    lateinit var catsPresenter: CatsPresenter
-
-    private val diContainer = DiContainer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
-        setContentView(view)
+        setContentView(R.layout.activity_main)
 
-        catsPresenter = CatsPresenter(diContainer.service)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+        initView()
     }
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+    private fun initView() {
+        findViewById<Button>(R.id.view_with_presenter_button).setOnClickListener {
+            startActivity(
+                Intent(
+                    this, otus.homework.coroutines.presentation.mvp.CatsActivity::class.java
+                )
+            )
         }
-        super.onStop()
+
+        findViewById<Button>(R.id.view_with_view_model_button).setOnClickListener {
+            startActivity(
+                Intent(
+                    this, otus.homework.coroutines.presentation.mvvm.parent.CatsActivity::class.java
+                )
+            )
+        }
+
+        findViewById<Button>(R.id.view_with_custom_owners_button).setOnClickListener {
+            startActivity(
+                Intent(
+                    this, otus.homework.coroutines.presentation.mvvm.owners.CatsActivity::class.java
+                )
+            )
+        }
+
+        findViewById<Button>(R.id.view_with_mvi_button).setOnClickListener {
+            startActivity(
+                Intent(
+                    this, otus.homework.coroutines.presentation.mvi.CatsActivity::class.java
+                )
+            )
+        }
     }
 }
