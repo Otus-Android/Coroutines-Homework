@@ -1,7 +1,6 @@
 package otus.homework.coroutines
 
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,18 +9,12 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import otus.homework.coroutines.Result
-import java.net.SocketTimeoutException
 
 class AnimalViewModel: ViewModel() {
 
-    private var liveData = MutableLiveData<TextWithPicture>()
-
-    private var state: Result = Result.Loading
-
-    val _liveData: LiveData<TextWithPicture> = liveData
+    private var _liveData = MutableLiveData<Result>(Loading)
+    val liveData: LiveData<Result> = _liveData
 
     init {
         getData()
@@ -29,15 +22,11 @@ class AnimalViewModel: ViewModel() {
 
     fun getData() {
 
-        state = Result.Loading
-        liveData.postValue(TextWithPicture("", ""))
-
         viewModelScope.launch {
 
-            val scope = CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { coroutineContext, throwable ->
+            val scope = CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
                 CrashMonitor.trackWarning()
-                state = Result.Error
-                liveData.postValue(TextWithPicture("", ""))
+                _liveData.postValue(Error(throwable.toString()))
                 Log.d("Exception", throwable.toString())
             })
 
@@ -51,12 +40,9 @@ class AnimalViewModel: ViewModel() {
                     PicturesContainer().service.getPicture().image
                 }
 
-                liveData.postValue(TextWithPicture(fact.await(), pict.await()))
-                state = Result.Success
+                _liveData.postValue(Success(TextWithPicture(fact.await(), pict.await())))
             }
         }
     }
-
-    fun getState() = state
 
 }

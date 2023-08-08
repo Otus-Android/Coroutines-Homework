@@ -3,13 +3,7 @@ package otus.homework.coroutines
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.activity.viewModels
-import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
-import com.squareup.picasso.Picasso
-import otus.homework.coroutines.Result
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,26 +29,8 @@ class MainActivity : AppCompatActivity() {
             viewModel.getData()
         }
 
-        viewModel._liveData.observe(this) {
-
-            val txt = findViewById<TextView>(R.id.fact_textView)
-            val img = findViewById<ImageView>(R.id.imageView)
-
-            when (viewModel.getState()) {
-                Result.Loading -> {
-                    txt.text = "Loading..."
-                    img.isVisible = false
-                }
-                Result.Error -> {
-                    txt.text = "Error"
-                    img.isVisible = false
-                }
-                Result.Success -> {
-                    txt.text = it.fact
-                    Picasso.get().load(it.image).into(img)
-                    img.isVisible = true
-                }
-            }
+        viewModel.liveData.observe(this) {
+            view.populate(it)
         }
     }
 

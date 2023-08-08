@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isVisible
 import com.squareup.picasso.Picasso
 
 class CatsView @JvmOverloads constructor(
@@ -23,13 +24,30 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: TextWithPicture) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
-        Picasso.get().load(fact.image).into(findViewById<ImageView>(R.id.imageView))
+    override fun populate(result: Result) {
+
+        val txt = findViewById<TextView>(R.id.fact_textView)
+        val img = findViewById<ImageView>(R.id.imageView)
+
+        when (result) {
+            is Loading -> {
+                txt.text = "Loading..."
+                img.isVisible = false
+            }
+            is Success -> {
+                txt.text = result.fact.fact
+                Picasso.get().load(result.fact.image).into(img)
+                img.isVisible = true
+            }
+            is Error -> {
+                txt.text = result.message
+                img.isVisible = false
+            }
+        }
     }
 }
 
 interface ICatsView {
 
-    fun populate(fact: TextWithPicture)
+    fun populate(result: Result)
 }
