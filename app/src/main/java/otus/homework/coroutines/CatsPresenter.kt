@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,11 +23,9 @@ class CatsPresenter(
     fun onInitComplete() {
 
         _catsView?.also {
-            val context = (it as CatsView).context as MainActivity
 
-            job = context.lifecycleScope.launch {
-                val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
-
+            val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
+            job = presenterScope.launch {
                 val fact = presenterScope.async {
                     catsService.getCatFact().fact
                 }
@@ -38,12 +37,15 @@ class CatsPresenter(
                 try {
                     it.populate(Success(TextWithPicture(fact.await(), pict.await())))
                 }
+                catch (e: CancellationException) {
+                    throw e
+                }
                 catch (e: SocketTimeoutException) {
-                    Toast.makeText(context, "Не удалось получить ответ от сервера", Toast.LENGTH_SHORT).show()
+                    Toast.makeText((it as CatsView).context, "Не удалось получить ответ от сервера", Toast.LENGTH_SHORT).show()
                 }
                 catch (e: Exception) {
                     CrashMonitor.trackWarning()
-                    Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show()
+                    Toast.makeText((it as CatsView).context, e.toString(), Toast.LENGTH_SHORT).show()
                 }
             }
         }
