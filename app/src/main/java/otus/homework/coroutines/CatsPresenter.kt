@@ -32,8 +32,11 @@ class CatsPresenter(
                     _catsView?.populate(Cat(fact.await(), imageLink.await()))
                 }
             } catch (e: Exception) {
-                onFailure(e)
-                throw CancellationException()
+                if (e is CancellationException) {
+                    throw CancellationException()
+                } else {
+                    onFailure(e)
+                }
             }
         }
 
