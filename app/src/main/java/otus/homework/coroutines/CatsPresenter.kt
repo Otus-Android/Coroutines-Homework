@@ -18,29 +18,30 @@ class CatsPresenter(
     private val catsScope = PresenterScope()
 
     fun onInitComplete() {
-        runBlocking(Dispatchers.IO) {
-            catsScope.launch {
-                try {
-                    val catFactJob = async { factService.getCatFact() }
-                    val catImageJob = async { imageService.getCatImage() }
+        catsScope.launch {
+            try {
+                val catFactJob = async { factService.getCatFact() }
+                val catImageJob = async { imageService.getCatImage() }
 
-                    val catModel = CatModel(
-                        catFactJob.await().body()?.fact,
-                        CatsImageService.BASE_URL + catImageJob.await().body()?.url)
+                val catModel = CatModel(
+                    catFactJob.await().fact,
+                    CatsImageService.BASE_URL + catImageJob.await().url
+                )
 
-                    _catsView?.populate(catModel)
-                } catch (e: Exception) {
-                    when (e) {
-                        is SocketTimeoutException -> {
-                            _catsView?.showToast(R.string.error_connection)
-                        }
-                        is CancellationException ->  {
-                            throw e
-                        }
-                        else -> {
-                            CrashMonitor.trackWarning(e.message.toString())
-                            _catsView?.showToast(e.message.toString())
-                        }
+                _catsView?.populate(catModel)
+            } catch (e: Exception) {
+                when (e) {
+                    is SocketTimeoutException -> {
+                        _catsView?.showToast(R.string.error_connection)
+                    }
+
+                    is CancellationException -> {
+                        throw e
+                    }
+
+                    else -> {
+                        CrashMonitor.trackWarning(e.message.toString())
+                        _catsView?.showToast(e.message.toString())
                     }
                 }
             }
@@ -53,9 +54,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
-    }
-
-    fun onStop(){
         catsScope.cancel()
     }
 }
