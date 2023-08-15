@@ -5,15 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import java.lang.Exception
 
 class MainActivityViewModal(
     private val catsFactService: CatsFactService,
     private val catsImageService: CatsImageService
 ): ViewModel() {
 
-    private val _state = MutableLiveData<ResponseResult<CatModal>>()
-    val state: LiveData<ResponseResult<CatModal>> get() = _state
+    private val _state = MutableLiveData<ResponseResult>()
+    val state: LiveData<ResponseResult> get() = _state
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         CrashMonitor.trackWarning(throwable)
@@ -25,12 +27,17 @@ class MainActivityViewModal(
 
     fun loadData() {
         viewModelScope.launch(exceptionHandler) {
-            val catsFact = catsFactService.getCatFact()
-            val catsImage = catsImageService.getImage().first()
-            _state.value = ResponseResult.Success(CatModal(
-                catsFact,
-                catsImage
-            ))
+            try {
+                val catsFact = async { catsFactService.getCatFact() }
+                val catsImage = async { catsImageService.getImage().first()  }
+                _state.value = ResponseResult.Success(CatModal(
+                    catsFact.await(),
+                    catsImage.await()
+                ))
+            }catch (e: Exception){
+                _state.value = ResponseResult.Error(e)
+            }
+
         }
     }
 }

@@ -1,5 +1,7 @@
 package otus.homework.coroutines
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
@@ -14,16 +16,16 @@ class CatsPresenter(
     fun onInitComplete() {
         scope.launch {
             try {
-                val catsFact = catsFactService.getCatFact()
-                val catsImage = catsImageService.getImage().first()
+                val catsFact = async { catsFactService.getCatFact() }
+                val catsImage = async { catsImageService.getImage().first() }
                 _catsView?.populate(CatModal(
-                    catsFact = catsFact,
-                    catsImage = catsImage
+                    catsFact = catsFact.await(),
+                    catsImage = catsImage.await()
                 ))
             } catch (e: SocketTimeoutException) {
                 _catsView?.showToast(R.string.error_failed)
 
-            } catch (e: Exception) {
+            } catch (e: CancellationException) {
                 _catsView?.showToast(e.message.orEmpty())
                 CrashMonitor.trackWarning(e)
             }

@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModal.state.observe(this){ result->
             when(result){
-                is ResponseResult.Success -> view.populate(result.value)
+                is ResponseResult.Success -> view.populate(result.catModal)
                 is ResponseResult.Error -> view.showToast(result.throwable.message.orEmpty())
             }
 
