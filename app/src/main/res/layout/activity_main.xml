@@ -6,6 +6,15 @@
     android:padding="16dp"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+    
+    <ImageView
+        android:id="@+id/cat_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/fact_textView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/fact_textView"
