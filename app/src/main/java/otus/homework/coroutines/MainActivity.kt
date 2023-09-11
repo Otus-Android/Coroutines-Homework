@@ -14,10 +14,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
-        view.viewModel = viewModel
+        view.startObserve(viewModel)
         setContentView(view)
 
-        view.startObserve(viewModel)
         viewModel.onInitComplete()
     }
 

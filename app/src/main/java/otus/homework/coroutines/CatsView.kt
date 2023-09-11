@@ -8,6 +8,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import otus.homework.coroutines.data.Fact
+import otus.homework.coroutines.data.Pic
 import otus.homework.coroutines.network.Result
 import java.net.SocketTimeoutException
 
@@ -29,38 +31,58 @@ class CatsView @JvmOverloads constructor(
     }
 
     fun startObserve(viewModel: CatsViewModel) {
+        this.viewModel = viewModel
         populateObserve()
-        errorObserve()
     }
 
     private fun populateObserve() {
         val text = findViewById<TextView>(R.id.fact_textView)
         val pic = findViewById<ImageView>(R.id.pic_imageView)
-        viewModel.factDataValue.observe(context as MainActivity) { result ->
+        viewModel.resultDataValue.observe(context as MainActivity) { result ->
             when (result) {
-                is Result.Error -> viewModel.isError(result.exception)
-                is Result.Success -> text.text = result.data.fact
-            }
-        }
-        viewModel.picDataValue.observe(context as MainActivity) { result ->
-            when (result) {
-                is Result.Error -> viewModel.isError(result.exception)
+                is Result.Error -> {
+                    showError(result.exception)
+                }
+
                 is Result.Success -> {
-                    Picasso.get()
-                        .load("https://cataas.com" + result.data.url)
-                        .into(pic)
+
+                    when (result.data) {
+
+                        is Fact -> {
+                            text.text = result.data.fact
+                        }
+
+                        is Pic -> {
+                            Picasso.get()
+                                .load("https://cataas.com" + result.data.url)
+                                .into(pic)
+                        }
+
+                    }
+
                 }
             }
-
         }
     }
 
-    private fun errorObserve() {
-        viewModel.errorDataValue.observe(context as MainActivity) { errorText ->
-            Toast.makeText(context, errorText, Toast.LENGTH_LONG).show()
+
+    private fun showError(exception: Exception) {
+        val errorMessage = when (exception) {
+            is SocketTimeoutException -> {
+                "Не удалось получить ответ от сервера"
+            }
+
+            else -> {
+                CrashMonitor.trackWarning(exception)
+                exception.message.toString()
+
+            }
         }
+
+        Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
     }
 }
+
 
 interface ICatsView {
 

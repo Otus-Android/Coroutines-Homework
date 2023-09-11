@@ -21,20 +21,11 @@ class CatsViewModel @Inject constructor(
     private val catsRepository: CatsRepository
 ) : ViewModel() {
 
-    val factDataValue: LiveData<Result<Fact>>
-        get() = _factDataValue
+    val resultDataValue: LiveData<Result<Any>>
+        get() = _resultDataValue
 
-    private val _factDataValue = MutableLiveData<Result<Fact>>()
+    private val _resultDataValue = MutableLiveData<Result<Any>>()
 
-    val picDataValue: LiveData<Result<Pic>>
-        get() = _picDataValue
-
-    private val _picDataValue = MutableLiveData<Result<Pic>>()
-
-    val errorDataValue: LiveData<String>
-        get() = _errorDataValue
-
-    private val _errorDataValue = MutableLiveData<String>()
 
     private val handler = CoroutineExceptionHandler { _, exception ->
         CrashMonitor.trackWarning(Exception(exception))
@@ -42,31 +33,17 @@ class CatsViewModel @Inject constructor(
 
     fun onInitComplete() {
         viewModelScope.launch(handler) {
-            val factResult = async {
-                catsRepository.getCatFact()
-            }
-            _factDataValue.value = factResult.await()
-        }
 
-        viewModelScope.launch(handler) {
             val picResult =
                 async { catsRepository.getCatPic() }
 
-            _picDataValue.value = picResult.await()
+            val factResult = async {
+                catsRepository.getCatFact()
+            }
+
+            _resultDataValue.value = picResult.await()
+            _resultDataValue.value = factResult.await()
         }
     }
-
-fun isError(exception: Exception) {
-    when (exception) {
-        is SocketTimeoutException -> {
-            _errorDataValue.value = "Не удалось получить ответ от сервера"
-        }
-        else -> {
-            _errorDataValue.value = exception.message.toString()
-            CrashMonitor.trackWarning(exception)
-        }
-    }
-}
-
 
 }
