@@ -1,11 +1,12 @@
 package otus.homework.coroutines
 
+import otus.homework.coroutines.model.Fact
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
 ) {
 
     private var _catsView: ICatsView? = null
@@ -14,8 +15,8 @@ class CatsPresenter(
         catsService.getCatFact().enqueue(object : Callback<Fact> {
 
             override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+                if (response.isSuccessful) {
+                    response.body()?.let { body -> _catsView?.populate(body) }
                 }
             }
 
