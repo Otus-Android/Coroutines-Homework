@@ -1,8 +1,8 @@
-package otus.homework.coroutines.utils.di
+package otus.homework.coroutines.di
 
 import android.app.Activity
 import android.content.Context
-import otus.homework.coroutines.CatsService
+import otus.homework.coroutines.data.CatsService
 
 val Context.component: ApplicationComponent
     get() = (applicationContext as ApplicationComponent)

@@ -1,11 +1,13 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation
 
 import android.app.Application
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import otus.homework.coroutines.utils.di.ApplicationComponent
+import otus.homework.coroutines.data.CatsService
+import otus.homework.coroutines.di.ApplicationComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 class CatsApp: Application(), ApplicationComponent {
 
@@ -16,6 +18,7 @@ class CatsApp: Application(), ApplicationComponent {
 
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(httpLoggingInterceptor)
+            .callTimeout(20L, TimeUnit.SECONDS)
             .build()
 
         val retrofit = Retrofit.Builder()

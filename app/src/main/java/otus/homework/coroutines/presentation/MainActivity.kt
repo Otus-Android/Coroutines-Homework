@@ -1,9 +1,9 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import otus.homework.coroutines.databinding.ActivityMainBinding
-import otus.homework.coroutines.utils.di.catsService
+import otus.homework.coroutines.di.catsService
 
 class MainActivity : AppCompatActivity() {
 
