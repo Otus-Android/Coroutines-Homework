@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Cat Facts </string>
     <string name="more_facts">More Facts</string>
+
+    <string name="timeout_exception">Не удалось получить ответ от сервера</string>
+    <string name="default_exception">Что-то пошло не так. Попробуйте позже</string>
+
+    <string name="photo_description">Картинка</string>
 </resources>

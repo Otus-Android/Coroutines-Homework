@@ -1,11 +1,21 @@
 package otus.homework.coroutines.di
 
-import otus.homework.coroutines.data.CatsRepository
-import otus.homework.coroutines.data.CatsService
+import com.squareup.picasso.Picasso
+import otus.homework.coroutines.domain.repository.FactRepository
+import otus.homework.coroutines.data.api.CatsApi
+import otus.homework.coroutines.data.api.ImageUrlGenerateApi
+import otus.homework.coroutines.domain.repository.ImageUrlRepository
 
 interface ApplicationComponent {
 
-    val catsService: CatsService
+    val factApi: CatsApi
 
-    val catsRepository: CatsRepository
+    val imageUrlGenerateApi: ImageUrlGenerateApi
+
+    val factRepository: FactRepository
+
+    val imageGenerateRepository: ImageUrlRepository
+
+    val picasso: Picasso
+
 }

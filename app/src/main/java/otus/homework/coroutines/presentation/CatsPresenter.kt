@@ -1,43 +1,59 @@
 package otus.homework.coroutines.presentation
 
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import otus.homework.coroutines.data.CatsRepository
-import otus.homework.coroutines.data.CatsService
+import kotlinx.coroutines.withContext
+import otus.homework.coroutines.domain.repository.FactRepository
 import otus.homework.coroutines.data.Result
-import java.net.SocketTimeoutException
+import otus.homework.coroutines.domain.repository.ImageUrlRepository
 
 class CatsPresenter(
-    private val catsService: CatsRepository,
+    private val catsService: FactRepository,
+    private val imageUrlRepository: ImageUrlRepository,
 ) {
+    private var catFactJob: Job? = null
+    private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+        coroutineScope.launch(Dispatchers.Main) {
+            view?.populate(ScreenState.Error(exception.message))
+        }
+        CrashMonitor.trackWarning(exception)
+    }
+
     private val coroutineScope = CoroutineScope(
-        SupervisorJob() + Dispatchers.Main + CoroutineName("CatsCoroutine")
+        SupervisorJob()
+                + Dispatchers.Main
+                + CoroutineName("CatsCoroutine")
     )
     private var view: ICatsView? = null
 
     fun onInitComplete() {
-        coroutineScope.launch {
-            val factDeferred = async(Dispatchers.IO) {
-                catsService.getCatFact()
-            }
+        view?.populate(ScreenState.Loading)
+        catFactJob?.cancel()
+        catFactJob = coroutineScope.launch(exceptionHandler) {
+            val factDeferred = async(Dispatchers.IO) { catsService.getCatFact() }
+            val imageUrlDeferred = async(Dispatchers.IO) { imageUrlRepository.getImageUrl() }
 
-            when (val factResult = factDeferred.await()) {
-                is Result.Success -> {
-                    view?.populate(factResult.model)
-                }
-                is Result.Error -> {
-                    when(val exception = factResult.exception) {
-                        is SocketTimeoutException -> {
-                            view?.showErrorToast(CatsService.TIMEOUT_MESSAGE)
-                        }
-                        else -> {
-                            exception.message?.let { view?.showErrorToast(it) }
-                            CrashMonitor.trackWarning()
-                        }
+            if (isActive) {
+                val factResult = factDeferred.await()
+                val urlResult = imageUrlDeferred.await()
+
+                withContext(Dispatchers.Main) {
+                    if (factResult is Result.Success && urlResult is Result.Success) {
+                        view?.populate(
+                            ScreenState.Model(
+                                text = factResult.model.text,
+                                photoUrl = urlResult.model.url,
+                            )
+                        )
+                    } else {
+                        view?.populate(ScreenState.TimeoutException)
                     }
                 }
             }
@@ -50,5 +66,6 @@ class CatsPresenter(
 
     fun detachView() {
         view = null
+        catFactJob?.cancel()
     }
 }

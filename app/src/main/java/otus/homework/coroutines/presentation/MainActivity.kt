@@ -3,13 +3,13 @@ package otus.homework.coroutines.presentation
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import otus.homework.coroutines.databinding.ActivityMainBinding
-import otus.homework.coroutines.di.catsRepository
+import otus.homework.coroutines.di.factRepository
+import otus.homework.coroutines.di.imageUrlRepository
 
 class MainActivity : AppCompatActivity() {
 
-
-    private val catsPresenter: CatsPresenter by lazy {
-        CatsPresenter(catsRepository)
+    private val screenPresenter: CatsPresenter by lazy {
+        CatsPresenter(factRepository, imageUrlRepository)
     }
 
     private val binding: ActivityMainBinding by lazy {
@@ -21,15 +21,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.root.let { view ->
-            view.presenter = catsPresenter
-            catsPresenter.attachView(view)
-            catsPresenter.onInitComplete()
+            view.presenter = screenPresenter
+            screenPresenter.attachView(view)
+            screenPresenter.onInitComplete()
         }
     }
 
     override fun onStop() {
         if (isFinishing) {
-            catsPresenter.detachView()
+            screenPresenter.detachView()
         }
         super.onStop()
     }
