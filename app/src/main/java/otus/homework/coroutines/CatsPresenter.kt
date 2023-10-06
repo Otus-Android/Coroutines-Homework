@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,7 +13,7 @@ import retrofit2.Response
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
 ) {
     private var job: Job? = null
     private var _catsView: ICatsView? = null
@@ -24,9 +25,13 @@ class CatsPresenter(
     private fun getFactsByCoroutines() {
         job = CoroutineScope(Dispatchers.IO + CoroutineName(CATS_COROUTINE_NAME)).launch {
             try {
-                val fact = catsService.getCatFactWithCoroutines()
+//                val fact = catsService.getCatFactWithCoroutines()
+                Log.e("TAG","ddddd")
+                val picture = catsService.getRandomPicture("cats")
+                Log.e("TAG","eeee")
+                Log.e("TAG", picture.hits[0].largeImageURL)
                 withContext(Dispatchers.Main) {
-                    _catsView?.populate(fact)
+//                    _catsView?.populate(fact)
                 }
             } catch (ste: SocketTimeoutException) {
                 withContext(Dispatchers.Main) {

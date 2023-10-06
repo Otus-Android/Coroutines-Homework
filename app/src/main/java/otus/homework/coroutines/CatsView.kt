@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import otus.homework.coroutines.model.Fact
 
 class CatsView @JvmOverloads constructor(
     context: Context,
