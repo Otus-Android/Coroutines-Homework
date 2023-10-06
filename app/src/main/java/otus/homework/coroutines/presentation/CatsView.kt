@@ -41,11 +41,9 @@ class CatsView @JvmOverloads constructor(
     }
 
     private fun setupObservers() {
-        setupOnStopListener {
-            viewModel?.stopWorking()
-        }
-        findViewTreeLifecycleOwner()?.let { owner ->
-            viewModel?.state?.observe(owner, ::populate)
+        viewModel?.let { viewModel ->
+            setupOnStopListener(viewModel::refreshFact, viewModel::stopWorking)
+            findViewTreeLifecycleOwner()?.let { viewModel.state.observe(it, ::populate) }
         }
     }
 
@@ -55,7 +53,7 @@ class CatsView @JvmOverloads constructor(
             is ScreenState.Loading -> showLoading(true)
             is ScreenState.Model -> showContent(state)
             is ScreenState.TimeoutException -> showError(context.getString(R.string.timeout_exception))
-            ScreenState.Empty -> hideAllChildren()
+            is ScreenState.Empty -> hideAllChildren()
         }
     } 
 
@@ -87,8 +85,8 @@ class CatsView @JvmOverloads constructor(
 
     private fun hideAllChildren() {
         progressBar?.isVisible = false
-        textView?.isVisible = false
-        photo?.isVisible = false
+        textView?.isVisible = true
+        photo?.isVisible = true
         refreshButton?.isEnabled = true
     }
 

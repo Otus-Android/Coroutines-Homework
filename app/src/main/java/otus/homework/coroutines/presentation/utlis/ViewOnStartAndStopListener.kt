@@ -6,9 +6,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
 
-class ViewOnStopListener(
+class ViewOnStartAndStopListener(
     private val owner: LifecycleOwner,
-    private val listener: () -> Unit,
+    private val onStartListener: () -> Unit,
+    private val onStopListener: () -> Unit,
 ) : LifecycleEventObserver {
 
     init {
@@ -17,15 +18,16 @@ class ViewOnStopListener(
 
     override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
         when (event) {
-            Lifecycle.Event.ON_STOP -> listener()
+            Lifecycle.Event.ON_START -> onStartListener()
+            Lifecycle.Event.ON_STOP -> onStopListener()
             Lifecycle.Event.ON_DESTROY -> owner.lifecycle.removeObserver(this)
             else -> Unit
         }
     }
 }
 
-fun View.setupOnStopListener(listener: () -> Unit) {
+fun View.setupOnStopListener(onStartListener: () -> Unit, onStopListener: () -> Unit) {
     findViewTreeLifecycleOwner()?.let { owner ->
-        ViewOnStopListener(owner, listener)
+        ViewOnStartAndStopListener(owner, onStartListener, onStopListener)
     }
 }
