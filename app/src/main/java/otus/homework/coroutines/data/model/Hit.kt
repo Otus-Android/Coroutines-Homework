@@ -1,4 +1,4 @@
-package otus.homework.coroutines.model
+package otus.homework.coroutines.data.model
 
 import com.google.gson.annotations.SerializedName
 
@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName
 data class Hit(
     @SerializedName("id")
     val id: Long,
-    @SerializedName("largeImageURL")
-    val largeImageURL: String
+    @SerializedName("webformatURL")
+    val imageURL: String
 )
 

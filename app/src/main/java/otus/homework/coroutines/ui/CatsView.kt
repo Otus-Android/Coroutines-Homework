@@ -1,12 +1,15 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.ui
 
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
-import otus.homework.coroutines.model.Fact
+import com.squareup.picasso.Picasso
+import otus.homework.coroutines.R
+import otus.homework.coroutines.presentation.CatContent
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -14,7 +17,7 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var presenter : CatsPresenter? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -23,8 +26,13 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
+    override fun populate(content: CatContent) {
+        findViewById<TextView>(R.id.fact_textView).text = content.fact
+        Picasso.get()
+            .load(content.image)
+            .resize(250, 250)
+            .centerCrop()
+            .into(findViewById<ImageView>(R.id.iv_cat))
     }
 
     override fun showToast(text: String) {
@@ -34,5 +42,6 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
     fun showToast(text: String)
-    fun populate(fact: Fact)
+    fun populate(content: CatContent)
+
 }
