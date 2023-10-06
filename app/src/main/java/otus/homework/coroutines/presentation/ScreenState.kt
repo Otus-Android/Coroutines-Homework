@@ -2,6 +2,8 @@ package otus.homework.coroutines.presentation
 
 sealed interface ScreenState {
 
+    data object Empty : ScreenState
+
     data object Loading : ScreenState
 
     data object TimeoutException : ScreenState

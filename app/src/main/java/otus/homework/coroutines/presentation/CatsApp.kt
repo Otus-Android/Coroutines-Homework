@@ -6,13 +6,16 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import otus.homework.coroutines.domain.repository.FactRepository
 import otus.homework.coroutines.data.reposiroty.FactRepositoryImpl
-import otus.homework.coroutines.data.api.CatsApi
-import otus.homework.coroutines.data.api.ImageUrlGenerateApi
+import otus.homework.coroutines.data.api.FactApi
+import otus.homework.coroutines.data.api.ImageUrlApi
 import otus.homework.coroutines.data.mapper.FactMapper
 import otus.homework.coroutines.data.mapper.ImageUrlMapper
 import otus.homework.coroutines.data.reposiroty.ImageUrlRepositoryImpl
 import otus.homework.coroutines.di.ApplicationComponent
 import otus.homework.coroutines.domain.repository.ImageUrlRepository
+import otus.homework.coroutines.presentation.utlis.Internet.FACT_BASE_URL
+import otus.homework.coroutines.presentation.utlis.Internet.IMAGE_GENERATE_BAS_URL
+import otus.homework.coroutines.presentation.utlis.ViewModelFactory
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -28,22 +31,22 @@ class CatsApp: Application(), ApplicationComponent {
         .callTimeout(20L, TimeUnit.SECONDS)
         .build()
 
-    override val factApi: CatsApi by lazy {
+    override val factApi: FactApi by lazy {
         Retrofit.Builder()
             .baseUrl(FACT_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(CatsApi::class.java)
+            .create(FactApi::class.java)
     }
 
-    override val imageUrlGenerateApi: ImageUrlGenerateApi by lazy {
+    override val imageUrlApi: ImageUrlApi by lazy {
         Retrofit.Builder()
             .baseUrl(IMAGE_GENERATE_BAS_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(ImageUrlGenerateApi::class.java)
+            .create(ImageUrlApi::class.java)
     }
 
     override val factRepository: FactRepository by lazy {
@@ -53,9 +56,9 @@ class CatsApp: Application(), ApplicationComponent {
         )
     }
 
-    override val imageGenerateRepository: ImageUrlRepository by lazy {
+    override val imageUrlRepository: ImageUrlRepository by lazy {
         ImageUrlRepositoryImpl(
-            api = imageUrlGenerateApi,
+            api = imageUrlApi,
             mapper = ImageUrlMapper(),
         )
     }
@@ -64,8 +67,10 @@ class CatsApp: Application(), ApplicationComponent {
         Picasso.Builder(applicationContext).build()
     }
 
-    companion object {
-        const val FACT_BASE_URL = "https://catfact.ninja/"
-        const val IMAGE_GENERATE_BAS_URL = "https://api.thecatapi.com/"
+    override val viewModelFactory: ViewModelFactory by lazy {
+        ViewModelFactory(
+            factRepository = factRepository,
+            imageUrlRepository = imageUrlRepository,
+        )
     }
 }
