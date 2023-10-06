@@ -6,11 +6,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import otus.homework.coroutines.data.CatsRepository
 import otus.homework.coroutines.data.CatsService
+import otus.homework.coroutines.data.Result
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService,
+    private val catsService: CatsRepository,
 ) {
     private val coroutineScope = CoroutineScope(
         SupervisorJob() + Dispatchers.Main + CoroutineName("CatsCoroutine")
@@ -19,19 +21,26 @@ class CatsPresenter(
 
     fun onInitComplete() {
         coroutineScope.launch {
-            val fact = async(Dispatchers.IO) {
+            val factDeferred = async(Dispatchers.IO) {
                 catsService.getCatFact()
             }
-            try {
-                view?.populate(fact.await())
-            } catch (e: SocketTimeoutException) {
-                view?.showErrorToast(CatsService.TIMEOUT_MESSAGE)
-            } catch (e: Exception) {
-                e.message?.let { view?.showErrorToast(it) }
-                CrashMonitor.trackWarning()
+
+            when (val factResult = factDeferred.await()) {
+                is Result.Success -> {
+                    view?.populate(factResult.model)
+                }
+                is Result.Error -> {
+                    when(val exception = factResult.exception) {
+                        is SocketTimeoutException -> {
+                            view?.showErrorToast(CatsService.TIMEOUT_MESSAGE)
+                        }
+                        else -> {
+                            exception.message?.let { view?.showErrorToast(it) }
+                            CrashMonitor.trackWarning()
+                        }
+                    }
+                }
             }
-
-
         }
     }
 

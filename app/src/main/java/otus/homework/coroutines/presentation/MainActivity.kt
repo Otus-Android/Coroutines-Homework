@@ -3,13 +3,13 @@ package otus.homework.coroutines.presentation
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import otus.homework.coroutines.databinding.ActivityMainBinding
-import otus.homework.coroutines.di.catsService
+import otus.homework.coroutines.di.catsRepository
 
 class MainActivity : AppCompatActivity() {
 
 
     private val catsPresenter: CatsPresenter by lazy {
-        CatsPresenter(catsService)
+        CatsPresenter(catsRepository)
     }
 
     private val binding: ActivityMainBinding by lazy {

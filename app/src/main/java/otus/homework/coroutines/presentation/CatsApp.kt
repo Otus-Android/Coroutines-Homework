@@ -3,6 +3,8 @@ package otus.homework.coroutines.presentation
 import android.app.Application
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import otus.homework.coroutines.data.CatsRepository
+import otus.homework.coroutines.data.CatsRepositoryImpl
 import otus.homework.coroutines.data.CatsService
 import otus.homework.coroutines.di.ApplicationComponent
 import retrofit2.Retrofit
@@ -11,7 +13,7 @@ import java.util.concurrent.TimeUnit
 
 class CatsApp: Application(), ApplicationComponent {
 
-    override val service: CatsService by lazy {
+    override val catsService: CatsService by lazy {
         val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
@@ -29,4 +31,7 @@ class CatsApp: Application(), ApplicationComponent {
 
         retrofit.create(CatsService::class.java)
     }
+
+    override val catsRepository: CatsRepository
+        get() = CatsRepositoryImpl(catsService)
 }
