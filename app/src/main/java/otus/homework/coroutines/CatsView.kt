@@ -3,8 +3,11 @@ package otus.homework.coroutines
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.squareup.picasso.Picasso
+import com.squareup.picasso.RequestCreator
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -22,7 +25,7 @@ class CatsView @JvmOverloads constructor(
     }
 
     override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+        findViewById<TextView>(R.id.fact_textView).text = fact.fact
     }
 }
 
