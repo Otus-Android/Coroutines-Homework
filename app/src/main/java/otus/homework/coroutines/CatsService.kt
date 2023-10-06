@@ -7,4 +7,7 @@ interface CatsService {
 
     @GET("fact")
     fun getCatFact() : Call<Fact>
+
+    @GET("fact")
+    suspend fun getCatFactWithCoroutines() : Fact
 }
