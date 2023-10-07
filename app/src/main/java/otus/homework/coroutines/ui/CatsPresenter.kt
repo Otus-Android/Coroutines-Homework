@@ -1,6 +1,5 @@
 package otus.homework.coroutines.ui
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
