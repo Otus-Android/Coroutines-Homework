@@ -31,9 +31,7 @@ class MainActivity : AppCompatActivity() {
                 is ScreenState.ShowContent -> view.populate(screenState.content)
                 is ScreenState.Error -> view.showToast(screenState.message)
             }
-
         }
-
         findViewById<Button>(R.id.button).setOnClickListener {
             viewModel.getFactsByCoroutines()
         }

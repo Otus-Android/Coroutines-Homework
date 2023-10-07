@@ -16,7 +16,6 @@ import otus.homework.coroutines.presentation.FactsRepository
 import otus.homework.coroutines.presentation.PictureRepository
 import java.net.SocketTimeoutException
 
-
 class CatsViewModel(
     private val factsRepository: FactsRepository,
     private val pictureRepository: PictureRepository
@@ -25,8 +24,7 @@ class CatsViewModel(
     private var _screenState = MutableLiveData<ScreenState>()
     val screenState: LiveData<ScreenState> get() = _screenState
 
-
-    private val handler = CoroutineExceptionHandler { coroutineContext, throwable ->
+    private val handler = CoroutineExceptionHandler { _, throwable ->
         CrashMonitor.trackWarning()
         val message = when (throwable) {
             is SocketTimeoutException -> TIME_OUT_EXCEPTION_MESSAGE
@@ -56,12 +54,10 @@ class CatsViewModel(
         }
     }
 
-
     companion object {
         private const val TIME_OUT_EXCEPTION_MESSAGE = "Не удалось получить ответ от сервером"
         private const val CATS_COROUTINE_NAME = "CatsCoroutine"
-        private const val TAG = "TAG"
-
+        private const val TAG = "CatsViewModel"
 
         fun getViewModelFactory(
             factsRepository: FactsRepository,
