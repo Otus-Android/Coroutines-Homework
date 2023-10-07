@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,7 +16,7 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service)
+        catsPresenter = CatsPresenter(diContainer.service, diContainer.presenterScope)
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         if (isFinishing) {
             catsPresenter.detachView()
         }
+        catsPresenter.cancelCoroutine()
         super.onStop()
     }
 }
