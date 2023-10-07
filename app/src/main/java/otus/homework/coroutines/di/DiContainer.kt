@@ -1,6 +1,5 @@
 package otus.homework.coroutines.di
 
-import otus.homework.coroutines.data.services.CatsService
 import otus.homework.coroutines.data.Endpoints
 import otus.homework.coroutines.data.FactsRepositoryImpl
 import otus.homework.coroutines.data.PictureRepositoryImpl
@@ -17,7 +16,6 @@ class DiContainer {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-
 
     val pictureRepository : PictureRepository by lazy {
         PictureRepositoryImpl(retrofit)

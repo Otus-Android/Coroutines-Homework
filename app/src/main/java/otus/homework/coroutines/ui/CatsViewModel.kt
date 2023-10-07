@@ -14,6 +14,7 @@ import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.presentation.CatContent
 import otus.homework.coroutines.presentation.FactsRepository
 import otus.homework.coroutines.presentation.PictureRepository
+import otus.homework.coroutines.presentation.Result
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
@@ -45,12 +46,20 @@ class CatsViewModel(
             val jPic = async {
                 pictureRepository.getImage()
             }
-            val catContent = CatContent(
-                fact = jFact.await(),
-                image = jPic.await()
-            )
-            _screenState.postValue(ScreenState.ShowContent(catContent))
+           val fact = when(val factResponse = jFact.await()){
+                is Result.Success-> factResponse.data!!
+                is Result.Error -> throw factResponse.throwable!!
+            }
 
+           val url = when(val picResponse = jPic.await()){
+                is Result.Success->picResponse.data!!
+                is Result.Error->throw picResponse.throwable!!
+            }
+            val content = CatContent(
+               fact =  fact,
+               image = url
+            )
+            _screenState.postValue(ScreenState.ShowContent(content))
         }
     }
 
