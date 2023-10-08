@@ -1,11 +1,17 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation
 
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.squareup.picasso.Picasso
+import otus.homework.coroutines.Cat
+import otus.homework.coroutines.domain.CatsPresenter
+import otus.homework.coroutines.Fact
+import otus.homework.coroutines.R
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -13,7 +19,7 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var presenter : CatsPresenter? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -22,8 +28,10 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
+    override fun populate(cat: Cat) {
+        findViewById<TextView>(R.id.fact_textView).text = cat.fact
+        val imageView = findViewById<ImageView>(R.id.imageView)
+        Picasso.get().load(cat.imageUrl).into(imageView)
     }
 
     override fun showErrorToast(errorMsg: String) {
@@ -33,7 +41,7 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(cat: Cat)
 
     fun showErrorToast(errorMsg: String)
 }

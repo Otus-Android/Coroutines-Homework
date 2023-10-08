@@ -1,8 +1,10 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.presentation
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import otus.homework.coroutines.domain.CatsPresenter
+import otus.homework.coroutines.DiContainer
+import otus.homework.coroutines.R
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,7 +18,11 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service, diContainer.presenterScope)
+        catsPresenter = CatsPresenter(
+            diContainer.catFactsService,
+            diContainer.catImagesService,
+            diContainer.presenterScope
+        )
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
         catsPresenter.onInitComplete()
