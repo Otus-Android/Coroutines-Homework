@@ -7,3 +7,8 @@ interface CatsService {
     @GET("fact")
     suspend fun getCatFact() : Fact
 }
+
+interface RandomCatService {
+    @GET("meow")
+    suspend fun getRandomCatImage() : CatImage
+}
