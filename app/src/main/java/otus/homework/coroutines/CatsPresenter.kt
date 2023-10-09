@@ -6,14 +6,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.lang.Exception
+import otus.homework.coroutines.repo.Repository
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val repository: Repository
 ) {
 
     private var _catsView: ICatsView? = null
@@ -23,15 +20,15 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                val fact = catsService.getCatFact()
-                _catsView?.populate(fact)
+                val meowInfo = repository.getMeowInfo()
+                _catsView?.populate(meowInfo)
             } catch (e: SocketTimeoutException) {
-                _catsView?.showToast("Не удалось получить ответ от сервером")
+                _catsView?.showToast("Не удалось получить ответ от сервера")
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 e.message?.let { msg ->_catsView?.showToast(msg) }
-                CrashMonitor.trackWarning()
+                CrashMonitor.trackWarning(e)
             }
         }
     }
