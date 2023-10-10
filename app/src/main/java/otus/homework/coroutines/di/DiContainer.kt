@@ -1,8 +1,5 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.di
 
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import otus.homework.coroutines.data.CatFactsService
 import otus.homework.coroutines.data.CatImagesService
 import retrofit2.Retrofit
@@ -25,8 +22,6 @@ class DiContainer {
             .build()
             .create(CatImagesService::class.java)
     }
-
-    val presenterScope by lazy { CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine")) }
 
     companion object {
         private const val FACT_URL = "https://catfact.ninja/"
