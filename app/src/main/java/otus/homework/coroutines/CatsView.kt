@@ -15,15 +15,6 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
-
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
-        }
-    }
-
     override fun populate(meowInfo: MeowInfo) {
         findViewById<TextView>(R.id.fact_textView).text = meowInfo.fact
 
@@ -35,12 +26,19 @@ class CatsView @JvmOverloads constructor(
             .into(imageView)
     }
 
-    override fun showToast(msg: String) {
-        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+    override fun showToast(msg: String?) {
+        Toast.makeText(context, msg ?: "Error", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun setClickListener(block: () -> Unit) {
+        findViewById<Button>(R.id.button).setOnClickListener {
+            block.invoke()
+        }
     }
 }
 
 interface ICatsView {
     fun populate(meowInfo: MeowInfo)
-    fun showToast(msg: String)
+    fun showToast(msg: String?)
+    fun setClickListener(block: () -> Unit)
 }
