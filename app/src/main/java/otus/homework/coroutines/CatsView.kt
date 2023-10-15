@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 
 class CatsView @JvmOverloads constructor(
@@ -21,12 +22,18 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+    override fun toast(exception: String) {
+        Toast.makeText(context, exception, Toast.LENGTH_LONG ).show()
+    }
+
+    override fun populate(info: CatResponse) {
+        findViewById<TextView>(R.id.fact_textView).text = info.catFact.fact
+
     }
 }
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(info: CatResponse)
+    fun toast(exception : String)
 }
