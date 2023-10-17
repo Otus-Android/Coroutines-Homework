@@ -4,6 +4,6 @@ import retrofit2.http.GET
 
 interface CatImageService {
 
-    @GET("search")
+    @GET("meow")
     suspend fun getCatImage() : ArrayList<CatImage>
 }
