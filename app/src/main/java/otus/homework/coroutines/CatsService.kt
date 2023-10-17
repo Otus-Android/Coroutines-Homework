@@ -9,6 +9,6 @@ interface CatsService {
    suspend fun getCatFact(): Fact
 }
 interface CatsImage {
-    @GET("meow")
-    suspend fun getCatImage(): CatImage
+    @GET("search")
+    suspend fun getCatImage(): ResponseImage
 }

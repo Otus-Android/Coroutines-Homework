@@ -1,6 +1,6 @@
 package otus.homework.coroutines
 
 data class CatResponse(
-    val catImage: CatImage,
+    val catImage: String,
     val catFact: Fact
 )

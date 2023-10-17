@@ -15,7 +15,7 @@ class DiContainer {
 
     private val CatImageRetrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://aws.random.cat/")
+            .baseUrl("https://api.thecatapi.com/v1/images/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
