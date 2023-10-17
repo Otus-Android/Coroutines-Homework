@@ -1,6 +1,7 @@
 package otus.homework.coroutines
 
 import android.os.Bundle
+import android.os.Message
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 
@@ -14,7 +15,6 @@ class MainActivity : AppCompatActivity() {
 
         val viewModel = ViewModelProvider(this).get(CatsViewModel::class.java)
         viewModel.onInitComplete()
-
     }
 
     override fun onStop() {

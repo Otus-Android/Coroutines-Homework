@@ -10,7 +10,7 @@ class CatsViewModel : ViewModel() {
     private var _catsLiveData = MutableLiveData<Result>()
     val catsLiveData: LiveData<Result> = _catsLiveData
     val diConteiner = DiContainer()
-
+    val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
     companion object {
         private const val TAG = "CatsViewModel"
     }
@@ -32,28 +32,41 @@ class CatsViewModel : ViewModel() {
         }
 
     fun onInitComplete() {
-            val job = CoroutineScope(Dispatchers.Main +  coroutineExceptionHandler ).launch {
 
-            val jobImage =
-                withContext(Dispatchers.IO) {
-                    async {
-                        diConteiner.serviceImage.getCatImage()
+        lateinit var catsList: List<CatsImage>
+        val job = CoroutineScope(Dispatchers.Default)
+            .launch {
+                val jobFact =
+                    CoroutineScope(Dispatchers.IO + coroutineExceptionHandler).async { diConteiner.service.getCatFact() }
+
+                val jobImage = async {
+                    catsList = emptyList()
+                    try {
+                        catsList = diConteiner.serviceImage.getCatImage()
+                    } catch (e: SocketTimeoutException) {
+                        ErrorMessage(e," SocketTimeoutException")
+                        CrashMonitor.trackWarning(TAG, e)
+                    } catch (e: Exception) {
+                        ErrorMessage(e,"Не удалось получить ответ от сервера")
+                        CrashMonitor.trackWarning(TAG, e)
                     }
+                    catsList
                 }
 
-            val jobFact =
-                withContext(Dispatchers.IO) {
-                    async {
-                        diConteiner.service.getCatFact()
+                withContext(presenterScope.coroutineContext) {
+                    if (!jobImage.await().isEmpty()) {
+                        _catsLiveData.value =
+                            Result.Success(CatsModel(jobFact.await(), catsList))
                     }
                 }
-
-            _catsLiveData.value =
-                Result.Success(CatsModel(jobFact.await(), jobImage.await()))
-        }
-        if(job.isCompleted)
-                        job.cancel()
+            }
+        if (job.isCompleted)
+            job.cancel()
     }
 
+    fun ErrorMessage(e: Exception, err: String){
+        presenterScope.launch{
+            _catsLiveData.value =  Result.Error(e, err)
+        }
+    }
 }
-

@@ -26,7 +26,7 @@ class CatsView @JvmOverloads constructor(
                 when (it) {
                     is Result.Success -> {
                         populate(it.result.fact)
-                        populate(it.result.image)
+                        populate(it.result.image.get(0))
                     }
                     is Result.Error -> {
                         catsMessage(it.errorMessage)
