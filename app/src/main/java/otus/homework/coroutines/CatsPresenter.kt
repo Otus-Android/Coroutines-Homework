@@ -5,7 +5,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catImageService: CatImageService
 ) {
 
     private var _catsView: ICatsView? = null
@@ -14,9 +15,13 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                val catFact = async { catsService.getCatFact() }
+                val catImage = async { catImageService.getCatImage().first().url }
+                val catFact = async { catsService.getCatFact().fact }
                 _catsView?.populate(
-                    fact = catFact.await()
+                    CatData(
+                        imageUrl = catImage.await(),
+                        fact = catFact.await()
+                    )
                 )
             } catch (e: java.net.SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
