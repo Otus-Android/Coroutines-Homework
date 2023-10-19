@@ -42,7 +42,7 @@ class CatsViewModel(
     fun getFactsByCoroutines() {
         viewModelScope.launch {
             val contentJob =
-                CoroutineScope(Dispatchers.IO + CoroutineName(CATS_COROUTINE_NAME) + handler).async {
+                CoroutineScope(CoroutineName(CATS_COROUTINE_NAME) + handler).async {
                     val jFact = async {
                         factsRepository.getFact()
                     }
@@ -58,11 +58,13 @@ class CatsViewModel(
                         is Result.Success -> picResponse.data!!
                         is Result.Error -> throw picResponse.throwable!!
                     }
+
                     CatContent(
                         fact = fact,
                         image = url
                     )
                 }
+
             _screenState.value = ScreenState.ShowContent(contentJob.await())
         }
 
