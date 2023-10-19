@@ -4,16 +4,19 @@ import otus.homework.coroutines.data.model.Picture
 import otus.homework.coroutines.data.services.PicturesService
 import otus.homework.coroutines.presentation.PictureRepository
 import otus.homework.coroutines.presentation.Result
+import otus.homework.coroutines.presentation.model.PictureModel
 import retrofit2.Retrofit
 import kotlin.random.Random
 
-class PictureRepositoryImpl(private val retrofit: Retrofit) : PictureRepository{
-    override suspend fun getImage(): Result<String> {
+class PictureRepositoryImpl(private val retrofit: Retrofit) : PictureRepository {
+    override suspend fun getImage(): Result<PictureModel> {
         val pictureService = retrofit.create(PicturesService::class.java)
         return try {
-            val pic = pictureService.getRandomPicture(PICTURE_URL +"?q=$query"+"&"+ "key=$KEY"+"&"+"image_type=$IMAGE_TYPE")
-            Result.Success(data = getRandomImage(pic))
-        }catch (e: Throwable){
+            val pic =
+                pictureService.getRandomPicture(PICTURE_URL + "?q=$query" + "&" + "key=$KEY" + "&" + "image_type=$IMAGE_TYPE")
+            val pictureModel = PictureModel(getRandomImage(pic))
+            Result.Success(data = pictureModel)
+        } catch (e: Throwable) {
             Result.Error(throwable = e)
         }
     }
