@@ -9,9 +9,12 @@ class FactsRepositoryImpl(private val retrofit: Retrofit) :FactsRepository{
     override suspend fun  getFact(): Result<String> {
         val factService = retrofit.create(CatsService::class.java)
       return  try {
-             Result.Success(data = factService.getCatFactWithCoroutines(Endpoints.FACT_URL+"fact").fact)
+             Result.Success(data = factService.getCatFactWithCoroutines(FACT_URL+"fact").fact)
         }catch (e: Throwable){
             Result.Error(throwable = e)
         }
+    }
+    companion object{
+        private const val FACT_URL = "https://catfact.ninja/"
     }
 }

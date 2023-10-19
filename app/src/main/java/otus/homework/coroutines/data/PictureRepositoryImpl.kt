@@ -11,7 +11,7 @@ class PictureRepositoryImpl(private val retrofit: Retrofit) : PictureRepository{
     override suspend fun getImage(): Result<String> {
         val pictureService = retrofit.create(PicturesService::class.java)
         return try {
-            val pic = pictureService.getRandomPicture(Endpoints.PICTURE_URL +"?q=$query"+"&"+ "key=$KEY"+"&"+"image_type=$IMAGE_TYPE")
+            val pic = pictureService.getRandomPicture(PICTURE_URL +"?q=$query"+"&"+ "key=$KEY"+"&"+"image_type=$IMAGE_TYPE")
             Result.Success(data = getRandomImage(pic))
         }catch (e: Throwable){
             Result.Error(throwable = e)
@@ -31,5 +31,6 @@ class PictureRepositoryImpl(private val retrofit: Retrofit) : PictureRepository{
         private const val KEY = "15813887-db28635529fd4ce8ef9aa7dbd"
         private const val query = "cats"
         private const val IMAGE_TYPE = "photo"
+        private const val PICTURE_URL = "https://pixabay.com/api/"
     }
 }
