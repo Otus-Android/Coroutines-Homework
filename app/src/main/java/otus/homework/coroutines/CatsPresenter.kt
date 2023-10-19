@@ -1,28 +1,41 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import android.util.Log
+import android.widget.Toast
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
+    private val mainActivity: MainActivity,
     private val catsService: CatsService
 ) {
-
+    private var job: Job = Job()
     private var _catsView: ICatsView? = null
 
-    fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+    suspend fun onInitComplete() {
+        runBlocking {
+            job = launch(CoroutineName("CatsCoroutine")) {
+                try {
+                    val result = catsService.getCatFact()
+                    if (result.isSuccessful && result.body() != null) {
+                        _catsView?.populate(result.body()!!)
+                    } else {
+                        CrashMonitor.trackWarning()
+                    }
+                } catch (socketTimeoutException : SocketTimeoutException) {
+                    Toast.makeText(mainActivity, "Не удалось получить ответ от сервером",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } catch (e:Exception){
+                    Log.d("otus.homework.coroutines.CrashMonitor", e.toString())
+                    Toast.makeText(mainActivity, "exception.message", Toast.LENGTH_SHORT).show()
                 }
             }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+            job.join()
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -31,5 +44,6 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+        job.cancel()
     }
 }
