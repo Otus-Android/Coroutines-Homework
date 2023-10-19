@@ -1,5 +1,6 @@
 package otus.homework.coroutines.ui
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -50,23 +51,34 @@ class CatsViewModel(
                     val jPic = async {
                         pictureRepository.getImage()
                     }
-                    val fact = when (val factResponse = jFact.await()) {
+
+                    val fact =
+                    when (val factResponse = jFact.await()) {
                         is Result.Success<FactModel> -> factResponse.data
-                        is Result.Error -> throw factResponse.throwable
+                        is Result.Error -> {
+                            _screenState.postValue(ScreenState.Error(factResponse.throwable.message?:"error"))
+                            FactModel.getDefault()
+                        }
                     }
 
-                    val url = when (val picResponse = jPic.await()) {
+                    val picture =
+                        when (val picResponse = jPic.await()) {
                         is Result.Success<PictureModel> -> picResponse.data
-                        is Result.Error -> throw picResponse.throwable
+                        is Result.Error ->  {
+                            _screenState.postValue(ScreenState.Error(picResponse.throwable.message?:"error"))
+                            PictureModel.getDefault()
+                        }
                     }
 
                     CatContent(
                         fact = fact.text,
-                        image = url.url
+                        image = picture.url
                     )
                 }
-
-            _screenState.value = ScreenState.ShowContent(contentJob.await())
+            val content = contentJob.await()
+            if (content.image.isNotEmpty()) {
+                _screenState.value = ScreenState.ShowContent(content)
+            }
         }
 
     }
