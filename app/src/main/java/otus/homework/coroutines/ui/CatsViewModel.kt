@@ -8,14 +8,15 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.CrashMonitor
-import otus.homework.coroutines.presentation.CatContent
+import otus.homework.coroutines.ui.model.CatContent
 import otus.homework.coroutines.presentation.FactsRepository
 import otus.homework.coroutines.presentation.PictureRepository
 import otus.homework.coroutines.presentation.Result
+import otus.homework.coroutines.presentation.model.FactModel
+import otus.homework.coroutines.presentation.model.PictureModel
 import java.net.SocketTimeoutException
 
 class CatsViewModel(
@@ -50,18 +51,18 @@ class CatsViewModel(
                         pictureRepository.getImage()
                     }
                     val fact = when (val factResponse = jFact.await()) {
-                        is Result.Success -> factResponse.data!!
-                        is Result.Error -> throw factResponse.throwable!!
+                        is Result.Success<FactModel> -> factResponse.data
+                        is Result.Error -> throw factResponse.throwable
                     }
 
                     val url = when (val picResponse = jPic.await()) {
-                        is Result.Success -> picResponse.data!!
-                        is Result.Error -> throw picResponse.throwable!!
+                        is Result.Success<PictureModel> -> picResponse.data
+                        is Result.Error -> throw picResponse.throwable
                     }
 
                     CatContent(
-                        fact = fact,
-                        image = url
+                        fact = fact.text,
+                        image = url.url
                     )
                 }
 
