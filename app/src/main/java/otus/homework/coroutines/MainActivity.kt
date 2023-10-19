@@ -3,7 +3,6 @@ package otus.homework.coroutines
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -17,7 +16,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var view: CatsView
 
     private val viewModel by lazy { diContainer.catsViewModel }
-    private var viewModelJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,14 +36,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        viewModelJob = viewModel.events.onEach { event ->
+        viewModel.events.onEach { event ->
             handleEvent(event)
         }.launchIn(lifecycleScope)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        viewModelJob?.cancel()
     }
 
     private fun renderState(state: CatsState) {
