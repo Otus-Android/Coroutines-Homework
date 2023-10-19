@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -39,28 +40,32 @@ class CatsViewModel(
     }
 
     fun getFactsByCoroutines() {
-        viewModelScope.launch(Dispatchers.IO + CoroutineName(CATS_COROUTINE_NAME) + handler) {
-            val jFact = async {
-                factsRepository.getFact()
-            }
-            val jPic = async {
-                pictureRepository.getImage()
-            }
-           val fact = when(val factResponse = jFact.await()){
-                is Result.Success-> factResponse.data!!
-                is Result.Error -> throw factResponse.throwable!!
-            }
+        viewModelScope.launch {
+            val contentJob =
+                CoroutineScope(Dispatchers.IO + CoroutineName(CATS_COROUTINE_NAME) + handler).async {
+                    val jFact = async {
+                        factsRepository.getFact()
+                    }
+                    val jPic = async {
+                        pictureRepository.getImage()
+                    }
+                    val fact = when (val factResponse = jFact.await()) {
+                        is Result.Success -> factResponse.data!!
+                        is Result.Error -> throw factResponse.throwable!!
+                    }
 
-           val url = when(val picResponse = jPic.await()){
-                is Result.Success->picResponse.data!!
-                is Result.Error->throw picResponse.throwable!!
-            }
-            val content = CatContent(
-               fact =  fact,
-               image = url
-            )
-            _screenState.postValue(ScreenState.ShowContent(content))
+                    val url = when (val picResponse = jPic.await()) {
+                        is Result.Success -> picResponse.data!!
+                        is Result.Error -> throw picResponse.throwable!!
+                    }
+                    CatContent(
+                        fact = fact,
+                        image = url
+                    )
+                }
+            _screenState.value = ScreenState.ShowContent(contentJob.await())
         }
+
     }
 
     companion object {
