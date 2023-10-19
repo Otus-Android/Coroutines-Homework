@@ -1,3 +1,7 @@
 package otus.homework.coroutines.presentation.model
 
-class PictureModel(val url : String)
+data class PictureModel(val url : String){
+    companion object{
+        fun getDefault() = PictureModel("")
+    }
+}
