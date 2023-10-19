@@ -1,4 +1,4 @@
-package otus.homework.coroutines.presentation
+package otus.homework.coroutines.ui.model
 
 data class CatContent(
     val image: String,

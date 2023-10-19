@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.R
-import otus.homework.coroutines.presentation.CatContent
+import otus.homework.coroutines.ui.model.CatContent
 
 class CatsView @JvmOverloads constructor(
     context: Context,
