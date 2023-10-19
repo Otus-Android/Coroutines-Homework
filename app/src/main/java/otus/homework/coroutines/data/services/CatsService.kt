@@ -8,13 +8,9 @@ import retrofit2.http.Query
 import retrofit2.http.Url
 
 interface CatsService {
-
-    @GET("fact")
-    fun getCatFact() : Call<Fact>
-
     @GET
     suspend fun getCatFactWithCoroutines(@Url url: String) : Fact
+    @GET
+    suspend fun getRandomPicture(@Url url: String): Picture
 
-//    @GET("api/")
-//    suspend fun getRandomPicture(@Query("q") q: String, @Query("key") key: String = "15813887-db28635529fd4ce8ef9aa7dbd", @Query("image_type") imageType: String= "photo") : Picture
 }
