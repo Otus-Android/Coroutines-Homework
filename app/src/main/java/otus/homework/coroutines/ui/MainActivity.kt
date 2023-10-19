@@ -37,13 +37,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-    override fun onStop() {
-        if (isFinishing) {
-        }
-        super.onStop()
-    }
-
     companion object{
         private const val TAG = "MainActivity"
     }
