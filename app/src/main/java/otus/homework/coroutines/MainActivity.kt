@@ -2,27 +2,50 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
+import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import otus.homework.coroutines.databinding.ActivityMainBinding
+import otus.homework.coroutines.viewmodel.CatsModelFactory
+import otus.homework.coroutines.viewmodel.CatsViewModel
 
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
+    lateinit var viewModel: CatsViewModel
     private val diContainer = DiContainer()
-
+    private val catsRepository = CatsRepository(diContainer.serviceFact, diContainer.servicePic)
+    lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        viewModel =
+            ViewModelProvider(this, CatsModelFactory(catsRepository)).get(CatsViewModel::class.java)
 
-        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
-        setContentView(view)
+        binding.button.setOnClickListener {
+            runBlocking {
+                launch {
+                    viewModel.onInitComplete()
+                }
+            }
+        }
 
-        catsPresenter = CatsPresenter(this, diContainer.service)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
+        viewModel.catFactLiveData.observe(this) { result ->
+            when (result) {
+                is Result.Success -> {
+                    binding.factTextView.text = result.value.fact
+                    binding.catImage.setImageBitmap(result.value.picUrl)
+                }
+                is Result.Error -> {
+                    Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
         runBlocking {
             launch {
-                catsPresenter.onInitComplete()
+                viewModel.onInitComplete()
             }
         }
 
@@ -30,7 +53,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         if (isFinishing) {
-            catsPresenter.detachView()
+            viewModel
         }
         super.onStop()
     }

@@ -8,6 +8,8 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import otus.homework.coroutines.models.CatFactPic
+import otus.homework.coroutines.viewmodel.CatsViewModel
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -15,14 +17,14 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
+    private var catsViewModel: CatsViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
             runBlocking {
                 launch {
-                    presenter?.onInitComplete()
+                    catsViewModel?.onInitComplete()
                 }
             }
         }
