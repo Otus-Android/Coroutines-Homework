@@ -9,9 +9,8 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
 
-    private val job = Job()
     private val presenterScope =
-        CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine") + job)
+        CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
 
     fun onInitComplete() {
        presenterScope.launch {
