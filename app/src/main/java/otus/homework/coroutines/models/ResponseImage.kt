@@ -1,3 +1,3 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.models
 
 class ResponseImage : ArrayList<ResponseImageItem>()

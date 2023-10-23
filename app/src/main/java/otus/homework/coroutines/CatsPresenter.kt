@@ -1,9 +1,9 @@
 package otus.homework.coroutines
 
-import android.util.Log
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import otus.homework.coroutines.models.CatResponse
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -24,7 +24,9 @@ class CatsPresenter(
                 _catsView?.populate(catResponse)
             }
             catch (exception: SocketTimeoutException){
-                _catsView?.toast("Не удалось получить ответ от сервера")
+                val errorText = "Не удалось получить ответ от сервера"
+                _catsView?.toast(errorText)
+                CrashMonitor.trackWarning(errorText)
             }
 
             catch (t: Throwable){

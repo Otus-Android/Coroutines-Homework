@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.models
 
 data class CatResponse(
     val catImage: String,

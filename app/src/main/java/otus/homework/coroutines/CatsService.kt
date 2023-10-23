@@ -1,6 +1,7 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
+import otus.homework.coroutines.models.Fact
+import otus.homework.coroutines.models.ResponseImage
 import retrofit2.http.GET
 
 interface CatsService {

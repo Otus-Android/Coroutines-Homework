@@ -1,4 +1,6 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.models
+
+import otus.homework.coroutines.Favourite
 
 data class ResponseImageItem(
     val breeds: List<Any>,
