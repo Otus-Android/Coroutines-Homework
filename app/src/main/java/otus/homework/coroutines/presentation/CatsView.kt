@@ -5,9 +5,10 @@ import android.util.AttributeSet
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import otus.homework.coroutines.domain.CatModel
+import otus.homework.coroutines.presentation.CatViewModel
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -15,12 +16,12 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var catViewModel: CatViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            catViewModel?.onInitComplete()
         }
     }
 
@@ -31,15 +32,8 @@ class CatsView @JvmOverloads constructor(
             .load(model.image?.imageUrl)
             .into(findViewById<ImageView>(R.id.iv_cat))
     }
-
-    override fun showExceptionMessage(text: String) {
-        Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
-    }
 }
 
 interface ICatsView {
-
     fun populate(model: CatModel)
-
-    fun showExceptionMessage(text: String)
 }
