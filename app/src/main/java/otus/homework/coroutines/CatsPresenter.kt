@@ -13,16 +13,42 @@ class CatsPresenter(
         CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
 
     fun onInitComplete() {
-       presenterScope.launch {
+        val deferredFact = presenterScope.async {
            try {
-               val fact = catsService.getCatFact()
-               _catsView?.populate(fact)
+               catsService.getCatFact()
            } catch (e: SocketTimeoutException) {
-               _catsView?.showExceptionMessage("Не удалось получить ответ от сервера.")
+               showExceptionMessage("Не удалось получить ответ от сервера.")
            } catch (e: Exception) {
-                CrashMonitor.trackWarning(e)
+               CrashMonitor.trackWarning(e)
+               showExceptionMessage(e.message ?: "")
            }
         }
+
+        val deferredImage = presenterScope.async {
+            try {
+                catsService.getCatImage()
+            } catch (e: SocketTimeoutException) {
+                showExceptionMessage("Не удалось получить ответ от сервера.")
+            } catch (e: Exception) {
+                CrashMonitor.trackWarning(e)
+                showExceptionMessage(e.message ?: "")
+            }
+        }
+
+        presenterScope.launch {
+            try {
+                val fact = deferredFact.await() as Fact
+                val catImage = (deferredImage.await() as List<*>).first() as CatImage
+                _catsView?.populate(CatModel(fact, catImage))
+            } catch (e: ClassCastException) {
+                CrashMonitor.trackWarning(e)
+                showExceptionMessage(e.message ?: "")
+            }
+        }
+    }
+
+    private fun showExceptionMessage(text: String) {
+        _catsView?.showExceptionMessage(text)
     }
 
     fun attachView(catsView: ICatsView) {
