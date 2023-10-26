@@ -17,12 +17,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var catsPresenter: CatsPresenter
 
-    private val viewModel:MainViewModel by lazy {
+    private val viewModel: MainViewModel by lazy {
         ViewModelProvider(
             this,
-            MainViewModel.Factory)[MainViewModel::class.java]
+            MainViewModel.Factory
+        )[MainViewModel::class.java]
     }
-    private lateinit var view:CatsView
+    private lateinit var view: CatsView
     private lateinit var textView: TextView
     private lateinit var imageView: ImageView
 
@@ -38,7 +39,7 @@ class MainActivity : AppCompatActivity() {
             initViews()
             observeOnData()
             viewModel.onInit()
-          } else {
+        } else {
             initPresenter()
         }
     }
@@ -67,11 +68,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observeOnData() {
-        viewModel.catInfoLiveData.observe(this, ::onCatInfoChanged)
-        viewModel.toastTextLiveData.observe(this, ::onToastTextChanged)
+        viewModel.catResultLiveData.observe(this, ::onCatResult)
     }
 
-    private fun onCatInfoChanged(model: CatInfoModel) {
+    private fun onCatResult(result: CatResult) {
+        when (result) {
+            is CatResult.Success -> onCatResultSuccess(result.catInfo)
+            is CatResult.Error -> onToastTextChanged(result.toastText)
+        }
+    }
+
+    private fun onCatResultSuccess(model: CatInfoModel) {
         textView.text = model.text
         Picasso.get()
             .load(model.iconUrl)

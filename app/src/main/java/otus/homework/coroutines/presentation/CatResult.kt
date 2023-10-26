@@ -1,11 +1,9 @@
 package otus.homework.coroutines.presentation
 
 import otus.homework.coroutines.models.presentation.CatInfoModel
+import otus.homework.coroutines.models.presentation.Text
 
 sealed class CatResult {
     data class Success(val catInfo: CatInfoModel) : CatResult()
-    sealed class Error : CatResult(){
-        data class ByString(val message:String):Error()
-        data class ByRes(val stringRes:Int):Error()
-    }
+    data class Error(val toastText: Text) : CatResult()
 }
