@@ -21,7 +21,7 @@ class DiContainer(
             .build()
     }
 
-    private val retrofit by lazy {
+    private val catsFactRetrofit by lazy {
         Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl("https://catfact.ninja/")
@@ -29,12 +29,23 @@ class DiContainer(
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+    private val catsImageRetrofit by lazy {
+        Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl("https://api.thecatapi.com/v1/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    val catsFactService by lazy { catsFactRetrofit.create(CatsFactService::class.java) }
+
+    val catsImageService by lazy { catsImageRetrofit.create(CatsImageService::class.java) }
 
     fun getCrashMonitor(tag: String = "MyApp"): CrashMonitor = if (debug) CrashMonitorImpl(tag) else CrashMonitorEmpty()
 
     fun getCatsPresenter() = CatsPresenter(
-        catsService = service,
-        crashMonitor = getCrashMonitor("CatsPresenter")
+        catsFactService = catsFactService,
+        catsImageService = catsImageService,
+        crashMonitor = getCrashMonitor("CatsPresenter"),
     )
 }
