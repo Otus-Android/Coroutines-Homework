@@ -2,27 +2,19 @@ package otus.homework.coroutines
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.commit
+import otus.homework.coroutines.catsfeature.CatsFragment
 
 class MainActivity : AppCompatActivity() {
 
-    private val diContainer = DiContainer(debug = true)
-    private val catsPresenter: CatsPresenter = diContainer.getCatsPresenter()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
-        setContentView(view)
-
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+        if (savedInstanceState == null) {
+            supportFragmentManager.commit(allowStateLoss = true) {
+                add(R.id.main_container, CatsFragment.newInstance())
+            }
         }
-        super.onStop()
     }
 }

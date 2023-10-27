@@ -2,6 +2,9 @@ package otus.homework.coroutines
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import otus.homework.coroutines.catsfeature.CatsFactService
+import otus.homework.coroutines.catsfeature.CatsImageService
+import otus.homework.coroutines.catsfeature.GetCatInfoUseCase
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -43,9 +46,8 @@ class DiContainer(
 
     fun getCrashMonitor(tag: String = "MyApp"): CrashMonitor = if (debug) CrashMonitorImpl(tag) else CrashMonitorEmpty()
 
-    fun getCatsPresenter() = CatsPresenter(
+    fun getCatcInfoUseCase() = GetCatInfoUseCase(
         catsFactService = catsFactService,
         catsImageService = catsImageService,
-        crashMonitor = getCrashMonitor("CatsPresenter"),
     )
 }

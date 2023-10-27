@@ -1,51 +1,39 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.catsfeature
 
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
-import otus.homework.coroutines.models.CatUi
+import otus.homework.coroutines.R
 
 class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
+) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    var presenter: CatsPresenter? = null
     private val picasso = Picasso.Builder(context).build()
     private lateinit var catFactTextView: TextView
     private lateinit var catImageImageView: ImageView
 
+    var onRefresh: () -> Unit = {}
+
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            onRefresh.invoke()
         }
         catFactTextView = findViewById(R.id.fact_textView)
         catImageImageView = findViewById(R.id.cat_image)
     }
 
-    override fun populate(cat: CatUi) {
-        catFactTextView.text = cat.fact
+    fun populate(catInfo: CatInfo) {
+        catFactTextView.text = catInfo.fact
         picasso
-            .load(cat.imageUrl)
+            .load(catInfo.imageUrl)
             .into(catImageImageView)
     }
-
-    override fun showError(message: String) {
-        Toast
-            .makeText(context, message, Toast.LENGTH_SHORT)
-            .show()
-    }
-}
-
-interface ICatsView {
-
-    fun populate(cat: CatUi)
-    fun showError(message: String)
 }
