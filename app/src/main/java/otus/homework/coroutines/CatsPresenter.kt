@@ -1,28 +1,44 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import android.content.Context
+import android.widget.Toast
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val context: Context,
+    private val catsService: CatsService,
+    private val catsImage: CatsImage,
 ) {
 
     private var _catsView: ICatsView? = null
 
-    fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        if (throwable is SocketTimeoutException) {
+            Toast.makeText(context,  "Не удалось получить ответ от сервером", Toast.LENGTH_LONG)
+        } else {
+            CrashMonitor.trackWarning()
+            Toast.makeText(context, throwable.message, Toast.LENGTH_LONG)
+        }
+    }
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+     fun onInitComplete() {
+        CoroutineScope(Dispatchers.Main + coroutineExceptionHandler).launch {
+            runCatching {
+                val responseInfo = catsService.getCatFact()
+                val responseImage = catsImage.getCatImage()
+                val resultInfo = responseInfo.body()
+                val resultImage = responseImage.body()
+                if (responseInfo.isSuccessful && resultInfo != null && responseImage.isSuccessful && resultImage != null) {
+                    _catsView?.populate(responseInfo.body()!!, responseImage.body()!!.link)
                 }
-            }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
+            }.onFailure {
                 CrashMonitor.trackWarning()
             }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {

@@ -18,6 +18,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <ImageView
+        android:id="@+id/fact_ImageView"
+        android:textColor="@color/black"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:padding="12dp"
+        app:layout_constraintBottom_toTopOf="@+id/fact_textView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:importantForAccessibility="no" />
+
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
