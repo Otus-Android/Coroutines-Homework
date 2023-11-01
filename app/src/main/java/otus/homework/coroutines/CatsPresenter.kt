@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,7 +11,8 @@ import kotlinx.coroutines.withContext
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsFactsService,
+    private val imagesService: CatsImagesService,
 ) {
 
     private var _catsView: ICatsView? = null
@@ -19,12 +21,20 @@ class CatsPresenter(
                 Dispatchers.Main +
                 CoroutineName("CatsCoroutine")
     )
+    private val imageLoader by lazy { Picasso.get() }
 
     fun onInitComplete() {
         presenterScope.launch {
             try {
+                val cat = imagesService.getCatImage().first()
+                val imageBitmap = withContext(Dispatchers.IO) {
+                    imageLoader.load(cat.imageUrl).get()
+                }
                 _catsView?.populate(
-                    catsService.getCatFact()
+                    Cat(
+                        image = imageBitmap,
+                        text = catsService.getCatFact().text,
+                    )
                 )
             } catch (_: SocketTimeoutException) {
                 _catsView?.showErrorToast()

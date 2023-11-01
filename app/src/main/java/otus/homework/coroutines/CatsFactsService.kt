@@ -2,8 +2,9 @@ package otus.homework.coroutines
 
 import retrofit2.http.GET
 
-interface CatsService {
+interface CatsFactsService {
 
     @GET("fact")
-    suspend fun getCatFact() : Fact
+    suspend fun getCatFact() : FactModel
+
 }
