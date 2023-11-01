@@ -1,7 +1,6 @@
 package otus.homework.coroutines
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.util.AttributeSet
 import android.widget.Button
 import android.widget.ImageView
@@ -15,12 +14,12 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
+    var interactor: ICatsInteractor? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            interactor?.onInitComplete()
         }
     }
 
@@ -29,9 +28,8 @@ class CatsView @JvmOverloads constructor(
         findViewById<ImageView>(R.id.cat_imageView).setImageBitmap(cat.image)
     }
 
-    override fun showErrorToast(message: String?) {
-        val actualMessage = message ?: "Не удалось получить ответ от сервера"
-        Toast.makeText(context, actualMessage, Toast.LENGTH_SHORT).show()
+    override fun showErrorToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -39,5 +37,9 @@ interface ICatsView {
 
     fun populate(cat: Cat)
 
-    fun showErrorToast(message: String? = null)
+    fun showErrorToast(message: String)
+}
+
+interface ICatsInteractor {
+    fun onInitComplete()
 }

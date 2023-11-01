@@ -1,23 +1,24 @@
 package otus.homework.coroutines
 
-import okhttp3.OkHttp
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.create
 
 class DiContainer {
 
     private val client by lazy {
         OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY
-            ))
+            .addInterceptor(
+                HttpLoggingInterceptor()
+                    .setLevel(HttpLoggingInterceptor.Level.BODY)
+            )
             .build()
     }
     private val retrofitBuilder by lazy {
         Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
     }
 
     private val retrofitForFacts by lazy {
