@@ -42,45 +42,48 @@ class CatsViewModel(
     }
 
     fun getFactsByCoroutines() {
-        viewModelScope.launch {
-            val contentJob =
-                CoroutineScope(CoroutineName(CATS_COROUTINE_NAME) + handler).async {
-                    val jFact = async {
-                        factsRepository.getFact()
-                    }
-                    val jPic = async {
-                        pictureRepository.getImage()
-                    }
+        viewModelScope.launch(CoroutineName(CATS_COROUTINE_NAME) + handler) {
+            val jFact = async {
+                factsRepository.getFact()
+            }
+            val jPic = async {
+                pictureRepository.getImage()
+            }
 
-                    val fact =
-                    when (val factResponse = jFact.await()) {
-                        is Result.Success<FactModel> -> factResponse.data
-                        is Result.Error -> {
-                            _screenState.postValue(ScreenState.Error(factResponse.throwable.message?:"error"))
-                            FactModel.getDefault()
-                        }
+            val fact =
+                when (val factResponse = jFact.await()) {
+                    is Result.Success<FactModel> -> factResponse.data
+                    is Result.Error -> {
+                        _screenState.postValue(
+                            ScreenState.Error(
+                                factResponse.throwable.message ?: "error"
+                            )
+                        )
+                        FactModel.getDefault()
                     }
-
-                    val picture =
-                        when (val picResponse = jPic.await()) {
-                        is Result.Success<PictureModel> -> picResponse.data
-                        is Result.Error ->  {
-                            _screenState.postValue(ScreenState.Error(picResponse.throwable.message?:"error"))
-                            PictureModel.getDefault()
-                        }
-                    }
-
-                    CatContent(
-                        fact = fact.text,
-                        image = picture.url
-                    )
                 }
-            val content = contentJob.await()
+
+            val picture =
+                when (val picResponse = jPic.await()) {
+                    is Result.Success<PictureModel> -> picResponse.data
+                    is Result.Error -> {
+                        _screenState.postValue(
+                            ScreenState.Error(
+                                picResponse.throwable.message ?: "error"
+                            )
+                        )
+                        PictureModel.getDefault()
+                    }
+                }
+
+            val content = CatContent(
+                fact = fact.text,
+                image = picture.url
+            )
             if (content.image.isNotEmpty()) {
                 _screenState.value = ScreenState.ShowContent(content)
             }
         }
-
     }
 
     companion object {
