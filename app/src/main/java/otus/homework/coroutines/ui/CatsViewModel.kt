@@ -54,11 +54,10 @@ class CatsViewModel(
                 when (val factResponse = jFact.await()) {
                     is Result.Success<FactModel> -> factResponse.data
                     is Result.Error -> {
-                        _screenState.postValue(
+                        _screenState.value =
                             ScreenState.Error(
                                 factResponse.throwable.message ?: "error"
                             )
-                        )
                         FactModel.getDefault()
                     }
                 }
@@ -67,11 +66,10 @@ class CatsViewModel(
                 when (val picResponse = jPic.await()) {
                     is Result.Success<PictureModel> -> picResponse.data
                     is Result.Error -> {
-                        _screenState.postValue(
+                        _screenState.value =
                             ScreenState.Error(
                                 picResponse.throwable.message ?: "error"
                             )
-                        )
                         PictureModel.getDefault()
                     }
                 }
