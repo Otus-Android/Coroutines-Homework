@@ -7,7 +7,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import otus.homework.coroutines.data.api.FactApi
 import otus.homework.coroutines.data.api.ImageUrlApi
 import otus.homework.coroutines.di.annotations.scope.ApplicationScope
-import otus.homework.coroutines.presentation.utlis.Internet
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -30,7 +29,7 @@ class HttpsModule {
     @[Provides ApplicationScope]
     fun factApi(okHttpClient: OkHttpClient): FactApi {
         return Retrofit.Builder()
-            .baseUrl(Internet.FACT_BASE_URL)
+            .baseUrl(FACT_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -40,10 +39,15 @@ class HttpsModule {
     @[Provides ApplicationScope]
     fun imageUrlApi(okHttpClient: OkHttpClient): ImageUrlApi {
         return Retrofit.Builder()
-            .baseUrl(Internet.IMAGE_GENERATE_BAS_URL)
+            .baseUrl(IMAGE_GENERATE_BAS_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ImageUrlApi::class.java)
+    }
+
+    private companion object {
+        const val FACT_BASE_URL = "https://catfact.ninja/"
+        const val IMAGE_GENERATE_BAS_URL = "https://api.thecatapi.com/"
     }
 }
