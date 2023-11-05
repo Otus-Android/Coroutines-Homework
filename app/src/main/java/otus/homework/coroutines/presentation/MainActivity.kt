@@ -12,7 +12,10 @@ import otus.homework.coroutines.presentation.utlis.viewBinding
 class MainActivity : AppCompatActivity(), ComponentHolder<MainActivityComponent> {
 
     override val component: MainActivityComponent by lazy {
-        DaggerMainActivityComponent.factory().create(applicationComponent)
+        DaggerMainActivityComponent.factory().create(
+            applicationComponent = applicationComponent,
+            context = this,
+        )
     }
 
     private val binding: ActivityMainBinding by viewBinding(ActivityMainBinding::inflate)

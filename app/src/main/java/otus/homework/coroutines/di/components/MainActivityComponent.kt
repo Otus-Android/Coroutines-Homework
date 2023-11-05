@@ -1,6 +1,9 @@
 package otus.homework.coroutines.di.components
 
+import android.content.Context
+import dagger.BindsInstance
 import dagger.Component
+import otus.homework.coroutines.di.annotations.qualifier.ActivityContext
 import otus.homework.coroutines.di.annotations.scope.ActivityScope
 import otus.homework.coroutines.di.modules.PicassoModule
 import otus.homework.coroutines.di.modules.RepositoriesModule
@@ -26,6 +29,7 @@ interface MainActivityComponent {
     interface Factory {
         fun create(
             applicationComponent: ApplicationComponent,
+            @BindsInstance @ActivityContext context: Context,
         ): MainActivityComponent
     }
 }

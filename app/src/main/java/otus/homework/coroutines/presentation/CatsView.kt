@@ -62,7 +62,6 @@ class CatsView @JvmOverloads constructor(
             is ScreenState.Error -> showError(state.message)
             is ScreenState.Loading -> showLoading(true)
             is ScreenState.Model -> showContent(state)
-            is ScreenState.TimeoutException -> showError(context.getString(R.string.timeout_exception))
             is ScreenState.Empty -> hideAllChildren()
         }
     } 

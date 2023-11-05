@@ -13,14 +13,17 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import otus.homework.coroutines.R
 import otus.homework.coroutines.data.Result
 import otus.homework.coroutines.domain.repository.FactRepository
 import otus.homework.coroutines.domain.repository.ImageUrlRepository
+import otus.homework.coroutines.presentation.utlis.MessageProvider
 import javax.inject.Inject
 
 class CatsViewModel @Inject constructor(
     private val factRepository: FactRepository,
     private val imageUrlRepository: ImageUrlRepository,
+    private val messageProvider: MessageProvider,
 ) : ViewModel() {
 
     private val _state = MutableLiveData<ScreenState>(ScreenState.Empty)
@@ -59,7 +62,8 @@ class CatsViewModel @Inject constructor(
                             photoUrl = urlResult.model.url,
                         )
                     } else {
-                        _state.value = ScreenState.TimeoutException
+                        val message = messageProvider(R.string.timeout_exception)
+                        _state.value = ScreenState.Error(message)
                     }
                 }
             }
