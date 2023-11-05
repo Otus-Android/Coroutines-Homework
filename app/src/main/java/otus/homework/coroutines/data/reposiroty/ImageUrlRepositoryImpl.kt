@@ -6,6 +6,7 @@ import otus.homework.coroutines.data.mapper.ImageUrlMapper
 import otus.homework.coroutines.domain.model.ImageUrlModel
 import otus.homework.coroutines.domain.repository.ImageUrlRepository
 import java.io.InterruptedIOException
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class ImageUrlRepositoryImpl @Inject constructor(
@@ -17,7 +18,9 @@ class ImageUrlRepositoryImpl @Inject constructor(
         return try {
             val model = api.getImageUrl()
             Result.Success(model = mapper.map(model.first()))
-        } catch (exception: InterruptedIOException) {
+        } catch (e: InterruptedIOException) {
+            Result.TimeoutError()
+        } catch (e: SocketTimeoutException) {
             Result.TimeoutError()
         }
     }

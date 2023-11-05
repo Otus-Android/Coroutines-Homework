@@ -6,6 +6,7 @@ import otus.homework.coroutines.data.mapper.FactMapper
 import otus.homework.coroutines.domain.model.FactModel
 import otus.homework.coroutines.domain.repository.FactRepository
 import java.io.InterruptedIOException
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 
 class FactRepositoryImpl @Inject constructor(
@@ -16,7 +17,9 @@ class FactRepositoryImpl @Inject constructor(
     override suspend fun getCatFact(): Result<FactModel> {
         return try {
             Result.Success(model = mapper.map(api.getFact()))
-        } catch (exception: InterruptedIOException) {
+        } catch (e: InterruptedIOException) {
+            Result.TimeoutError()
+        } catch (e: SocketTimeoutException) {
             Result.TimeoutError()
         }
     }
