@@ -19,11 +19,12 @@ import otus.homework.coroutines.domain.repository.FactRepository
 import otus.homework.coroutines.domain.repository.ImageUrlRepository
 import otus.homework.coroutines.presentation.utlis.MessageProvider
 import javax.inject.Inject
+import javax.inject.Provider
 
 class CatsViewModel @Inject constructor(
     private val factRepository: FactRepository,
     private val imageUrlRepository: ImageUrlRepository,
-    private val messageProvider: MessageProvider,
+    private val messageProvider: Provider<MessageProvider>,
 ) : ViewModel() {
 
     private val _state = MutableLiveData<ScreenState>(ScreenState.Empty)
@@ -62,7 +63,7 @@ class CatsViewModel @Inject constructor(
                             photoUrl = urlResult.model.url,
                         )
                     } else {
-                        val message = messageProvider(R.string.timeout_exception)
+                        val message = messageProvider.get().invoke(R.string.timeout_exception)
                         _state.value = ScreenState.Error(message)
                     }
                 }
