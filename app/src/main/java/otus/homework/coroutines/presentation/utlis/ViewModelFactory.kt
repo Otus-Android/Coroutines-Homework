@@ -2,24 +2,18 @@ package otus.homework.coroutines.presentation.utlis
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import otus.homework.coroutines.domain.repository.FactRepository
-import otus.homework.coroutines.domain.repository.ImageUrlRepository
-import otus.homework.coroutines.presentation.CatsViewModel
+import otus.homework.coroutines.di.annotations.scope.ActivityScope
+import javax.inject.Inject
+import javax.inject.Provider
 
 @Suppress("UNCHECKED_CAST")
-class ViewModelFactory(
-    private val factRepository: FactRepository,
-    private val imageUrlRepository: ImageUrlRepository,
+@ActivityScope
+class ViewModelFactory @Inject constructor(
+    private val viewModels: @JvmSuppressWildcards Map<Class<out ViewModel>, Provider<ViewModel>>,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return when (modelClass) {
-            CatsViewModel::class.java -> {
-                CatsViewModel(factRepository, imageUrlRepository) as T
-            }
-            else -> {
-                error("Unknown ViewModel class - $modelClass")
-            }
-        }
+        return viewModels[modelClass]?.get() as? T
+            ?: error("Unknown view model class - $modelClass")
     }
 }

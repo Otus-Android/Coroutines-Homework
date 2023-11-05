@@ -12,16 +12,25 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.findViewTreeViewModelStoreOwner
+import com.squareup.picasso.Picasso
 import otus.homework.coroutines.R
-import otus.homework.coroutines.di.picasso
-import otus.homework.coroutines.di.viewModelFactory
+import otus.homework.coroutines.di.components.MainActivityComponent
+import otus.homework.coroutines.presentation.utlis.ViewModelFactory
+import otus.homework.coroutines.presentation.utlis.activityComponent
 import otus.homework.coroutines.presentation.utlis.setupOnStopListener
+import javax.inject.Inject
 
 class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
+
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
+    @Inject
+    lateinit var picasso: Picasso
 
     private val viewModel by lazy {
         findViewTreeViewModelStoreOwner()?.let { storeOwner ->
@@ -35,6 +44,7 @@ class CatsView @JvmOverloads constructor(
     private var photo: ImageView? = null
 
     override fun onAttachedToWindow() {
+        context.activityComponent<MainActivityComponent>().inject(this)
         super.onAttachedToWindow()
         setupChildren()
         setupObservers()

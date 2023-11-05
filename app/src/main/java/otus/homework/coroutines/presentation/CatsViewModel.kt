@@ -16,11 +16,12 @@ import kotlinx.coroutines.withContext
 import otus.homework.coroutines.data.Result
 import otus.homework.coroutines.domain.repository.FactRepository
 import otus.homework.coroutines.domain.repository.ImageUrlRepository
+import javax.inject.Inject
 
-class CatsViewModel(
+class CatsViewModel @Inject constructor(
     private val factRepository: FactRepository,
     private val imageUrlRepository: ImageUrlRepository,
-): ViewModel() {
+) : ViewModel() {
 
     private val _state = MutableLiveData<ScreenState>(ScreenState.Empty)
     val state: LiveData<ScreenState> get() = _state

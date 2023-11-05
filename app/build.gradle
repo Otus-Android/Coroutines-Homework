@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -57,4 +58,9 @@ dependencies {
 
     /** Coroutine **/
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"
+
+    /** Dagger **/
+    def dagger_version = "2.48"
+    implementation "com.google.dagger:dagger:$dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$dagger_version"
 }

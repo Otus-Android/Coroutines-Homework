@@ -6,8 +6,9 @@ import otus.homework.coroutines.data.mapper.FactMapper
 import otus.homework.coroutines.domain.model.FactModel
 import otus.homework.coroutines.domain.repository.FactRepository
 import java.net.SocketTimeoutException
+import javax.inject.Inject
 
-class FactRepositoryImpl(
+class FactRepositoryImpl @Inject constructor(
     private val api: FactApi,
     private val mapper: FactMapper,
 ) : FactRepository {
