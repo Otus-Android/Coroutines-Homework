@@ -1,8 +1,7 @@
 package otus.homework.coroutines.repo
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import otus.homework.coroutines.CatFactService
 import otus.homework.coroutines.CatPicService
@@ -15,12 +14,12 @@ class RepositoryImpl(
 ) : Repository {
 
     override suspend fun getMeowInfo(): Result<MeowInfo> {
-        val scope = CoroutineScope(Dispatchers.IO)
+        val scope = CoroutineScope(Job())
 
-        val factDeferred = scope.async(start = CoroutineStart.LAZY) {
+        val factDeferred = scope.async {
             factService.getCatFact()
         }
-        val picDeferred = scope.async(start = CoroutineStart.LAZY) {
+        val picDeferred = scope.async {
             picService.getCatPic()
         }
         return Result.tryWith {

@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         view.setClickListener {
-            viewModel.onInitComplete()
+            viewModel.loadMeowInfo()
         }
 
         lifecycleScope.launch {

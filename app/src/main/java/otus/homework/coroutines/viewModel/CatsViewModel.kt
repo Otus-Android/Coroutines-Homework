@@ -25,21 +25,13 @@ class CatsViewModel(
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         CrashMonitor.trackWarning(throwable)
-
-        viewModelScope.launch {
-            if (throwable is SocketTimeoutException) {
-                _events.send(element = CatsEvent.Error("Не удалось получить ответ от сервером"))
-                return@launch
-            }
-            _events.send(element = CatsEvent.Error(throwable.message ?: "error"))
-        }
     }
 
     init {
-        onInitComplete()
+        loadMeowInfo()
     }
 
-    fun onInitComplete() {
+    fun loadMeowInfo() {
 
         viewModelScope.launch(exceptionHandler) {
             when (val result = repository.getMeowInfo()) {
@@ -47,7 +39,14 @@ class CatsViewModel(
                     _state.value = CatsState.Data(result.data)
                 }
                 is Result.Error -> {
-                    exceptionHandler.handleException(this.coroutineContext, result.e)
+
+                    if (result.e is SocketTimeoutException) {
+                        _events.send(element = CatsEvent.Error("Не удалось получить ответ от сервера"))
+
+                    } else {
+                        _events.send(element = CatsEvent.Error(result.e.message ?: "error"))
+                    }
+
                     _state.value = CatsState.Error
                 }
             }
