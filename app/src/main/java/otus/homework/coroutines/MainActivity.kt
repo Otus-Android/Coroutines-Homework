@@ -41,11 +41,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        CoroutineScope(Dispatchers.Main).launch {
-            if (isFinishing) {
-                //                catsPresenter.detachView()
-                catViewModel.detachView()
-            }
+        if (isFinishing) {
+//          catsPresenter.detachView()
+            catViewModel.detachView()
         }
         super.onStop()
     }

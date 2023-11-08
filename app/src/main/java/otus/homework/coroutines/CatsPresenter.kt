@@ -18,6 +18,7 @@ class CatsPresenter(
         private const val CATS_COROUTINES = "CatsCoroutine"
         private const val SOCKET_TIMEOUT_EXCEPTION = "Не удалось получить ответ от сервера"
         private const val ERROR_MESSAGE = "Произошла ошибка"
+        private const val EMPTY_URL = ""
     }
 
     private var _catsView: ICatsView? = null
@@ -27,13 +28,15 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
             try {
-                val response = catsService.getCatFact()
-                val imageResponse = imageCatsService.getCatImage()
-                if ((response.isSuccessful && response.body() != null) && (imageResponse.isSuccessful &&
-                            imageResponse.body() != null)) {
+                val factDeferred = presenterScope.async { catsService.getCatFact() }
+                val imageDeferred = presenterScope.async { imageCatsService.getCatImage() }
+                val response = factDeferred.await()
+                val imageResponse = imageDeferred.await()
+
+                if ((response.isSuccessful && response.body() != null) && imageResponse.first().url != EMPTY_URL) {
                     val factAndImage = catMapper.toFactAndImage(
                         fact = response.body()?.fact,
-                        image = imageResponse.body()?.image
+                        image = imageResponse.first().url
                     )
                     _catsView?.populate(factAndImage)
                 }

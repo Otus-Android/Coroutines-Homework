@@ -14,11 +14,11 @@ class DiContainer {
 
     private val retrofitImage by lazy {
         Retrofit.Builder()
-            .baseUrl("https://aws.random.cat/")
+            .baseUrl("https://api.thecatapi.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
-    val serviceImage by lazy { retrofitImage.create(ImageCatsService::class.java) }
+    val service: CatsService by lazy { retrofit.create(CatsService::class.java) }
+    val serviceImage: ImageCatsService by lazy { retrofitImage.create(ImageCatsService::class.java) }
 }

@@ -3,6 +3,6 @@ package otus.homework.coroutines
 import com.google.gson.annotations.SerializedName
 
 data class CatImage(
-    @field:SerializedName("image")
-    val image: String,
+    @field:SerializedName("url")
+    val url: String
 )

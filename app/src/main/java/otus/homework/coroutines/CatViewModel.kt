@@ -16,6 +16,7 @@ class CatViewModel(
 
         private const val SOCKET_TIMEOUT_EXCEPTION = "Не удалось получить ответ от сервера"
         private const val ERROR_MESSAGE = "Произошла ошибка"
+        private const val EMPTY_URL = ""
     }
 
     private var _catsView: ICatsView? = null
@@ -39,12 +40,15 @@ class CatViewModel(
 
     private suspend fun onInitCompleteResponse(): Result<FactAndImageModel> {
         return try {
-            val response = catsService.getCatFact()
-            val imageResponse = imageCatsService.getCatImage()
-            if ((response.isSuccessful && response.body() != null) && (imageResponse.isSuccessful && imageResponse.body() != null)) {
+            val factDeferred = viewModelScope.async { catsService.getCatFact() }
+            val imageDeferred = viewModelScope.async { imageCatsService.getCatImage() }
+            val response = factDeferred.await()
+            val imageResponse = imageDeferred.await()
+
+            if ((response.isSuccessful && response.body() != null) && imageResponse.first().url != EMPTY_URL) {
                 val factAndImage = catsMapper.toFactAndImage(
                     fact = response.body()?.fact,
-                    image = imageResponse.body()?.image
+                    image = imageResponse.first().url
                 )
                 Success(factAndImage)
             } else {

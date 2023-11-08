@@ -25,7 +25,7 @@ class CatsView @JvmOverloads constructor(
 
     override fun populate(fact: FactAndImageModel) {
         findViewById<TextView>(R.id.fact_textView).text = fact.fact
-        Picasso.get().load(fact.image).into(findViewById<ImageView>(R.id.image))
+        Picasso.get().load(fact.image).into(findViewById<ImageView>(R.id.imageFact))
     }
 }
 
