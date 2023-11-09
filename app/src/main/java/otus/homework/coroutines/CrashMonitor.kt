@@ -9,6 +9,10 @@ object CrashMonitor {
 
     private const val SOCKET_TIME_EXCEPTION_ANSWER = "Не удалось получить ответ от сервера."
 
+    fun trackWarning(e: Throwable) {
+        Log.d(this.toString(), e.toString())
+    }
+
     fun trackWarning(context: Context, e: Throwable) {
         when(e) {
             is SocketTimeoutException -> {

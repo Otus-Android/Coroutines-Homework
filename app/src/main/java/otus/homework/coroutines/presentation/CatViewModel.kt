@@ -5,11 +5,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import otus.homework.coroutines.data.DiContainer
+import otus.homework.coroutines.domain.CatImage
 import otus.homework.coroutines.domain.CatModel
+import otus.homework.coroutines.domain.Fact
 import otus.homework.coroutines.domain.Result
+import java.net.SocketTimeoutException
 
 class CatViewModel: ViewModel(){
 
@@ -23,13 +27,32 @@ class CatViewModel: ViewModel(){
     }
 
     fun onInitComplete() {
-        val deferredFact = viewModelScope.async { catsService.getCatFact() }
-
-        val deferredImage = viewModelScope.async { catsService.getCatImage() }
-
         viewModelScope.launch(exceptionHandler) {
-            val catModel = CatModel(deferredFact.await(), deferredImage.await().first())
-            _result.postValue(Result.Success(catModel))
+
+            val deferredFact = withContext(Dispatchers.IO) {
+                    try {
+                        catsService.getCatFact()
+                    } catch (e: SocketTimeoutException) {
+                        _result.value = Result.Error(e)
+                    }
+                }
+
+            val deferredImage = withContext(Dispatchers.IO) {
+                    try {
+                        catsService.getCatImage()
+                    } catch (e: SocketTimeoutException) {
+                        _result.value = Result.Error(e)
+                    }
+                }
+
+            if (deferredFact != Unit && deferredImage != Unit) {
+                val catModel =
+                    CatModel(
+                        deferredFact as Fact,
+                        (deferredImage as List<CatImage>).first()
+                    )
+                _result.value = Result.Success(catModel)
+            }
         }
     }
 }
