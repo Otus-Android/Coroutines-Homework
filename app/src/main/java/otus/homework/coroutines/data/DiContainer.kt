@@ -7,7 +7,6 @@ class DiContainer {
 
     private val retrofit by lazy {
         Retrofit.Builder()
-            //.baseUrl("https://catfact.ninja/")
             .baseUrl("https://catfact.ninja/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
