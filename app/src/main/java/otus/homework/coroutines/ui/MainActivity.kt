@@ -10,30 +10,38 @@ import otus.homework.coroutines.di.DiContainer
 class MainActivity : AppCompatActivity() {
 
     private val diContainer = DiContainer()
-    private val viewModel: CatsViewModel by lazy {
-        ViewModelProvider(
-            this,
-            CatsViewModel.getViewModelFactory(
-                diContainer.factsRepository,
-                diContainer.pictureRepository
-            )
-        )[CatsViewModel::class.java]
-    }
+//    private val viewModel: CatsViewModel by lazy {
+//        ViewModelProvider(
+//            this,
+//            CatsViewModel.getViewModelFactory(
+//                diContainer.factsRepository,
+//                diContainer.pictureRepository
+//            )
+//        )[CatsViewModel::class.java]
+//    }
+    private lateinit var presenter: CatsPresenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val view =  layoutInflater.inflate(R.layout.activity_main, null) as CatsView
+        val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        viewModel.screenState.observe(this){screenState ->
-            when (screenState){
-                is ScreenState.ShowContent -> view.populate(screenState.content)
-                is ScreenState.Error -> view.showToast(screenState.message)
-            }
-        }
+        presenter = CatsPresenter(
+            view,
+            diContainer.factsRepository,
+            diContainer.pictureRepository
+        )
+
+//        viewModel.screenState.observe(this){screenState ->
+//            when (screenState){
+//                is ScreenState.ShowContent -> view.populate(screenState.content)
+//                is ScreenState.Error -> view.showToast(screenState.message)
+//            }
+//        }
         findViewById<Button>(R.id.button).setOnClickListener {
-            viewModel.getFactsByCoroutines()
+//            viewModel.getFactsByCoroutines()
+            presenter.getFactsByCoroutines()
         }
     }
 
