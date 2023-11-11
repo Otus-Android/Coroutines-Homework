@@ -52,7 +52,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        catsViewModel.cancelCoroutine()
         super.onStop()
     }
 }
