@@ -8,7 +8,7 @@ object CrashMonitor {
      * Pretend this is Crashlytics/AppCenter
      */
     fun trackWarning(msg: String) {
-        Log.w(TAG, msg)
+        Log.e(TAG, msg)
     }
 
     private const val TAG = "CrashMonitor"

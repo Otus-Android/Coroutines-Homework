@@ -52,7 +52,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initPresenter() {
-        initPresenter()
         catsPresenter = CatsPresenter(diContainer.catsService, diContainer.catsIconService)
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
