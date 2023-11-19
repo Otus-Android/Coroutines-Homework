@@ -6,8 +6,9 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import otus.homework.coroutines.models.CatFactPic
 import otus.homework.coroutines.viewmodel.CatsViewModel
 
@@ -22,10 +23,8 @@ class CatsView @JvmOverloads constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            runBlocking {
-                launch {
-                    catsViewModel?.onInitComplete()
-                }
+            findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+                catsViewModel?.onInitComplete()
             }
         }
     }

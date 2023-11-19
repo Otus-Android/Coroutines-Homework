@@ -5,6 +5,7 @@ import retrofit2.Response
 import retrofit2.http.GET
 
 interface CatsPicService {
+
     @GET("search")
-    suspend fun getCatPic() : Response<ArrayList<CatPic>>
+    suspend fun getCatPic() : Response<List<CatPic>>
 }

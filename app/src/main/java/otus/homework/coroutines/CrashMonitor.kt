@@ -7,7 +7,7 @@ object CrashMonitor {
     /**
      * Pretend this is Crashlytics/AppCenter
      */
-    fun trackWarning(throwable: Throwable) {
+    fun trackWarning(throwable: Throwable?) {
         Log.d("MyLog","CrashMonitor.trackWarning $throwable")
     }
 }
