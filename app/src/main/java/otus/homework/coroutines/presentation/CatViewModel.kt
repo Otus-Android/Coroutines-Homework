@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import otus.homework.coroutines.data.DiContainer
 import otus.homework.coroutines.domain.CatImage
 import otus.homework.coroutines.domain.CatModel
@@ -29,7 +29,7 @@ class CatViewModel: ViewModel(){
     fun onInitComplete() {
         viewModelScope.launch(exceptionHandler) {
 
-            val deferredFact = withContext(Dispatchers.IO) {
+            val deferredFact = async(Dispatchers.IO) {
                     try {
                         catsService.getCatFact()
                     } catch (e: SocketTimeoutException) {
@@ -37,7 +37,7 @@ class CatViewModel: ViewModel(){
                     }
                 }
 
-            val deferredImage = withContext(Dispatchers.IO) {
+            val deferredImage = async(Dispatchers.IO) {
                     try {
                         catsService.getCatImage()
                     } catch (e: SocketTimeoutException) {
@@ -45,14 +45,9 @@ class CatViewModel: ViewModel(){
                     }
                 }
 
-            if (deferredFact != Unit && deferredImage != Unit) {
-                val catModel =
-                    CatModel(
-                        deferredFact as Fact,
-                        (deferredImage as List<CatImage>).first()
-                    )
-                _result.value = Result.Success(catModel)
-            }
+            val fact = deferredFact.await() as Fact
+            val catImage = (deferredImage.await() as List<CatImage>).first()
+            _result.value = Result.Success(CatModel(fact, catImage))
         }
     }
 }

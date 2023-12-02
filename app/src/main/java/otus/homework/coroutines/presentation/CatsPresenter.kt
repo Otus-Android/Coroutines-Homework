@@ -19,7 +19,7 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope.launch {
 
-            val deferredFact = withContext(Dispatchers.IO) {
+            val deferredFact = async(Dispatchers.IO) {
                 try {
                     catsService.getCatFact()
                 } catch (e: SocketTimeoutException) {
@@ -31,7 +31,7 @@ class CatsPresenter(
                 }
             }
 
-            val deferredImage = withContext(Dispatchers.IO) {
+            val deferredImage = async(Dispatchers.IO) {
                 try {
                     catsService.getCatImage()
                 } catch (e: SocketTimeoutException) {
@@ -43,8 +43,8 @@ class CatsPresenter(
             }
 
             try {
-                val fact = deferredFact as Fact
-                val catImage = (deferredImage as List<CatImage>).first()
+                val fact = deferredFact.await() as Fact
+                val catImage = (deferredImage.await() as List<CatImage>).first()
                 _catsView?.populate(CatModel(fact, catImage))
             } catch (e: ClassCastException) {
                 CrashMonitor.trackWarning(e)
