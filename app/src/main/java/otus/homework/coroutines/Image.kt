@@ -1,5 +1,5 @@
 package otus.homework.coroutines
 
 data class Image(
-    val link: String,
+    val url: String,
 )

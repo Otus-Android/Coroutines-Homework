@@ -14,22 +14,32 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var viewModel: MainViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            viewModel?.onInitComplete()
         }
     }
 
-    override fun populate(fact: Fact, link: String) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
-        Picasso.get().load(link).into(findViewById<ImageView>(R.id.fact_ImageView))
+    override fun populate(result: Result?) {//fact: Fact, link: String) {
+        when (result) {
+            is Result.Success -> {
+                findViewById<TextView>(R.id.fact_textView).text = result.fact.text
+                Picasso.get().load(result.link).into(findViewById<ImageView>(R.id.fact_ImageView))
+            }
+
+            is Result.Error -> {
+                findViewById<TextView>(R.id.fact_textView).text = result.error.message
+            }
+
+            else -> {}
+        }
     }
 }
 
 interface ICatsView {
 
-    fun populate(fact: Fact, link: String)
+    fun populate(result: Result?)//fact: Fact, link: String)
 }

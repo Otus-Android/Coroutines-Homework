@@ -1,5 +1,6 @@
 package otus.homework.coroutines
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -35,7 +36,7 @@ class MainViewModel(
                 val resultInfo = responseInfo.body()
                 val resultImage = responseImage.body()
                 if (responseInfo.isSuccessful && resultInfo != null && responseImage.isSuccessful && resultImage != null) {
-                    _state.emit(Result.Success(responseInfo.body()!! to responseImage.body()!!.link))
+                    _state.emit(Result.Success(responseInfo.body()!!, responseImage.body()!![0].url))
                 }
             }.onFailure {
                 CrashMonitor.trackWarning()
