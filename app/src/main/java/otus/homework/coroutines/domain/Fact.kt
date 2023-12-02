@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.domain
 
 import com.google.gson.annotations.SerializedName
 
@@ -20,5 +20,7 @@ data class Fact(
 	@field:SerializedName("user")
 	val user: String,
 	@field:SerializedName("updatedAt")
-	val updatedAt: String
+	val updatedAt: String,
+
+	val fact: String
 )
