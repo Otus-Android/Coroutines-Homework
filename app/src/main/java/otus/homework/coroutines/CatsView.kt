@@ -26,12 +26,12 @@ class CatsView @JvmOverloads constructor(
         findViewById<TextView>(R.id.fact_textView).text = fact.fact
     }
 
-    override fun failedToResponse() {
+    override fun showToastFailedToResponse() {
         val text = context.getString(R.string.failedToResponse)
         Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
     }
 
-    override fun defaultFailed(e: Exception) {
+    override fun showToastDefaultFailed(e: Exception) {
         Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
     }
 }
@@ -39,6 +39,6 @@ class CatsView @JvmOverloads constructor(
 interface ICatsView {
 
     fun populate(fact: Fact)
-    fun failedToResponse()
-    fun defaultFailed(e: Exception)
+    fun showToastFailedToResponse()
+    fun showToastDefaultFailed(e: Exception)
 }
