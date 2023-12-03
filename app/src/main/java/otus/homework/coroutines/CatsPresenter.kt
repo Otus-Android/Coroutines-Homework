@@ -6,11 +6,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import otus.homework.coroutines.api.CatsFactService
+import otus.homework.coroutines.api.CatsImageService
+import otus.homework.coroutines.domain.Cat
 import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsFactService: CatsFactService,
+    private val catsImageService: CatsImageService
 ) : CoroutineScope {
 
     private var job: Job? = null
@@ -23,8 +27,11 @@ class CatsPresenter(
     fun onInitComplete() {
         job = launch {
             try {
-                val fact = catsService.getCatFact()
-                _catsView?.populate(fact)
+                val cat = Cat(
+                    fact = catsFactService.getCatFact().fact,
+                    imageUrl = catsImageService.getImage().first().url
+                )
+                _catsView?.populate(cat)
             } catch (e: SocketTimeoutException) {
                 _catsView?.showToastFailedToResponse()
             } catch (e: Exception) {
