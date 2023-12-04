@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.ui
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -6,9 +6,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import otus.homework.coroutines.CrashMonitor
 import otus.homework.coroutines.api.CatsFactService
 import otus.homework.coroutines.api.CatsImageService
-import otus.homework.coroutines.domain.Cat
 import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
 
@@ -27,16 +27,14 @@ class CatsPresenter(
     fun onInitComplete() {
         job = launch {
             try {
-                val cat = Cat(
+                val cat = CatUi(
                     fact = catsFactService.getCatFact().fact,
                     imageUrl = catsImageService.getImage().first().url
                 )
                 _catsView?.populate(cat)
-            } catch (e: SocketTimeoutException) {
-                _catsView?.showToastFailedToResponse()
-            } catch (e: Exception) {
+            } catch (throwable: Throwable) {
                 CrashMonitor.trackWarning()
-                _catsView?.showToastDefaultFailed(e)
+                _catsView?.showToastDefaultFailed(throwable)
             }
         }
     }
