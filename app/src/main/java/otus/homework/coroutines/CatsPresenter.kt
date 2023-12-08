@@ -1,11 +1,9 @@
 package otus.homework.coroutines
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.lang.Exception
 import java.net.SocketTimeoutException
 
@@ -20,68 +18,34 @@ class CatsPresenter(
 
     fun onInitComplete() {
         job = scope.launch {
-            val fact: Deferred<String> = async(Dispatchers.IO) {
-                try {
-                    val response = catsService.getCatFact()
-                    if (response.isSuccessful && response.body() != null) {
-                        response.body()!!.fact
-                    } else {
-                        ""
-                    }
-                } catch (e: SocketTimeoutException) {
-                    withContext(Dispatchers.Main) {
-                        _catsView?.showAlert(R.string.exception_message)
-                    }
-                    ""
-                } catch (e: Exception) {
-                    CrashMonitor.trackWarning(e)
-                    withContext(Dispatchers.Main) {
-                        _catsView?.showAlert("${e.message}")
-                    }
-                    ""
-                }
-            }
-
-            val image: Deferred<String> = async(Dispatchers.IO) {
-                try {
-                    val response = imageService.getImage()
-                    if (response.isSuccessful && response.body() != null && response.body()!!
-                            .isNotEmpty()
-                    ) {
-                        response.body()!![0].url
-                    } else ""
-                } catch (e: SocketTimeoutException) {
-                    withContext(Dispatchers.Main) {
-                        _catsView?.showAlert(R.string.exception_message)
-                    }
-                    ""
-                } catch (e: Exception) {
-                    CrashMonitor.trackWarning(e)
-                    withContext(Dispatchers.Main) {
-                        _catsView?.showAlert("${e.message}")
-                    }
-                    ""
-                }
-
-            }
-            val imageUrl = image.await()
-            if (imageUrl.isNotEmpty()) {
-                _catsView?.populate(ImagedFact(fact.await(), imageUrl))
+            try {
+                val fact = async { catsService.getCatFact().fact }
+                val image = async { imageService.getImage().body()!![0].url }
+                _catsView?.populate(
+                    (ImagedFact(fact.await(), image.await()))
+                )
+            } catch (e: SocketTimeoutException) {
+                _catsView?.showAlert(R.string.exception_message)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _catsView?.showAlert("${e.message}")
+                CrashMonitor.trackWarning(e)
             }
         }
     }
 
-        fun attachView(catsView: ICatsView) {
-            _catsView = catsView
-        }
+    fun attachView(catsView: ICatsView) {
+        _catsView = catsView
+    }
 
-        fun detachView() {
-            _catsView = null
-        }
+    fun detachView() {
+        _catsView = null
+    }
 
-        fun onStop() {
-            if (job?.isActive == true) {
-                job?.cancel()
-            }
+    fun onStop() {
+        if (job?.isActive == true) {
+            job?.cancel()
         }
     }
+}

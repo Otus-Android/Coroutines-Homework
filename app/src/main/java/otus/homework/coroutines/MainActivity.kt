@@ -2,10 +2,12 @@ package otus.homework.coroutines
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
+    private lateinit var viewModel: CatsViewModel
 
     private val diContainer = DiContainer()
 
@@ -15,17 +17,21 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service, diContainer.imageService)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-    }
+        val factory = CatsViewModelFactory(diContainer.service, diContainer.imageService)
+        viewModel = ViewModelProvider(this, factory)[CatsViewModel::class.java]
 
-    override fun onStop() {
-        catsPresenter.onStop()
-        if (isFinishing) {
-            catsPresenter.detachView()
+        viewModel.result.observe(this) { result ->
+            when (result) {
+                is Result.Success<*> -> {
+                    view.populate(result.data as ImagedFact)
+                }
+                is Result.Error -> {
+                    result.errorMessage?.let { view.showAlert(it) }
+                }
+            }
         }
-        super.onStop()
+        findViewById<Button>(R.id.button).setOnClickListener {
+            viewModel.onInitCompleted()
+        }
     }
 }
