@@ -5,8 +5,9 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import otus.homework.coroutines.databinding.ActivityMainBinding
 import otus.homework.coroutines.viewmodel.CatsModelFactory
 import otus.homework.coroutines.viewmodel.CatsViewModel
@@ -25,10 +26,8 @@ class MainActivity : AppCompatActivity() {
             ViewModelProvider(this, CatsModelFactory(diContainer.serviceFact, diContainer.servicePic)).get(CatsViewModel::class.java)
 
         binding.button.setOnClickListener {
-            runBlocking {
-                launch {
-                    viewModel.onInitComplete()
-                }
+            CoroutineScope(Dispatchers.Main).launch {
+                viewModel.onInitComplete()
             }
         }
 

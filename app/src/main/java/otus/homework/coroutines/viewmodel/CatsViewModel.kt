@@ -30,50 +30,51 @@ class CatsViewModel constructor(
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         CrashMonitor.trackWarning(throwable)
     }
+    private val socketTimeoutExceptionMessage = "Не удалось получить ответ от серверов"
 
     suspend fun onInitComplete() {
         viewModelScope.launch(Dispatchers.IO + exceptionHandler + CoroutineName("CatsCoroutine")) {
-                var result: Response<CatFact>
-                var catFact = ""
-                lateinit var catPicBitmap: Bitmap
+            var result: Response<CatFact>
+            var catFact = ""
+            lateinit var catPicBitmap: Bitmap
 
-                launch(exceptionHandler) {
-                    try {
-                        result = serviceFact.getCatFact()
-                        if (result.isSuccessful && result.body() != null) {
-                            catFact = result.body()!!.fact
-                        } else {
-                            onError("Error : ${result.message()} ")
-                        }
-                    } catch (socketTimeoutException: SocketTimeoutException) {
-                        onError("Не удалось получить ответ от серверов")
-                    } catch (e: Exception) {
-                        onError("Exception message $e")
+            launch(exceptionHandler) {
+                try {
+                    result = serviceFact.getCatFact()
+                    if (result.isSuccessful && result.body() != null) {
+                        catFact = result.body()!!.fact
+                    } else {
+                        onError("Error : ${result.message()} ")
                     }
-                }.join()
-
-                launch(exceptionHandler) {
-                    try {
-                        catPicBitmap =
-                            Picasso.get().load(servicePic.getCatPic().body()?.get(0)?.url).get()
-                    } catch (socketTimeoutException: SocketTimeoutException) {
-                        onError("Не удалось получить ответ от серверов")
-                    }
-                }.join()
-
-                launch(Dispatchers.Main + exceptionHandler) {
-                    println(this.coroutineContext)
-                    _catFactLiveData.value = Result.Success(CatFactPic(catFact, catPicBitmap))
+                } catch (socketTimeoutException: SocketTimeoutException) {
+                    onError(socketTimeoutExceptionMessage)
+                } catch (e: Exception) {
+                    onError("Exception message $e")
                 }
+            }.join()
+
+            launch(exceptionHandler) {
+                try {
+                    catPicBitmap =
+                        Picasso.get().load(servicePic.getCatPic()[0].url).get()
+                } catch (socketTimeoutException: SocketTimeoutException) {
+                    onError(socketTimeoutExceptionMessage)
+                }
+            }.join()
+
+            launch(Dispatchers.Main + exceptionHandler) {
+                println(this.coroutineContext)
+                _catFactLiveData.value = Result.Success(CatFactPic(catFact, catPicBitmap))
             }
         }
-
-        private fun onError(errorMessage: String) {
-            _catFactLiveData.value = Result.Error(errorMessage)
-        }
-
-        public override fun onCleared() {
-            _catFactLiveData = MutableLiveData<Result>()
-            super.onCleared()
-        }
     }
+
+    private fun onError(errorMessage: String) {
+        _catFactLiveData.value = Result.Error(errorMessage)
+    }
+
+    public override fun onCleared() {
+        _catFactLiveData = MutableLiveData<Result>()
+        super.onCleared()
+    }
+}

@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -33,8 +34,13 @@ class CatsView @JvmOverloads constructor(
         findViewById<TextView>(R.id.fact_textView).text = catfactpic.fact
         findViewById<ImageView>(R.id.cat_image).setImageBitmap(catfactpic.picUrl)
     }
+
+    override fun showToast(message:String){
+        Toast.makeText(context,message,Toast.LENGTH_LONG).show()
+    }
 }
 
 interface ICatsView {
     fun populate(catfactpic: CatFactPic)
+    fun showToast(message:String)
 }
