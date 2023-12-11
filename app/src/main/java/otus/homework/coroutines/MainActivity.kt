@@ -11,7 +11,7 @@ class MainActivity : AppCompatActivity() {
 
     private val diContainer = DiContainer()
     private val viewModel: CatsViewModel by viewModels {
-        CatsViewModel.factory(diContainer.service, diContainer.imageService)
+        catsViewModelFactory(diContainer.service, diContainer.imageService)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        view.interactor = viewModel
+        view.buttonOnClickDelegate = CatsView.LoaderDelegate { viewModel.loadCat() }
         lifecycleScope.launch {
             viewModel.state.collect { result ->
                 when (result) {
@@ -31,6 +31,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        if (savedInstanceState == null) viewModel.onInitComplete()
+        if (savedInstanceState == null) viewModel.loadCat()
     }
 }

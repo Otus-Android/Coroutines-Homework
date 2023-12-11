@@ -7,39 +7,39 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.squareup.picasso.Picasso
 
 class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
+) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    var interactor: ICatsInteractor? = null
+    var buttonOnClickDelegate: LoaderDelegate? = null
+    private val imageLoader: Picasso by lazy { Picasso.get() }
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            interactor?.onInitComplete()
+            buttonOnClickDelegate?.load()
         }
     }
 
-    override fun populate(cat: Cat) {
+    fun populate(cat: Cat) {
         findViewById<TextView>(R.id.fact_textView).text = cat.text
-        findViewById<ImageView>(R.id.cat_imageView).setImageBitmap(cat.image)
+        imageLoader
+            .load(cat.imageUrl)
+            .into(
+                findViewById<ImageView>(R.id.cat_imageView)
+            )
     }
 
-    override fun showErrorToast(message: String) {
+    fun showErrorToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
-}
 
-interface ICatsView {
 
-    fun populate(cat: Cat)
-
-    fun showErrorToast(message: String)
-}
-
-interface ICatsInteractor {
-    fun onInitComplete()
+    fun interface LoaderDelegate {
+        fun load()
+    }
 }
