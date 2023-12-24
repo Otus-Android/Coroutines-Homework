@@ -11,7 +11,7 @@ import java.net.SocketTimeoutException
 class MainViewModel(
     private val catsService: CatsService,
     private val catsImage: CatsImage,
-): ViewModel() {
+) : ViewModel() {
 
     private val _state = MutableStateFlow<Result?>(null)
     val state = _state as StateFlow<Result?>
@@ -30,12 +30,19 @@ class MainViewModel(
     fun onInitComplete() {
         viewModelScope.launch(coroutineExceptionHandler) {
             runCatching {
-                val responseInfo = catsService.getCatFact()
-                val responseImage = catsImage.getCatImage()
-                val resultInfo = responseInfo.body()
-                val resultImage = responseImage.body()
-                if (responseInfo.isSuccessful && resultInfo != null && responseImage.isSuccessful && resultImage != null) {
-                    _state.emit(Result.Success(responseInfo.body()!!, responseImage.body()!![0].url))
+                launch {
+                    val responseInfo = catsService.getCatFact()
+                    val resultInfo = responseInfo.body()
+                    if (responseInfo.isSuccessful && resultInfo != null) {
+                        _state.emit(Result.Success(responseInfo.body()!!, null))
+                    }
+                }
+                launch {
+                    val responseImage = catsImage.getCatImage()
+                    val resultImage = responseImage.body()
+                    if (responseImage.isSuccessful && resultImage != null) {
+                        _state.emit(Result.Success(null, responseImage.body()!![0].url))
+                    }
                 }
             }.onFailure {
                 CrashMonitor.trackWarning()

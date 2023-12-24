@@ -26,8 +26,12 @@ class CatsView @JvmOverloads constructor(
     override fun populate(result: Result?) {//fact: Fact, link: String) {
         when (result) {
             is Result.Success -> {
-                findViewById<TextView>(R.id.fact_textView).text = result.fact.text
-                Picasso.get().load(result.link).into(findViewById<ImageView>(R.id.fact_ImageView))
+                result.fact?.let {
+                    findViewById<TextView>(R.id.fact_textView).text = it.text
+                }
+                result.link?.let {
+                    Picasso.get().load(it).into(findViewById<ImageView>(R.id.fact_ImageView))
+                }
             }
 
             is Result.Error -> {
@@ -41,5 +45,5 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(result: Result?)//fact: Fact, link: String)
+    fun populate(result: Result?)
 }

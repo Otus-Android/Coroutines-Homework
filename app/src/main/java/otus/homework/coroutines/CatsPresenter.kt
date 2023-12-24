@@ -18,29 +18,48 @@ class CatsPresenter(
     private var _catsView: ICatsView? = null
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        if (throwable is SocketTimeoutException) {
-            Toast.makeText(context,  "Не удалось получить ответ от сервера", Toast.LENGTH_LONG)
-        } else {
-            CrashMonitor.trackWarning()
-            Toast.makeText(context, throwable.message, Toast.LENGTH_LONG)
-        }
+        CrashMonitor.trackWarning()
+        Toast.makeText(context, throwable.message, Toast.LENGTH_LONG)
     }
 
-     fun onInitComplete() {
-         Log.d("Cats", "dcdc")
-            CoroutineScope(Dispatchers.Main + coroutineExceptionHandler).launch {
+    fun onInitComplete() {
+        Log.d("Cats", "dcdc")
+        CoroutineScope(Dispatchers.Main + coroutineExceptionHandler).launch {
             runCatching {
-                Log.d("Cats", "Start")
-                val responseInfo = catsService.getCatFact()
-                val responseImage = catsImage.getCatImage()
-                val resultInfo = responseInfo.body()
-                val resultImage = responseImage.body()
-                Log.d("Cats", resultImage.toString())
-                if (responseInfo.isSuccessful && resultInfo != null && responseImage.isSuccessful && resultImage != null) {
-                    _catsView?.populate(Result.Success(responseInfo.body()!!, responseImage.body()!![0].url))
+                launch {
+                    val responseInfo = catsService.getCatFact()
+                    val resultInfo = responseInfo.body()
+                    if (responseInfo.isSuccessful && resultInfo != null) {
+                        _catsView?.populate(
+                            Result.Success(
+                                responseInfo.body()!!,
+                                null,
+                            )
+                        )
+                    }
+                }
+                launch {
+                    val responseImage = catsImage.getCatImage()
+                    val resultImage = responseImage.body()
+                    Log.d("Cats", resultImage.toString())
+                    if ( responseImage.isSuccessful && resultImage != null) {
+                        _catsView?.populate(
+                            Result.Success(
+                                null,
+                                responseImage.body()!![0].url
+                            )
+                        )
+                    }
                 }
             }.onFailure {
-                CrashMonitor.trackWarning()
+                if (it is SocketTimeoutException) {
+                    CrashMonitor.trackWarning()
+                    Toast.makeText(
+                        context,
+                        "Не удалось получить ответ от сервера",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
     }
