@@ -39,7 +39,6 @@ class CatsViewModel(
         val cats = async {
             catsService.getCats()
         }
-        cats.await()
         val value = CatFact(facts.await().text, cats.await()[0].url)
         _catsViewFlow.emit(Result.Success(value))
     }
