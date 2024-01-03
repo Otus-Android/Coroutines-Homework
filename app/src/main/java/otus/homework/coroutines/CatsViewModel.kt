@@ -28,18 +28,24 @@ class CatsViewModel(
         }
         _catsViewFlow.value = Result.Error(message, ex)
     }
+
     init {
         onInitComplete()
     }
 
-    fun onInitComplete() = viewModelScope.launch(SupervisorJob() +   exceptionHandler) {
-        val facts = async {
-            factsService.getFact()
+    fun onInitComplete() = viewModelScope.launch(SupervisorJob() + exceptionHandler) {
+            try {
+                val facts = async {
+                    factsService.getFact()
+                }
+                val cats = async {
+                    catsService.getCats()
+                }
+                val value = CatFact(facts.await().text, cats.await()[0].url)
+                _catsViewFlow.emit(Result.Success(value))
+            } catch (ex: SocketTimeoutException) {
+                _catsViewFlow.value = Result.Error("Не удалось получить ответ от сервером", ex)
+            }
         }
-        val cats = async {
-            catsService.getCats()
-        }
-        val value = CatFact(facts.await().text, cats.await()[0].url)
-        _catsViewFlow.emit(Result.Success(value))
-    }
+
 }
