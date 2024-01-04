@@ -7,7 +7,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
@@ -19,14 +18,8 @@ class CatsViewModel(
     val catsFlow = _catsViewFlow.asStateFlow()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, ex ->
-        val message = when (ex) {
-            is SocketTimeoutException -> "Не удалось получить ответ от сервером"
-            else -> {
-                CrashMonitor.trackWarning()
-                ex.message
-            }
-        }
-        _catsViewFlow.value = Result.Error(message, ex)
+        CrashMonitor.trackWarning(ex)
+        _catsViewFlow.value = Result.Error(ex.message, ex)
     }
 
     init {
