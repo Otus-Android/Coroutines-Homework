@@ -5,6 +5,8 @@ import android.util.AttributeSet
 import android.widget.Button
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -14,16 +16,26 @@ class CatsView @JvmOverloads constructor(
 
     var presenter :CatsPresenter? = null
 
+    private val scope = PresenterScope()
+
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            scope.launch {
+                presenter?.onInitComplete()
+            }
         }
     }
 
     override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+        findViewById<TextView>(R.id.fact_textView).text = fact.fact
     }
+
+    override fun onDetachedFromWindow() {
+        scope.cancel("Stop Stop PresenterScope in CatsView")
+        super.onDetachedFromWindow()
+    }
+
 }
 
 interface ICatsView {
