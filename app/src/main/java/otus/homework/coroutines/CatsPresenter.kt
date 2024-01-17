@@ -2,7 +2,6 @@ package otus.homework.coroutines
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -29,18 +28,12 @@ class CatsPresenter(
                     fact = factDeferred.await()
                     images = imagesDeferred.await()
                 }
-                _catsView?.populate(
-                    CatsUiModel.Post(fact, images.first())
-                )
+                _catsView?.populate(CatsUiModel(fact, images.first()))
             } catch (ste: java.net.SocketTimeoutException) {
-                _catsView?.populate(
-                    CatsUiModel.Toast(R.string.http_error_ste)
-                )
+                _catsView?.toast(R.string.http_error_ste)
             } catch (exception: Exception) {
                 CrashMonitor.trackWarning()
-                _catsView?.populate(
-                    CatsUiModel.Toast(R.string.http_error_template, exception.message)
-                )
+                _catsView?.toast(R.string.http_error_template, exception.message)
             }
         }
     }

@@ -11,4 +11,8 @@ data class Image(
     val width: Int,
     @field:SerializedName("height")
     val height: Int
-)
+) {
+    companion object {
+        val EMPTY = Image("", "", 0, 0)
+    }
+}
