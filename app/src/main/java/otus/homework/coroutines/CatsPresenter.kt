@@ -2,13 +2,17 @@ package otus.homework.coroutines
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imagesService: ImagesService,
 ) {
 
     private var presenterScope: CoroutineScope? = createPresenterScope()
@@ -17,13 +21,26 @@ class CatsPresenter(
     fun onInitComplete() {
         presenterScope?.launch {
             try {
-                val fact = catsService.getCatFact()
-                _catsView?.populate(fact)
+                val fact: Fact
+                val images: List<Image>
+                withContext(Dispatchers.IO) {
+                    val factDeferred = async { catsService.getCatFact() }
+                    val imagesDeferred = async { imagesService.getImages() }
+                    fact = factDeferred.await()
+                    images = imagesDeferred.await()
+                }
+                _catsView?.populate(
+                    CatsUiModel.Post(fact, images.first())
+                )
             } catch (ste: java.net.SocketTimeoutException) {
-                _catsView?.toast(R.string.http_error_ste)
+                _catsView?.populate(
+                    CatsUiModel.Toast(R.string.http_error_ste)
+                )
             } catch (exception: Exception) {
                 CrashMonitor.trackWarning()
-                _catsView?.toast(R.string.http_error_template, exception.message)
+                _catsView?.populate(
+                    CatsUiModel.Toast(R.string.http_error_template, exception.message)
+                )
             }
         }
     }

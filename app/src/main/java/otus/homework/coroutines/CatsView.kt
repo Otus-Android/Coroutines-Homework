@@ -7,6 +7,7 @@ import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.databinding.ActivityMainBinding
 
@@ -28,20 +29,26 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact) {
-        binding.factTextView.text = fact.fact
-    }
-
-    override fun toast(@StringRes messageId: Int, vararg args: Any?) {
-        findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
-            Toast.makeText(context, context.getString(messageId, *args), Toast.LENGTH_LONG).show()
+    override fun populate(uiModel: CatsUiModel) {
+        when (uiModel) {
+            is CatsUiModel.Post -> {
+                binding.factTextView.text = uiModel.fact.fact
+                Picasso.get().load(uiModel.image.url).fit().centerCrop()
+                    .placeholder(R.drawable.pic_loading)
+                    .error(R.drawable.no_image)
+                    .into(binding.catImageView)
+            }
+            is CatsUiModel.Toast -> {
+                Toast.makeText(
+                    context, context.getString(uiModel.messageId, uiModel.varargs),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 }
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
-
-    fun toast(@StringRes messageId: Int, vararg args: Any?)
+    fun populate(uiModel: CatsUiModel)
 }
