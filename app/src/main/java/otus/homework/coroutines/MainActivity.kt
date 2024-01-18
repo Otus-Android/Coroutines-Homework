@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
             .get(CatViewModel::class.java)
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+       // catsPresenter.onInitComplete()
 
         viewModel.gen.observe(this){
             view.populate(it.fact,it.img)

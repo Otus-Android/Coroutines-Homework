@@ -22,36 +22,28 @@ class CatViewModel(private val catsService: CatsService):ViewModel() {
     val gen: LiveData<General> = _gen
     private val coroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
-            CrashMonitor.trackWarning("${throwable.localizedMessage}")
+            CrashMonitor.trackWarning(throwable.localizedMessage)
         }
     fun getCat(){
         viewModelScope.launch(Dispatchers.Main + CoroutineName("CatsCoroutine")+coroutineExceptionHandler){
            val fact = async {
-                try {
-                   catsService.getCatFact()
-                  //  _img.value = catsService.getCatFactImg().first()
-                } catch (e: Exception) {
-                    when (e) {
-                        is SocketTimeoutException -> _error.value="Не удалось получить ответ от сервером"
-                        else -> {
-                            _error.value=e.message.toString()
-                        }
-                    }
-                }
+               val result = State.on {  catsService.getCatFact()}
+               when (result) {
+                   is State.error -> {
+                      _error.value = result.exception.message.toString()
+                   }
+                   is State.success -> {
+                       result.data
+                   }
+               }
             }.await()
            val img = async {
-                try {
-                    catsService.getCatFactImg().first()
-                } catch (e: Exception) {
-                    when (e) {
-                        is SocketTimeoutException -> _error.value="Не удалось получить ответ от сервером"
-                        else -> {
-                            _error.value=e.message.toString()
-                        }
-                    }
-                }
+               val result = State.on { catsService.getCatFactImg().first()}
+               when (result) {
+                   is State.error ->  _error.value = result.exception.message.toString()
+                   is State.success -> result.data
+               }
             }.await()
-
             _gen.value = General(fact as Fact,img as Img)
         }
     }
