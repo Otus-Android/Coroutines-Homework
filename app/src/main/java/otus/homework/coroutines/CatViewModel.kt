@@ -1,5 +1,7 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -10,39 +12,47 @@ import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
 class CatViewModel(private val catsService: CatsService):ViewModel() {
-    private var _catsView: ICatsView? = null
+
+
+    private val _error: MutableLiveData<String> = MutableLiveData()
+    val error: LiveData<String> = _error
+
+
+    private val _gen: MutableLiveData<General> = MutableLiveData()
+    val gen: LiveData<General> = _gen
     private val coroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
             CrashMonitor.trackWarning("${throwable.localizedMessage}")
         }
     fun getCat(){
         viewModelScope.launch(Dispatchers.Main + CoroutineName("CatsCoroutine")+coroutineExceptionHandler){
-            val fact = async {
-                return@async try {
-                    catsService.getCatFact()
+           val fact = async {
+                try {
+                   catsService.getCatFact()
+                  //  _img.value = catsService.getCatFactImg().first()
                 } catch (e: Exception) {
                     when (e) {
-                        is SocketTimeoutException -> _catsView?.showError("Не удалось получить ответ от сервером")
+                        is SocketTimeoutException -> _error.value="Не удалось получить ответ от сервером"
                         else -> {
-                            _catsView?.showError(e.message.toString())
+                            _error.value=e.message.toString()
                         }
                     }
-                } as Fact
+                }
             }.await()
-            val img = async {
-                return@async try {
+           val img = async {
+                try {
                     catsService.getCatFactImg().first()
                 } catch (e: Exception) {
                     when (e) {
-                        is SocketTimeoutException -> _catsView?.showError("Не удалось получить ответ от сервером")
+                        is SocketTimeoutException -> _error.value="Не удалось получить ответ от сервером"
                         else -> {
-                            _catsView?.showError(e.message.toString())
+                            _error.value=e.message.toString()
                         }
                     }
-                } as Img
+                }
             }.await()
 
-            _catsView?.populate(fact, img)
+            _gen.value = General(fact as Fact,img as Img)
         }
     }
 }

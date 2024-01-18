@@ -8,13 +8,9 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var catsPresenter: CatsPresenter
     private lateinit var viewModel: CatViewModel
-    /*
-    binding.authViewModel = ViewModelProviders.of(
-  this,
-  viewModelFactory { MyViewModel("albert") }
-).get(AuthViewModel::class.java)
-     */
+
     private val diContainer = DiContainer()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,10 +23,18 @@ class MainActivity : AppCompatActivity() {
             .get(CatViewModel::class.java)
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
-       // catsPresenter.onInitComplete()
+        catsPresenter.onInitComplete()
+
+        viewModel.gen.observe(this){
+            view.populate(it.fact,it.img)
+        }
+        viewModel.error.observe(this){
+            view.showError(it)
+        }
+    }
+    fun getCats(){
         viewModel.getCat()
     }
-
     override fun onStop() {
         if (isFinishing) {
             catsPresenter.detachView()
