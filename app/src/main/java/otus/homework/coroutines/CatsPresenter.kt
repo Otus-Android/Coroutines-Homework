@@ -29,72 +29,44 @@ class CatsPresenter(
     fun onInitComplete() {
         job = MyScope().launch {
 
-    val fact = async {
-        return@async try {
-            catsService.getCatFact()
-        }
-        catch (e: SocketTimeoutException){
-            CrashMonitor.trackWarning()
-            _catsView?.showError(e.message.toString())
-        } as Fact
-    }.await()
-    val img = async {
-        return@async try {
-            catsService.getCatFactImg().first()
-        }
-        catch (e: SocketTimeoutException){
-            CrashMonitor.trackWarning()
-            _catsView?.showError(e.message.toString())
-        } as Img
-        }.await()
-
-
-
-
-            _catsView?.populate(fact,img)
-/*                try {
-                    _catsView?.populate(catsService.getCatFact(),catsService.getCatFactImg().first())
-                } catch (e: SocketTimeoutException) {
-                    CrashMonitor.trackWarning()
-                    _catsView?.showError(e.message.toString())
-                }*/
-
-/*                try {
-                  //  _catsView?.populate(catsService.getCatFact())
-                    // catsService.getCatFactImg()
-                } catch (e: SocketTimeoutException) {
-
-                }*/
-
-
-        }
-
-        /*        catsService.getCatFact().enqueue(object : Callback<Fact> {
-
-                    override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                        if (response.isSuccessful && response.body() != null) {
-                            _catsView?.populate(response.body()!!)
+            val fact = async {
+                return@async try {
+                    catsService.getCatFact()
+                } catch (e: Exception) {
+                    when (e) {
+                        is SocketTimeoutException -> _catsView?.showError("Не удалось получить ответ от сервером")
+                        else -> {
+                            CrashMonitor.trackWarning()
+                            _catsView?.showError(e.message.toString())
                         }
                     }
-
-                    override fun onFailure(call: Call<Fact>, t: Throwable) {
-                        CrashMonitor.trackWarning()
+                } as Fact
+            }.await()
+            val img = async {
+                return@async try {
+                    catsService.getCatFactImg().first()
+                } catch (e: Exception) {
+                    when (e) {
+                        is SocketTimeoutException -> _catsView?.showError("Не удалось получить ответ от сервером")
+                        else -> {
+                            CrashMonitor.trackWarning()
+                            _catsView?.showError(e.message.toString())
+                        }
                     }
-                })*/
-    }
+                } as Img
+            }.await()
 
-    suspend fun req(){
-
-    }
-
-    fun attachView(catsView: ICatsView) {
-        _catsView = catsView
-    }
-
-    fun detachView() {
-
-        _catsView = null
+            _catsView?.populate(fact, img)
+        }
 
     }
+        fun attachView(catsView: ICatsView) {
+            _catsView = catsView
+        }
 
-}
+        fun detachView() {
+            _catsView = null
+            job?.cancel()
+        }
+
+    }
