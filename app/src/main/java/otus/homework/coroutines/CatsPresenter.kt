@@ -36,7 +36,7 @@ class CatsPresenter(
                     when (e) {
                         is SocketTimeoutException -> _catsView?.showError("Не удалось получить ответ от сервером")
                         else -> {
-                            CrashMonitor.trackWarning()
+                            CrashMonitor.trackWarning(e.message.toString())
                             _catsView?.showError(e.message.toString())
                         }
                     }
@@ -49,7 +49,7 @@ class CatsPresenter(
                     when (e) {
                         is SocketTimeoutException -> _catsView?.showError("Не удалось получить ответ от сервером")
                         else -> {
-                            CrashMonitor.trackWarning()
+                            CrashMonitor.trackWarning(e.message.toString())
                             _catsView?.showError(e.message.toString())
                         }
                     }
