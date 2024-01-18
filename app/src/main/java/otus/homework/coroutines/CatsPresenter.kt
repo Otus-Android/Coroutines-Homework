@@ -1,12 +1,15 @@
 package otus.homework.coroutines
 
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imagesService: ImagesService,
 ) {
 
     private var _catsView: ICatsView? = null
@@ -19,10 +22,15 @@ class CatsPresenter(
     fun onInitComplete() {
         scope.launch(exceptionHandler) {
             try {
-                val response = catsService.getCatFact()
-                val fact = response.body()
-                if (response.isSuccessful && fact != null) {
-                    _catsView?.populate(fact)
+                coroutineScope {
+                    val fact = async { catsService.getCatFact() }
+                    val images = async { imagesService.getCatImages() }
+                    _catsView?.populate(
+                        FactWithImage(
+                            fact = fact.await().fact,
+                            imageUrl = images.await().firstOrNull()?.url.orEmpty()
+                        )
+                    )
                 }
             } catch (e: SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
