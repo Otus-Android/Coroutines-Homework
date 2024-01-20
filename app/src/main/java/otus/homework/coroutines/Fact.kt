@@ -7,4 +7,8 @@ data class Fact(
 	val fact: String,
 	@field:SerializedName("length")
 	val length: Int
-)
+) {
+	companion object {
+		val EMPTY = Fact("", 0)
+	}
+}

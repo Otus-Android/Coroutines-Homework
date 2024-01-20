@@ -2,9 +2,11 @@ package otus.homework.coroutines
 
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.Button
-import android.widget.TextView
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.squareup.picasso.Picasso
+import otus.homework.coroutines.databinding.ActivityMainBinding
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -12,21 +14,38 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var presenter: CatsPresenter? = null
+    lateinit var binding: ActivityMainBinding
 
     override fun onFinishInflate() {
         super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
+        binding = ActivityMainBinding.bind(this)
+        /*
+        binding.button.setOnClickListener {
             presenter?.onInitComplete()
         }
+        */
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
+    override fun populate(uiModel: CatsUiModel) {
+        if (uiModel.fact == Fact.EMPTY) return
+        binding.factTextView.text = uiModel.fact.fact
+        Picasso.get().load(uiModel.image.url).fit().centerCrop()
+            .placeholder(R.drawable.pic_loading)
+            .error(R.drawable.no_image)
+            .into(binding.catImageView)
+    }
+
+    override fun toast(messageId: Int, vararg args: Any?) {
+        Toast.makeText(
+            context, context.getString(messageId, *args), Toast.LENGTH_LONG
+        ).show()
     }
 }
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(uiModel: CatsUiModel)
+
+    fun toast(@StringRes messageId: Int, vararg args: Any?)
 }
