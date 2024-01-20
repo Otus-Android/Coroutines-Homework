@@ -11,6 +11,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.ViewModel
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineName
+import otus.homework.coroutines.Result
 
 
 class CatsView @JvmOverloads constructor(
@@ -37,21 +38,28 @@ class CatsView @JvmOverloads constructor(
     }
 
     override fun populate(fact: Fact, image: Image) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
-        if (image.url.isNotEmpty()) {
-            Picasso.get().load(image.url)
-                .resize(width, width)
-                .centerCrop()
-                .into(imageView)
+
+        if (viewModel?.state == Result.Success("success")) {
+
+            findViewById<TextView>(R.id.fact_textView).text = fact.fact
+            if (image.url.isNotEmpty()) {
+                Picasso.get().load(image.url)
+                    .resize(width, width)
+                    .centerCrop()
+                    .into(imageView)
+            }
+        } else {
+            findViewById<TextView>(R.id.fact_textView).text = "Error ${viewModel?.state.toString()}"
         }
     }
 
-    override fun toastError() {
-        Toast.makeText(context, "Не удалось получить ответ от сервера", Toast.LENGTH_SHORT)
+    override fun toastError(e: Exception) {
+        Toast.makeText(context, "Не удалось получить ответ от сервера Ошибка $e", Toast.LENGTH_SHORT).show()
     }
 
 
     override fun onDetachedFromWindow() {
+        viewModel= null
         super.onDetachedFromWindow()
     }
 
@@ -61,6 +69,6 @@ interface ICatsView {
 
     fun populate(fact: Fact, image: Image)
 
-    fun toastError()
+    fun toastError(e: Exception)
 
 }

@@ -1,6 +1,7 @@
 package otus.homework.coroutines
 
 import android.util.Log
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -31,10 +32,12 @@ class CatsPresenter(
 
                 _catsView?.populate(fact.await(), image.await())
 
+            } catch (e: SocketTimeoutException) {
+                _catsView?.toastError(e)
+            } catch (e: CancellationException) {
+                _catsView?.toastError(e)
             } catch (e: Exception) {
-                if (e is SocketTimeoutException) {
-                    _catsView?.toastError()
-                }
+                _catsView?.toastError(e)
                 CrashMonitor.trackWarning(e)
             }
         }
