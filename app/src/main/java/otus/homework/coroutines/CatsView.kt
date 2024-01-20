@@ -6,11 +6,12 @@ import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.ViewModel
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -18,9 +19,9 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    // var presenter: CatsPresenter? = null
 
-    private val scope = PresenterScope()
+    var viewModel: CatsViewModel? = null
 
     private var imageView: ImageView? = null
 
@@ -28,26 +29,29 @@ class CatsView @JvmOverloads constructor(
         super.onFinishInflate()
         imageView = findViewById<ImageView>(R.id.imageView)
         findViewById<Button>(R.id.button).setOnClickListener {
-            scope.launch {
-                presenter?.onInitComplete()
-                Log.d("catsView", "${CoroutineName.toString()}")
-            }
+            viewModel?.onInitComplete()
+            // presenter?.onInitComplete()
+            Log.d("catsView", CoroutineName.toString())
+
         }
     }
 
     override fun populate(fact: Fact, image: Image) {
         findViewById<TextView>(R.id.fact_textView).text = fact.fact
-
+        if (image.url.isNotEmpty()) {
             Picasso.get().load(image.url)
                 .resize(width, width)
                 .centerCrop()
                 .into(imageView)
+        }
+    }
 
+    override fun toastError() {
+        Toast.makeText(context, "Не удалось получить ответ от сервера", Toast.LENGTH_SHORT)
     }
 
 
     override fun onDetachedFromWindow() {
-        scope.cancel("Stop Stop PresenterScope in CatsView")
         super.onDetachedFromWindow()
     }
 
@@ -55,6 +59,8 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(fact: Fact,image: Image )
+    fun populate(fact: Fact, image: Image)
+
+    fun toastError()
 
 }
