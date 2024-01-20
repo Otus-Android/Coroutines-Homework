@@ -3,15 +3,15 @@ package otus.homework.coroutines
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class DiContainer {
+class DiContainerPicture {
 
-    private val retrofit by lazy {
+    private val retrofitPicture by lazy {
         Retrofit.Builder()
-            .baseUrl("https://catfact.ninja/")
+            .baseUrl("https://api.thecatapi.com/v1/images/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
-    val service by lazy { retrofit.create(CatsService::class.java) }
+    val servicePicture by lazy { retrofitPicture.create(CatsServicePicture::class.java) }
 
 }
