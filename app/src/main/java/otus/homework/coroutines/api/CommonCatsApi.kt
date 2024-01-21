@@ -1,6 +1,9 @@
 package otus.homework.coroutines.api
 
 import otus.homework.coroutines.api.services.facts.CommonFactsService
+import otus.homework.coroutines.api.services.photos.CommonPhotoService
+import otus.homework.coroutines.api.services.photos.IPhotoService
+
 @Suppress("SpellCheckingInspection")
 object CommonCatsApi : BaseServiceApi(), ICatsApi {
 
@@ -13,4 +16,13 @@ object CommonCatsApi : BaseServiceApi(), ICatsApi {
             httpHost = httpHost
         )
     }
+
+    override val photoService: IServiceApi by lazy {
+        object : BaseServiceApi(), IRetrofitServiceApi {
+            override val serviceClass: Class<out IPhotoService> = CommonPhotoService::class.java
+            override val protocol : String = "https"
+            override val host: String = "api.thecatapi.com"
+        }
+    }
+
 }

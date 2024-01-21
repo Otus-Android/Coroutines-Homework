@@ -3,11 +3,13 @@ package otus.homework.coroutines.ui
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.squareup.picasso.Picasso
 import otus.homework.coroutines.R
-import otus.homework.coroutines.dtos.Fact
+import otus.homework.coroutines.presentation.entitiy.CatFact
 import otus.homework.coroutines.presentation.CatsPresenter
 
 class CatsView @JvmOverloads constructor(
@@ -25,8 +27,15 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
+    override fun populate(fact: CatFact) {
+        findViewById<TextView>(R.id.fact_textView).text = fact.funFact
+        runCatching {
+            Picasso.get()
+                .load(fact.photoUri)
+                .into(
+                    findViewById<ImageView>(R.id.fact_imageView)
+                )
+        }
     }
 
     override fun postWarning(messageProvider: Context.() -> String) {
@@ -40,6 +49,6 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(fact: CatFact)
     fun postWarning(messageProvider: Context.() -> String)
 }

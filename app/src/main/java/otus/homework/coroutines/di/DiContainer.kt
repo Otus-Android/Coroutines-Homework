@@ -7,6 +7,7 @@ import kotlinx.coroutines.SupervisorJob
 import otus.homework.coroutines.api.CommonCatsApi
 import otus.homework.coroutines.api.ICatsApi
 import otus.homework.coroutines.api.services.facts.IFactsService
+import otus.homework.coroutines.api.services.photos.IPhotoService
 import otus.homework.coroutines.api.toRetrofit
 import otus.homework.coroutines.util.dangerCast
 import retrofit2.Retrofit
@@ -29,7 +30,16 @@ class DiContainer {
         }
     }
 
+    val photoService: IPhotoService by lazy {
+        catsApi.photoService.run {
+            retrofit.newBuilder()
+                .baseUrl(httpHost)
+                .build()
+                .create(toRetrofit().serviceClass.dangerCast())
+        }
+    }
+
     val presenterScope by lazy {
-        CoroutineScope(Dispatchers.Main.immediate + CoroutineName("CatsCoroutine") + SupervisorJob())
+        CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine") + SupervisorJob())
     }
 }

@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         catsPresenter = CatsPresenter(
             diContainer.factsService,
+            diContainer.photoService,
             diContainer.presenterScope
         )
         view.presenter = catsPresenter
