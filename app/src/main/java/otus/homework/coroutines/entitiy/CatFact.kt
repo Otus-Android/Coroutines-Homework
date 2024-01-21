@@ -1,4 +1,4 @@
-package otus.homework.coroutines.presentation.entitiy
+package otus.homework.coroutines.entitiy
 
 data class CatFact(
     val photoUri: String,

@@ -1,6 +1,6 @@
 package otus.homework.coroutines.api.services.facts
 
-import otus.homework.coroutines.dtos.Fact
+import otus.homework.coroutines.Fact
 import retrofit2.Response
 import retrofit2.http.GET
 

@@ -1,4 +1,4 @@
-package otus.homework.coroutines.ui
+package otus.homework.coroutines
 
 import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
@@ -8,10 +8,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.launch
-import otus.homework.coroutines.R
-import otus.homework.coroutines.di.DiContainer
-import otus.homework.coroutines.presentation.CatsState
-import otus.homework.coroutines.presentation.CatsViewModel
 import java.net.SocketTimeoutException
 
 class MainActivity : AppCompatActivity() {

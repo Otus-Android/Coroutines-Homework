@@ -1,4 +1,4 @@
-package otus.homework.coroutines.presentation
+package otus.homework.coroutines
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -7,9 +7,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelChildren
 import otus.homework.coroutines.api.services.facts.IFactsService
 import otus.homework.coroutines.api.services.photos.IPhotoService
-import otus.homework.coroutines.dtos.Fact
-import otus.homework.coroutines.dtos.Photo
-import otus.homework.coroutines.presentation.entitiy.CatFact
+import otus.homework.coroutines.entitiy.CatFact
 import otus.homework.coroutines.util.CrashMonitor
 import otus.homework.coroutines.util.dangerCast
 import otus.homework.coroutines.util.runCatching

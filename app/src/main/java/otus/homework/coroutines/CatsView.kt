@@ -1,4 +1,4 @@
-package otus.homework.coroutines.ui
+package otus.homework.coroutines
 
 import android.content.Context
 import android.util.AttributeSet
@@ -8,8 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
-import otus.homework.coroutines.R
-import otus.homework.coroutines.presentation.entitiy.CatFact
+import otus.homework.coroutines.entitiy.CatFact
 
 class CatsView @JvmOverloads constructor(
     context: Context,

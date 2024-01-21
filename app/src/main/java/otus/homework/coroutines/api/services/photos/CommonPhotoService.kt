@@ -1,6 +1,6 @@
 package otus.homework.coroutines.api.services.photos
 
-import otus.homework.coroutines.dtos.Photo
+import otus.homework.coroutines.Photo
 import retrofit2.Response
 import retrofit2.http.GET
 
