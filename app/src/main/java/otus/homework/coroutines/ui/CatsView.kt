@@ -10,22 +10,12 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.R
 import otus.homework.coroutines.presentation.entitiy.CatFact
-import otus.homework.coroutines.presentation.CatsPresenter
 
 class CatsView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
-
-    var presenter: CatsPresenter? = null
-
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
-        }
-    }
 
     override fun populate(fact: CatFact) {
         findViewById<TextView>(R.id.fact_textView).text = fact.funFact
@@ -45,10 +35,15 @@ class CatsView @JvmOverloads constructor(
                 .show()
         }
     }
+
+    override fun attachOnButtonClickCallback(callback: ICatsView.() -> Unit) {
+        findViewById<Button>(R.id.button).setOnClickListener { callback() }
+    }
 }
 
 interface ICatsView {
 
     fun populate(fact: CatFact)
     fun postWarning(messageProvider: Context.() -> String)
+    fun attachOnButtonClickCallback(callback: ICatsView.() -> Unit)
 }
