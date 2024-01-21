@@ -29,10 +29,14 @@ class CatsPresenter(
                     catImageUrl = image
                 )
                 _catsView?.populate(catInfo)
-            } catch (e: CancellationException) {
-                println("Coroutine cancelled: ${e.message}")
-            } catch (t: SocketTimeoutException) {
-                _catsView?.showToast(SOCKET_TIMEOUT_EXCEPTION_MESSAGE)
+            } catch (e: Exception) {
+                if (e is CancellationException) {
+                    println("Coroutine cancelled: ${e.message}")
+                    throw e
+                }
+                if (e is SocketTimeoutException) {
+                    _catsView?.showToast(SOCKET_TIMEOUT_EXCEPTION_MESSAGE)
+                }
             } catch (t: Throwable) {
                 CrashMonitor.trackWarning()
                 _catsView?.showToast(t.message)
