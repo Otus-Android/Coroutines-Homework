@@ -1,15 +1,14 @@
 package otus.homework.coroutines
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import otus.homework.coroutines.CatsPresenter.Companion.SOCKET_TIMEOUT_EXCEPTION_MESSAGE
 import java.net.SocketTimeoutException
 
@@ -21,7 +20,7 @@ class CatsViewModel(
     private var job: Job? = null
     private val result = MutableLiveData<Result>()
 
-    fun getResult(): MutableLiveData<Result> = result
+    fun getResult(): LiveData<Result> = result
 
     private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
         CrashMonitor.trackWarning()
@@ -37,7 +36,7 @@ class CatsViewModel(
     }
 
     fun onInitCompleted() {
-        job = viewModelScope.launch(Dispatchers.IO + CoroutineName("CatsCoroutine") +exceptionHandler) {
+        job = viewModelScope.launch(CoroutineName("CatsCoroutine") + exceptionHandler) {
             val deferredFact = async { catFactService.getCatFact() }
             val deferredImage = async { randomCatService.getRandomCatImage() }
 
@@ -49,9 +48,7 @@ class CatsViewModel(
                 catImageUrl = image
             )
 
-            withContext(Dispatchers.Main) {
-                result.value = Result.Success(data = catInfoValue)
-            }
+            result.value = Result.Success(data = catInfoValue)
         }
     }
 }

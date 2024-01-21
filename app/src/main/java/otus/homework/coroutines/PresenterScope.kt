@@ -7,5 +7,5 @@ import kotlin.coroutines.CoroutineContext
 
 class PresenterScope : CoroutineScope {
     private val coroutineName = CoroutineName("CatsCoroutine")
-    override val coroutineContext: CoroutineContext = Dispatchers.IO + coroutineName
+    override val coroutineContext: CoroutineContext = Dispatchers.Main + coroutineName
 }

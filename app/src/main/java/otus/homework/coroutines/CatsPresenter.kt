@@ -1,10 +1,9 @@
 package otus.homework.coroutines
 
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -29,22 +28,16 @@ class CatsPresenter(
                     catFactText = fact,
                     catImageUrl = image
                 )
-                withContext(Dispatchers.Main) {
-                    _catsView?.populate(catInfo)
-                }
+                _catsView?.populate(catInfo)
+            } catch (e: CancellationException) {
+                println("Coroutine cancelled: ${e.message}")
             } catch (t: SocketTimeoutException) {
-                withContext(Dispatchers.Main) {
-                    _catsView?.showToast(SOCKET_TIMEOUT_EXCEPTION_MESSAGE)
-                }
-
+                _catsView?.showToast(SOCKET_TIMEOUT_EXCEPTION_MESSAGE)
             } catch (t: Throwable) {
                 CrashMonitor.trackWarning()
-                withContext(Dispatchers.Main) {
-                    _catsView?.showToast(t.message)
-                }
+                _catsView?.showToast(t.message)
             }
         }
-
     }
 
     fun attachView(catsView: ICatsView) {
