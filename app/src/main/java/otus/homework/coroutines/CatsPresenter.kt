@@ -7,9 +7,13 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
-class CatsPresenter(private val catsService: CatsService) {
+class CatsPresenter(
+    private val catsService: CatsService,
+    private val catsImageService: CatsService
+) {
 
   private var _catsView: ICatsView? = null
 
@@ -21,23 +25,19 @@ class CatsPresenter(private val catsService: CatsService) {
     job =
         presenterScope.launch {
           try {
-            val result = catsService.getCatFact()
-            result.body()?.let { fact -> _catsView?.populate(fact) }
+            val catInfo = fetchCatInfo()
+            _catsView?.populate(catInfo)
           } catch (e: Exception) {
-            when (e) {
-              is SocketTimeoutException -> {
-                _catsView?.showToast("Не удалось получить ответ от сервера")
-              }
-              is CancellationException -> {
-                throw CancellationException()
-              }
-              else -> {
-                CrashMonitor.trackWarning()
-                e.message?.let { message -> _catsView?.showToast(message) }
-              }
-            }
+            handleError(e)
           }
         }
+  }
+
+  private suspend fun fetchCatInfo(): CatInfo {
+    val factDeferred = presenterScope.async { catsService.getCatFact().body()?.fact.orEmpty() }
+    val imageDeferred = presenterScope.async { catsImageService.getCatImage().body().orEmpty() }
+
+    return CatInfo(factDeferred.await(), imageDeferred.await())
   }
 
   fun attachView(catsView: ICatsView) {
@@ -48,5 +48,20 @@ class CatsPresenter(private val catsService: CatsService) {
     _catsView = null
     job?.cancel()
     job = null
+  }
+
+  private fun handleError(e: Exception) {
+    when (e) {
+      is SocketTimeoutException -> {
+        _catsView?.showToast("Не удалось получить ответ от сервера")
+      }
+      is CancellationException -> {
+        throw CancellationException()
+      }
+      else -> {
+        CrashMonitor.trackWarning()
+        e.message?.let { message -> _catsView?.showToast(message) }
+      }
+    }
   }
 }
