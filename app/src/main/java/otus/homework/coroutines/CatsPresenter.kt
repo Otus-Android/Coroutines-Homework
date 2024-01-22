@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import otus.homework.coroutines.util.CrashMonitor
 import otus.homework.coroutines.api.services.facts.IFactsService
@@ -25,20 +26,19 @@ class CatsPresenter(
 
     fun onInitComplete() = presenterScope.launch {
         runCatching {
+            coroutineScope {
 
-            val fact = async {
-                runCatching {
+                val fact = async {
                     catsService.getCatFact().let {
                         it.body() ?: throw IllegalStateException(
                             "Successful response was captured with empty body",
                             HttpException(it)
                         )
+
                     }
                 }
-            }
 
-            val photo = async {
-                runCatching {
+                val photo = async {
                     photoService.getRandomPhoto().let {
                         it.body() ?: throw IllegalStateException(
                             "Successful response was captured with empty body",
@@ -46,25 +46,22 @@ class CatsPresenter(
                         )
                     }
                 }
+
+                val awaitedData = awaitAll(fact, photo)
+
+                val loadedFact = awaitedData.component1()
+                    .dangerCast<Fact>()
+
+                val loadedPhoto = awaitedData.component2()
+                    .dangerCast<List<Photo>>()
+                    .first()
+
+                CatFact(
+                    photoUri = loadedPhoto.url,
+                    funFact = loadedFact.fact
+                )
             }
-
-            val awaitedData = awaitAll(fact, photo)
-
-            val loadedFact = awaitedData.component1()
-                .getOrThrow()
-                .dangerCast<Fact>()
-
-            val loadedPhoto = awaitedData.component2()
-                .getOrThrow()
-                .dangerCast<List<Photo>>()
-                .first()
-
-            CatFact(
-                photoUri = loadedPhoto.url,
-                funFact = loadedFact.fact
-            )
-
-        }.onFailure onFailure@ {
+        }.onFailure onFailure@{
 
             if (it is SocketTimeoutException) {
                 _catsView?.postWarning { getString(R.string.facts_timeout_message) }

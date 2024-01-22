@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.coroutineScope
 import otus.homework.coroutines.api.services.facts.IFactsService
 import otus.homework.coroutines.api.services.photos.IPhotoService
 import otus.homework.coroutines.entitiy.CatFact
@@ -30,45 +31,39 @@ class CatsViewModel(
 
     suspend fun fetchCatFact(): CatsState = with(viewModelScope) {
         val catFact = runCatching {
-
-            val fact = async {
-                runCatching {
-                    factsService.getCatFact().let {
-                        it.body() ?: throw IllegalStateException(
-                            "Successful response was captured with empty body",
-                            HttpException(it)
-                        )
-                    }
+            coroutineScope {
+                val fact = async {
+                        factsService.getCatFact().let {
+                            it.body() ?: throw IllegalStateException(
+                                "Successful response was captured with empty body",
+                                HttpException(it)
+                            )
+                        }
                 }
-            }
 
-            val photo = async {
-                runCatching {
-                    photoService.getRandomPhoto().let {
-                        it.body() ?: throw IllegalStateException(
-                            "Successful response was captured with empty body",
-                            HttpException(it)
-                        )
-                    }
+                val photo = async {
+                        photoService.getRandomPhoto().let {
+                            it.body() ?: throw IllegalStateException(
+                                "Successful response was captured with empty body",
+                                HttpException(it)
+                            )
+                        }
                 }
+
+                val awaitedData = awaitAll(fact, photo)
+
+                val loadedFact = awaitedData.component1()
+                    .dangerCast<Fact>()
+
+                val loadedPhoto = awaitedData.component2()
+                    .dangerCast<List<Photo>>()
+                    .first()
+
+                CatFact(
+                    photoUri = loadedPhoto.url,
+                    funFact = loadedFact.fact
+                )
             }
-
-            val awaitedData = awaitAll(fact, photo)
-
-            val loadedFact = awaitedData.component1()
-                .getOrThrow()
-                .dangerCast<Fact>()
-
-            val loadedPhoto = awaitedData.component2()
-                .getOrThrow()
-                .dangerCast<List<Photo>>()
-                .first()
-
-            CatFact(
-                photoUri = loadedPhoto.url,
-                funFact = loadedFact.fact
-            )
-
         }.onFailure {
             if (it !is SocketTimeoutException) {
                 CrashMonitor.trackWarning()
