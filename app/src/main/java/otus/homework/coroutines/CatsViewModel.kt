@@ -26,7 +26,7 @@ class CatsViewModel(
         onInitComplete()
     }
 
-    fun onInitComplete() = viewModelScope.launch(SupervisorJob() + exceptionHandler) {
+    fun onInitComplete() = viewModelScope.launch(exceptionHandler) {
             try {
                 val facts = async {
                     factsService.getFact()
