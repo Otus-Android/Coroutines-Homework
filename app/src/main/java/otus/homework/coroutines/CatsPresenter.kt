@@ -6,13 +6,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val picsService: PicsService
 ) {
 
     private val coroutineScope = CoroutineScope(
@@ -25,10 +23,17 @@ class CatsPresenter(
         coroutineScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val response = catsService.getCatFact()
-                    if (response.isSuccessful && response.body() != null) {
+                    val catFactResponse = catsService.getCatFact()
+                    val picResponse = picsService.getPicture()
+                    if (catFactResponse.isSuccessful && catFactResponse.body() != null &&
+                        picResponse.isSuccessful && picResponse.body() != null
+                    ) {
                         withContext(Dispatchers.Main) {
-                            _catsView?.populate(response.body()!!)
+                            val model = CatsUiModel(
+                                fact = catFactResponse.body()!!.fact,
+                                pictureUrl = picResponse.body()!!.first().url,
+                            )
+                            _catsView?.populate(model)
                         }
                     }
                 }

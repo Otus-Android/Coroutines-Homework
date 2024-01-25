@@ -3,10 +3,11 @@ package otus.homework.coroutines
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
-import java.lang.Error
+import com.squareup.picasso.Picasso
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -14,7 +15,7 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var presenter : CatsPresenter? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -23,8 +24,9 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
+    override fun populate(model: CatsUiModel) {
+        findViewById<TextView>(R.id.fact_textView).text = model.fact
+        Picasso.get().load(model.pictureUrl).into(findViewById<ImageView>(R.id.pic_imageView))
     }
 
     override fun showError(error: Throwable) {
@@ -38,7 +40,7 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(model: CatsUiModel)
     fun showError(error: Throwable)
     fun showNetworkError()
 }
