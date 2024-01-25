@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.ui
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -6,6 +6,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import otus.homework.coroutines.data.CatsService
+import otus.homework.coroutines.util.CrashMonitor
+import otus.homework.coroutines.data.PicsService
 import java.net.SocketTimeoutException
 
 class CatsPresenter(

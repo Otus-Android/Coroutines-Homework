@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.util
 
 object CrashMonitor {
 

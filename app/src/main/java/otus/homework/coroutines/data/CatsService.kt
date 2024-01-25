@@ -1,4 +1,4 @@
-package otus.homework.coroutines
+package otus.homework.coroutines.data
 
 import retrofit2.Response
 import retrofit2.http.GET
