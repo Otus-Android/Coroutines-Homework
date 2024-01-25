@@ -1,28 +1,52 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import android.content.res.Resources
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.SocketTimeoutException
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imageService: CatImageService,
+    private val resManager: Resources
 ) {
 
     private var _catsView: ICatsView? = null
 
-    fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+    private val scope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
+    private var job: Job? = null
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
+    fun onInitComplete() {
+        job?.cancel()
+        job = scope.launch {
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    val fact = async {
+                        catsService.getCatFact()
+                    }
+                    val image = async {
+                        imageService.getCatImages().firstOrNull()
+                    }
+                    FactState(
+                        fact = fact.await(),
+                        image = image.await()
+                    )
+                }
+                _catsView?.populate(result)
+            } catch (e: Exception) {
+                if (e is SocketTimeoutException) {
+                    _catsView?.showError(resManager.getString(R.string.socket_timeout_error))
+                } else {
+                    CrashMonitor.trackWarning()
+                    _catsView?.showError(e.message ?: resManager.getString(R.string.unknown_error))
                 }
             }
-
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
-            }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -31,5 +55,8 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+
+        job?.cancel()
+        job = null
     }
 }
