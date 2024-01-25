@@ -24,6 +24,7 @@ class CatsPresenter(
     private var _catsView: ICatsView? = null
 
     fun onInitComplete() {
+        job?.cancel()
         job = coroutineScope.launch {
             try {
                 _catsView?.populate(
@@ -55,6 +56,7 @@ class CatsPresenter(
 
     fun detachView() {
         job?.cancel()
+        job = null
         _catsView = null
     }
 }
