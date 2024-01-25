@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
 import otus.homework.coroutines.R
+import java.net.SocketTimeoutException
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -16,7 +17,7 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter : CatsPresenter? = null
+    var presenter : CatsViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -25,23 +26,36 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(model: CatsUiModel) {
-        findViewById<TextView>(R.id.fact_textView).text = model.fact
-        Picasso.get().load(model.pictureUrl).into(findViewById<ImageView>(R.id.pic_imageView))
+    override fun render(result: Result<CatsData>) {
+        when(result) {
+            is Result.Success -> {
+                val data = result.data
+                populate(data)
+            }
+            is Result.Error -> {
+                val error = result.error
+                showError(error)
+            }
+        }
     }
 
-    override fun showError(error: Throwable) {
-        Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
+    private fun populate(data: CatsData) {
+        findViewById<TextView>(R.id.fact_textView).text = data.fact
+        Picasso.get().load(data.pictureUrl).into(findViewById<ImageView>(R.id.pic_imageView))
     }
 
-    override fun showNetworkError() {
-        Toast.makeText(context, R.string.network_error, Toast.LENGTH_SHORT).show()
+    private fun showError(error: Throwable) {
+        val errorText = if (error is SocketTimeoutException) {
+            context.getString(R.string.network_error)
+        } else {
+            error.message
+        }
+        Toast.makeText(context, errorText, Toast.LENGTH_SHORT).show()
     }
 }
 
 interface ICatsView {
 
-    fun populate(model: CatsUiModel)
-    fun showError(error: Throwable)
-    fun showNetworkError()
+    fun render(result: Result<CatsData>)
+
 }

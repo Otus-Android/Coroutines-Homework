@@ -1,6 +1,6 @@
 package otus.homework.coroutines.ui
 
-data class CatsUiModel(
+data class CatsData(
     val fact: String,
     val pictureUrl: String
 )
