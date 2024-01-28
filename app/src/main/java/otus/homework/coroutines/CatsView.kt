@@ -30,10 +30,10 @@ class CatsView @JvmOverloads constructor(
         }
     }
 
-    override fun populate(fact: Fact,img: Img) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
+    override fun populate(general: General) {
+        findViewById<TextView>(R.id.fact_textView).text = general.fact.fact
         val catImg = findViewById<ImageView>(R.id.img_ImageView)
-        Picasso.get().load(img.url).into(catImg)
+        Picasso.get().load(general.img.url).into(catImg)
     }
 
     override fun showError(error: String) {
@@ -45,7 +45,7 @@ class CatsView @JvmOverloads constructor(
 
 interface ICatsView {
 
-    fun populate(fact: Fact,img: Img)
+    fun populate(general: General)
     fun showError(error: String)
 
 }

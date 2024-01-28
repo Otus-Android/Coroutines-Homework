@@ -26,11 +26,13 @@ class MainActivity : AppCompatActivity() {
        // catsPresenter.onInitComplete()
 
         viewModel.gen.observe(this){
-            view.populate(it.fact,it.img)
+            when(it){
+                is State.error -> view.showError(it.exception.localizedMessage)
+                is State.success -> view.populate(it.data)
+            }
+
         }
-        viewModel.error.observe(this){
-            view.showError(it)
-        }
+
     }
     fun getCats(){
         viewModel.getCat()

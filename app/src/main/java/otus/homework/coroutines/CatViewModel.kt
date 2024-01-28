@@ -13,38 +13,22 @@ import java.net.SocketTimeoutException
 
 class CatViewModel(private val catsService: CatsService):ViewModel() {
 
-
-    private val _error: MutableLiveData<String> = MutableLiveData()
-    val error: LiveData<String> = _error
-
-
-    private val _gen: MutableLiveData<General> = MutableLiveData()
-    val gen: LiveData<General> = _gen
+    private val _gen: MutableLiveData<State<General>> = MutableLiveData()
+    val gen: LiveData<State<General>> = _gen
     private val coroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
             CrashMonitor.trackWarning(throwable.localizedMessage)
         }
     fun getCat(){
-        viewModelScope.launch(Dispatchers.Main + CoroutineName("CatsCoroutine")+coroutineExceptionHandler){
+        viewModelScope.launch(coroutineExceptionHandler){
            val fact = async {
-               val result = State.on {  catsService.getCatFact()}
-               when (result) {
-                   is State.error -> {
-                      _error.value = result.exception.message.toString()
-                   }
-                   is State.success -> {
-                       result.data
-                   }
-               }
-            }.await()
+               catsService.getCatFact()
+
+            }
            val img = async {
-               val result = State.on { catsService.getCatFactImg().first()}
-               when (result) {
-                   is State.error ->  _error.value = result.exception.message.toString()
-                   is State.success -> result.data
-               }
-            }.await()
-            _gen.value = General(fact as Fact,img as Img)
+               catsService.getCatFactImg().first()
+            }
+            _gen.value = State.on { General(fact.await(),img.await())}
         }
     }
 }

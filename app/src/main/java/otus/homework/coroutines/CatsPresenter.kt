@@ -56,7 +56,7 @@ class CatsPresenter(
                 } as Img
             }.await()
 
-            _catsView?.populate(fact, img)
+            _catsView?.populate(General(fact, img))
         }
 
     }
