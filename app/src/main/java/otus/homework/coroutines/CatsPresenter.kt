@@ -18,7 +18,7 @@ import kotlin.coroutines.CoroutineContext
 class CatsPresenter(
     private val catsService: CatsService
 ) {
-    inner class MyScope : CoroutineScope {
+    class MyScope : CoroutineScope {
         override val coroutineContext: CoroutineContext
             get() = Dispatchers.Main + CoroutineName("CatsCoroutine")
 
