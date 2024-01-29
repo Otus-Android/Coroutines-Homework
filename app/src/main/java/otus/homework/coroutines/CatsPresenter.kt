@@ -50,3 +50,4 @@ class CatsPresenter(
         _catsView = null
     }
 }
+
