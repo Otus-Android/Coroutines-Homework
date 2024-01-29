@@ -18,27 +18,24 @@ class CatsPresenter(
 
     private var _catsView: ICatsView? = null
 
-    private lateinit var fact: Deferred<Fact>
-    private lateinit var image: Deferred<Image>
     fun onInitComplete() {
 
         scope.launch {
 
             try {
-                withContext(Dispatchers.IO) {
-                    fact = async { catsService.getCatFact() }
-                    image = async { imageService.getCatImage().first() }
-                }
+                val fact = async { catsService.getCatFact() }
+                val image = async { imageService.getCatImage().first() }
 
                 _catsView?.populate(fact.await(), image.await())
 
             } catch (e: SocketTimeoutException) {
                 _catsView?.toastError(e)
-            } catch (e: CancellationException) {
-                _catsView?.toastError(e)
             } catch (e: Exception) {
-                _catsView?.toastError(e)
-                CrashMonitor.trackWarning(e)
+                if (e is CancellationException) throw e
+                else {
+                    _catsView?.toastError(e)
+                    CrashMonitor.trackWarning(e)
+                }
             }
         }
     }

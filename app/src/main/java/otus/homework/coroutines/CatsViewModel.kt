@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class CatsViewModel(
     private val catsService: CatsService,
@@ -18,29 +19,29 @@ class CatsViewModel(
 
     private var _catsView: ICatsView? = null
 
-
     var state: Result = Result.Init
 
-    private lateinit var fact: Deferred<Fact>
-    private lateinit var image: Deferred<Image>
     fun onInitComplete() {
         viewModelScope.launch {
             try {
                 state = Result.Init
-                fact = async { catsService.getCatFact() }
-                image = async { imageService.getCatImage().first() }
+                val fact = async { catsService.getCatFact() }
+                val image = async { imageService.getCatImage().first() }
 
                 state = Result.Success("success")
                 _catsView?.populate(fact.await(), image.await())
 
             } catch (e: SocketTimeoutException) {
                 _catsView?.toastError(e)
-             } catch (e: CancellationException) {
-                 _catsView?.toastError(e)
             } catch (e: Exception) {
                 state = Result.Error
-                _catsView?.toastError(e)
-                CrashMonitor.trackWarning(e)
+                if (e is CancellationException) {
+                    _catsView?.toastError(e)
+                    throw e
+                } else {
+                    _catsView?.toastError(e)
+                    CrashMonitor.trackWarning(e)
+                }
             }
         }
     }
