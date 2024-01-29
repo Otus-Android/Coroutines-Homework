@@ -21,13 +21,8 @@ class CatsViewModel(
     val resultFlow = _resultFlow.asStateFlow()
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, exception ->
-        when (exception) {
-            is SocketTimeoutException -> _resultFlow.value = Result.Error(exception)
-            else -> {
-                CrashMonitor.trackWarning()
-                _resultFlow.value = Result.Error(exception)
-            }
-        }
+        CrashMonitor.trackWarning()
+        _resultFlow.value = Result.Error(exception)
     }
 
     init {
@@ -36,13 +31,22 @@ class CatsViewModel(
 
     fun reload() {
         viewModelScope.launch(coroutineExceptionHandler) {
-            val fact: Fact
-            val images: List<Image>
-            val factDeferred = async { catsService.getCatFact() }
-            val imagesDeferred = async { imagesService.getImages() }
-            fact = factDeferred.await()
-            images = imagesDeferred.await()
-            _resultFlow.value = Result.Success(CatsUiModel(fact, images.first()))
+            runCatching {
+                val fact: Fact
+                val images: List<Image>
+                val factDeferred = async { catsService.getCatFact() }
+                val imagesDeferred = async { imagesService.getImages() }
+                fact = factDeferred.await()
+                images = imagesDeferred.await()
+                fact to images.first()
+            }.onSuccess {
+                _resultFlow.value = Result.Success(CatsUiModel(it.first, it.second))
+            }.onFailure {
+                when (it) {
+                    is SocketTimeoutException -> _resultFlow.value = Result.Error(it)
+                    else -> throw it
+                }
+            }
         }
     }
 

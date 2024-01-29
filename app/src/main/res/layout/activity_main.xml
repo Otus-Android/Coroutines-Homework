@@ -35,3 +35,4 @@
         app:layout_constraintTop_toBottomOf="@+id/fact_textView" />
 
 </otus.homework.coroutines.CatsView>
+
