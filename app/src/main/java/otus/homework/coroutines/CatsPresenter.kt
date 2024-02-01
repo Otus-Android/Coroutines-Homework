@@ -11,8 +11,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class CatsPresenter(
-    private val catsService: CatsService,
-    private val catsImageService: CatsService
+    private val catsService: CatsService
 ) {
 
   private var _catsView: ICatsView? = null
@@ -35,7 +34,7 @@ class CatsPresenter(
 
   private suspend fun fetchCatInfo(): CatInfo {
     val factDeferred = presenterScope.async { catsService.getCatFact().body()?.fact.orEmpty() }
-    val imageDeferred = presenterScope.async { catsImageService.getCatImage().body().orEmpty() }
+    val imageDeferred = presenterScope.async { catsService.getCatImage().body().orEmpty() }
 
     return CatInfo(factDeferred.await(), imageDeferred.await())
   }

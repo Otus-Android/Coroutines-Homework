@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
 
     viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
-    catsPresenter = CatsPresenter(diContainer.service, diContainer.image)
+    catsPresenter = CatsPresenter(diContainer.service)
     view.presenter = catsPresenter
     //        catsPresenter.attachView(view)
     //        catsPresenter.onInitComplete()

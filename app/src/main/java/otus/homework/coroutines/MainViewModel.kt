@@ -24,8 +24,8 @@ class MainViewModel : ViewModel() {
   }
 
   fun onInitComplete() {
-    viewModelScope.launch(handler + Dispatchers.IO) {
-      _catsInfoStateLiveData.postValue(Result.Success(fetchCatInfo()))
+    viewModelScope.launch(handler) {
+      _catsInfoStateLiveData.value = Result.Success(fetchCatInfo())
     }
   }
 
@@ -40,11 +40,11 @@ class MainViewModel : ViewModel() {
   private fun handleError(t: Throwable) {
     when (t) {
       is SocketTimeoutException -> {
-        _catsInfoStateLiveData.postValue(Result.Error("Не удалось получить ответ от сервера"))
+        _catsInfoStateLiveData.value = Result.Error("Не удалось получить ответ от сервера")
       }
       else -> {
         CrashMonitor.trackWarning()
-        t.message?.let { message -> _catsInfoStateLiveData.postValue(Result.Error(message)) }
+        t.message?.let { message -> _catsInfoStateLiveData.value = Result.Error(message) }
       }
     }
   }
