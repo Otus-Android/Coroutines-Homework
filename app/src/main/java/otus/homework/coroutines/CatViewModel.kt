@@ -8,15 +8,15 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
+import java.net.SocketTimeoutException
 
 class CatViewModel(
     private val catsService: CatsService,
     private val imagesService: ImagesService
 ): ViewModel() {
-    sealed class Result {
-        data class Success(val model: Model): Result()
-        data class Error(val e: Exception): Result()
+    sealed interface Result {
+        data class Success(val model: Model): Result
+        data class Error(val e: Exception): Result
     }
 
     private val _catsLiveData = MutableLiveData<Result>()
@@ -38,9 +38,7 @@ class CatViewModel(
                         imageData.await()[0].url
                     )
                 )
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
+            } catch (e: SocketTimeoutException) {
                 CrashMonitor.trackWarning()
                 _catsLiveData.value = Result.Error(e)
             }
