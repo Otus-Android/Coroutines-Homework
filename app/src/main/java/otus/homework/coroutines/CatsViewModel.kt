@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import otus.homework.coroutines.api.services.facts.IFactsService
 import otus.homework.coroutines.api.services.photos.IPhotoService
@@ -81,7 +81,7 @@ class CatsViewModel(
     }
 
     override fun onCleared() {
-        viewModelScope.coroutineContext.cancelChildren()
+        viewModelScope.cancel()
         super.onCleared()
     }
 }

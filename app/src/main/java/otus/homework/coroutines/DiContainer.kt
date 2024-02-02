@@ -39,7 +39,6 @@ class DiContainer {
         }
     }
 
-    val presenterScope by lazy {
-        CoroutineScope(Dispatchers.Main.immediate + CoroutineName("CatsCoroutine") + SupervisorJob())
-    }
+    val presenterScope
+        get() = CoroutineScope(Dispatchers.Main.immediate + CoroutineName("CatsCoroutine") + SupervisorJob())
 }
