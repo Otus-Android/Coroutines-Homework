@@ -18,13 +18,11 @@ class CatsView @JvmOverloads constructor(
 
     override fun populate(fact: CatFact) {
         findViewById<TextView>(R.id.fact_textView).text = fact.funFact
-        runCatching {
-            Picasso.get()
-                .load(fact.photoUri)
-                .into(
-                    findViewById<ImageView>(R.id.fact_imageView)
-                )
-        }
+
+        Picasso.get()
+            .load(fact.photoUri)
+            .into(findViewById<ImageView>(R.id.fact_imageView))
+
     }
 
     override fun postWarning(messageProvider: Context.() -> String) {
