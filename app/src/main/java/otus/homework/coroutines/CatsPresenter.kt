@@ -3,11 +3,12 @@ package otus.homework.coroutines
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val catsImageService: CatsImageService
 ) {
 
     private var _catsView: ICatsView? = null
@@ -15,15 +16,20 @@ class CatsPresenter(
     private val presenterScope =
         CoroutineScope(CoroutineName("CatsCoroutine") + Dispatchers.Main.immediate)
 
-    private var job: Job? = null
-
     fun onInitComplete() {
 
-        job = presenterScope.launch {
+        presenterScope.launch {
             try {
                 val fact = catsService.getCatFact()
-                _catsView?.populate(fact)
 
+                val imageUrl = catsImageService.getCatImage().first()
+
+                _catsView?.populate(
+                    FactImageUI(
+                        text = fact.fact,
+                        url = imageUrl.url
+                    )
+                )
             } catch (e1: java.net.SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
             } catch (e: Exception) {
@@ -39,7 +45,7 @@ class CatsPresenter(
     }
 
     fun detachView() {
-        job?.cancel()
+        presenterScope.cancel()
         _catsView = null
     }
 }
