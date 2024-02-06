@@ -8,6 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.squareup.picasso.Picasso
+import java.net.SocketTimeoutException
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -15,12 +16,14 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter: CatsPresenter? = null
+//    var presenter: CatsPresenter? = null
+    var viewModel: CatsViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+//            presenter?.onInitComplete()
+            viewModel?.loadFact()
         }
     }
 
@@ -38,6 +41,28 @@ class CatsView @JvmOverloads constructor(
     override fun showToast(text: String) {
         Toast.makeText(context, text, Toast.LENGTH_LONG).show()
     }
+
+    override fun renderState(state: Result<FactImageUI>) {
+        when (state) {
+            is Result.Success -> {
+                populate(
+                    FactImageUI(
+                        text = state.data.text,
+                        url = state.data.url
+                    )
+                )
+            }
+
+            is Result.Error -> {
+                if (state.exception is SocketTimeoutException) {
+                    showToast("Не удалось получить ответ от сервера")
+                } else {
+                    showToast(state.exception.message.toString())
+                    CrashMonitor.trackWarning()
+                }
+            }
+        }
+    }
 }
 
 interface ICatsView {
@@ -45,4 +70,6 @@ interface ICatsView {
     fun populate(factAndImage: FactImageUI)
 
     fun showToast(text: String)
+
+    fun renderState(state: Result<FactImageUI>)
 }

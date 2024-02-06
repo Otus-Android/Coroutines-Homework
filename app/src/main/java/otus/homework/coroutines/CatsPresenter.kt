@@ -22,18 +22,18 @@ class CatsPresenter(
             try {
                 val fact = catsService.getCatFact()
 
-                val imageUrl = catsImageService.getCatImage().first()
+                val image = catsImageService.getCatImage().first()
 
                 _catsView?.populate(
                     FactImageUI(
                         text = fact.fact,
-                        url = imageUrl.url
+                        url = image.url
                     )
                 )
             } catch (e1: java.net.SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
             } catch (e: Exception) {
-                _catsView?.showToast(e.toString())
+                _catsView?.showToast(e.message.toString())
                 CrashMonitor.trackWarning()
             }
         }

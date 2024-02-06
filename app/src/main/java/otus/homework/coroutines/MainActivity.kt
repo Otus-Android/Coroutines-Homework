@@ -1,14 +1,14 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
+//    private lateinit var catsPresenter: CatsPresenter
 
-    private val diContainer = DiContainer()
+    private lateinit var viewModel: CatsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -16,18 +16,29 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.factService, diContainer.imageService)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-    }
+//        catsPresenter = CatsPresenter(DiContainer.factService, DiContainer.imageService)
+//        view.presenter = catsPresenter
+//        catsPresenter.attachView(view)
+//        catsPresenter.onInitComplete()
 
-    override fun onStop() {
-        if (isFinishing) {
-            Log.e("XXX", "isFinishing")
+        viewModel = ViewModelProvider(
+            this, CatsViewModel.getViewModelFactory(
+                DiContainer.factService,
+                DiContainer.imageService
+            )
+        )[CatsViewModel::class.java]
 
-            catsPresenter.detachView()
+        view.viewModel = viewModel
+        viewModel.state.observe(this) {
+            view.renderState(it)
         }
-        super.onStop()
+        viewModel.loadFact()
     }
+
+//    override fun onStop() {
+//        if (isFinishing) {
+//            catsPresenter.detachView()
+//        }
+//        super.onStop()
+//    }
 }

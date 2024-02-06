@@ -5,7 +5,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class DiContainer {
+object DiContainer {
 
     private val httpClient by lazy {
         OkHttpClient.Builder()
