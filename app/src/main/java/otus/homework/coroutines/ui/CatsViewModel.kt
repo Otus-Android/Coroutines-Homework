@@ -12,7 +12,7 @@ import otus.homework.coroutines.data.CatsRepository
 import otus.homework.coroutines.util.CrashMonitor
 import java.net.SocketTimeoutException
 
-class CatsViewModel(private val catsRepository: CatsRepository): ViewModel() {
+class CatsViewModel(private val catsRepository: CatsRepository) : ViewModel() {
 
     private var _catsView: ICatsView? = null
 
@@ -24,13 +24,9 @@ class CatsViewModel(private val catsRepository: CatsRepository): ViewModel() {
     }
 
     fun onInitComplete() {
-        viewModelScope.launch(Dispatchers.Main + exceptionHandler) {
-            withContext(Dispatchers.IO) {
-                val catsData = catsRepository.getCatsData()
-                withContext(Dispatchers.Main) {
-                    _catsView?.render(Result.Success(catsData))
-                }
-            }
+        viewModelScope.launch(exceptionHandler) {
+            val catsData = catsRepository.getCatsData()
+            _catsView?.render(Result.Success(catsData))
         }
     }
 
@@ -40,10 +36,6 @@ class CatsViewModel(private val catsRepository: CatsRepository): ViewModel() {
 
     fun detachView() {
         _catsView = null
-    }
-
-    fun cancelJob() {
-        viewModelScope.cancel()
     }
 
     class Factory(private val repository: CatsRepository) : ViewModelProvider.Factory {
