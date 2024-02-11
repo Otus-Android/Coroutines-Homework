@@ -16,13 +16,13 @@ import com.squareup.picasso.Picasso
 class MainActivity : AppCompatActivity() {
     private val diContainer = DiContainer()
 
+    /* MVVM */
     private val viewModel: MainViewModel by viewModels {
         MainViewModel.Factory(
             diContainer.catFactService, diContainer.catImageService, resources
         )
     }
 
-    /* MVVM */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

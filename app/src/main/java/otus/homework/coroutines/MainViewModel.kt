@@ -6,10 +6,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -22,17 +24,22 @@ class MainViewModel(
 ) : ViewModel() {
 
     private val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-        if (throwable is SocketTimeoutException) {
-            _uiState.value =
-                Result.Error(resManager.getString(R.string.socket_timeout_error))
-        } else {
-            CrashMonitor.trackWarning()
-            _uiState.value = Result.Error(resManager.getString(R.string.unknown_error))
+        when (throwable) {
+            is CancellationException -> return@CoroutineExceptionHandler
+            is SocketTimeoutException -> {
+                _uiState.value = Result.Error(resManager.getString(R.string.socket_timeout_error))
+            }
+
+            else -> {
+                CrashMonitor.trackWarning()
+                CrashMonitor.trackWarning()
+                _uiState.value = Result.Error(resManager.getString(R.string.unknown_error))
+            }
         }
     }
 
-    private val _uiState = MutableLiveData<Result?>(null)
-    val uiState: LiveData<Result?> get() = _uiState
+    private val _uiState = MutableLiveData<Result>(Result.Loading)
+    val uiState: LiveData<Result> get() = _uiState
 
     private var job: Job? = null
 
@@ -42,7 +49,7 @@ class MainViewModel(
         job?.cancel()
         job = viewModelScope.launch(exceptionHandler) {
             requestCount++
-            val result = withContext(Dispatchers.IO) {
+            val result = coroutineScope {
                 val fact = async {
                     catsService.getCatFact()
                 }
@@ -51,7 +58,7 @@ class MainViewModel(
                 }
 
                 // Для теста exceptionHandler
-                if(requestCount % 2 == 0) {
+                if (requestCount % 2 == 0) {
                     throw SocketTimeoutException()
                 }
 
@@ -62,12 +69,6 @@ class MainViewModel(
             }
             _uiState.value = Result.Success(result)
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        job?.cancel()
-        job = null
     }
 
     class Factory(
@@ -92,5 +93,7 @@ class MainViewModel(
         data class Success(val state: FactState) : Result
 
         data class Error(val error: String) : Result
+
+        object Loading : Result
     }
 }
