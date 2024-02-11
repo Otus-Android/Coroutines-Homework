@@ -2,6 +2,7 @@ package otus.homework.coroutines
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -16,18 +17,19 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-//    var presenter: CatsPresenter? = null
-    var viewModel: CatsViewModel? = null
+    var presenter: CatsPresenter? = null
+//    var viewModel: CatsViewModel? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-//            presenter?.onInitComplete()
-            viewModel?.loadFact()
+            presenter?.onInitComplete()
+//            viewModel?.loadFact()
         }
     }
 
     override fun populate(factAndImage: FactImageUI) {
+        Log.e("XXX", "populate $factAndImage")
         findViewById<TextView>(R.id.fact_textView).text = factAndImage.text
         val imgView = findViewById<ImageView>(R.id.image)
         Picasso.get()

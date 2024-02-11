@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
-//    private lateinit var catsPresenter: CatsPresenter
+    private lateinit var catsPresenter: CatsPresenter
 
     private lateinit var viewModel: CatsViewModel
 
@@ -16,29 +16,29 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-//        catsPresenter = CatsPresenter(DiContainer.factService, DiContainer.imageService)
-//        view.presenter = catsPresenter
-//        catsPresenter.attachView(view)
-//        catsPresenter.onInitComplete()
+        catsPresenter = CatsPresenter(DiContainer.factService, DiContainer.imageService)
+        view.presenter = catsPresenter
+        catsPresenter.attachView(view)
+        catsPresenter.onInitComplete()
 
-        viewModel = ViewModelProvider(
-            this, CatsViewModel.getViewModelFactory(
-                DiContainer.factService,
-                DiContainer.imageService
-            )
-        )[CatsViewModel::class.java]
-
-        view.viewModel = viewModel
-        viewModel.state.observe(this) {
-            view.renderState(it)
-        }
-        viewModel.loadFact()
+//        viewModel = ViewModelProvider(
+//            this, CatsViewModel.getViewModelFactory(
+//                DiContainer.factService,
+//                DiContainer.imageService
+//            )
+//        )[CatsViewModel::class.java]
+//
+//        view.viewModel = viewModel
+//        viewModel.state.observe(this) {
+//            view.renderState(it)
+//        }
+//        viewModel.loadFact()
     }
 
-//    override fun onStop() {
-//        if (isFinishing) {
-//            catsPresenter.detachView()
-//        }
-//        super.onStop()
-//    }
+    override fun onStop() {
+        if (isFinishing) {
+            catsPresenter.detachView()
+        }
+        super.onStop()
+    }
 }
