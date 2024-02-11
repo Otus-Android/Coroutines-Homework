@@ -28,10 +28,10 @@ class CatsPresenter(
     private var job: Job? = null
     fun onInitComplete() {
         job = MyScope().launch {
-
-            val fact = async {
-                return@async try {
-                    catsService.getCatFact()
+                try {
+                    val img= async { catsService.getCatFactImg().first()}
+                    val fact  = async {  catsService.getCatFact()}
+                    _catsView?.populate(General(fact.await(), img.await()))
                 } catch (e: Exception) {
                     when (e) {
                         is SocketTimeoutException -> _catsView?.showError("Не удалось получить ответ от сервером")
@@ -40,23 +40,7 @@ class CatsPresenter(
                             _catsView?.showError(e.message.toString())
                         }
                     }
-                } as Fact
-            }.await()
-            val img = async {
-                return@async try {
-                    catsService.getCatFactImg().first()
-                } catch (e: Exception) {
-                    when (e) {
-                        is SocketTimeoutException -> _catsView?.showError("Не удалось получить ответ от сервером")
-                        else -> {
-                            CrashMonitor.trackWarning(e.message.toString())
-                            _catsView?.showError(e.message.toString())
-                        }
-                    }
-                } as Img
-            }.await()
-
-            _catsView?.populate(General(fact, img))
+                }
         }
 
     }
