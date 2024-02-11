@@ -16,29 +16,29 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(DiContainer.factService, DiContainer.imageService)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+//        catsPresenter = CatsPresenter(DiContainer.factService, DiContainer.imageService)
+//        view.presenter = catsPresenter
+//        catsPresenter.attachView(view)
+//        catsPresenter.onInitComplete()
 
-//        viewModel = ViewModelProvider(
-//            this, CatsViewModel.getViewModelFactory(
-//                DiContainer.factService,
-//                DiContainer.imageService
-//            )
-//        )[CatsViewModel::class.java]
-//
-//        view.viewModel = viewModel
-//        viewModel.state.observe(this) {
-//            view.renderState(it)
-//        }
-//        viewModel.loadFact()
-    }
+        viewModel = ViewModelProvider(
+            this, CatsViewModel.getViewModelFactory(
+                DiContainer.factService,
+                DiContainer.imageService
+            )
+        )[CatsViewModel::class.java]
 
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+        view.viewModel = viewModel
+        viewModel.state.observe(this) {
+            view.renderState(it)
         }
-        super.onStop()
+        viewModel.loadFact()
     }
+
+//    override fun onStop() {
+//        if (isFinishing) {
+//            catsPresenter.detachView()
+//        }
+//        super.onStop()
+//    }
 }

@@ -9,7 +9,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 
 class CatsViewModel(
     private val catsService: CatsService,
@@ -28,20 +30,20 @@ class CatsViewModel(
 
         viewModelScope.launch(handler) {
             try {
-                val fact = catsService.getCatFact()
+                val fact = async { catsService.getCatFact() }
 
-                val image = catsImageService.getCatImage().first()
+                val image = async { catsImageService.getCatImage().first() }
 
-                _state.value = Result.Success(
-                    FactImageUI(
-                        text = fact.fact,
-                        url = image.url
-                    )
+                val factUI = FactImageUI(
+                    text = fact.await().fact,
+                    url = image.await().url
                 )
 
-            } catch (e1: java.net.SocketTimeoutException) {
-                Log.e("XXX", "$e1")
-                _state.value = Result.Error(e1)
+                _state.value = Result.Success(factUI)
+
+            } catch (e: SocketTimeoutException) {
+                Log.e("XXX", "$e")
+                _state.value = Result.Error(e)
             }
         }
     }
