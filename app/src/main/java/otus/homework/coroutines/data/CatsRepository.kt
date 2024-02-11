@@ -1,5 +1,7 @@
 package otus.homework.coroutines.data
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import otus.homework.coroutines.ui.CatsData
 
 class CatsRepository(
@@ -7,13 +9,17 @@ class CatsRepository(
     private val picsService: PicsService,
 ) {
 
-    suspend fun getCatsData(): CatsData {
-        val catFactResponse = catsService.getCatFact()
-        val picResponse = picsService.getPicture()
+    suspend fun getCatsData(): CatsData = coroutineScope {
+        val catFactDeferred = async { catsService.getCatFact() }
+        val picDeferred = async { picsService.getPicture() }
+
+        val catFactResponse = catFactDeferred.await()
+        val picResponse = picDeferred.await()
+
         if (catFactResponse.isSuccessful && catFactResponse.body() != null &&
             picResponse.isSuccessful && picResponse.body() != null
         ) {
-            return CatsData(
+            CatsData(
                 fact = catFactResponse.body()!!.fact,
                 pictureUrl = picResponse.body()!!.first().url,
             )
