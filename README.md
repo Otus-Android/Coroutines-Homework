@@ -2,7 +2,7 @@
 
 ### Перейти с коллбеков на саспенд функции и корутины
 
-1. Поменять возвращаемый тип в `CatsService` и добавить модификатор `suspend`
+1. Поменять возвращаемый тип в `CatsService` и добавить модификатор `suspend` +
 2. Переписать логику в презентере с `Callback` на корутины и `suspend` функции
 3. Реализовать свой скоуп: PresenterScope с `MainDispatcher` и CoroutineName("CatsCoroutine") в качестве элементов контекста
 4. Добавить обработку исключений через try-catch. В случае `java.net.SocketTimeoutException` показываем Toast с текстом "Не удалось получить ответ от сервером". В остальных случаях логируем исключение в `otus.homework.coroutines.CrashMonitor` и показываем Toast с `exception.message`
