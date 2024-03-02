@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
+import kotlin.coroutines.cancellation.CancellationException
 
 class CatsPresenter(
     private val context: Context,
@@ -27,29 +28,23 @@ class CatsPresenter(
         CoroutineScope(Dispatchers.Main + coroutineExceptionHandler).launch {
             runCatching {
                 launch {
-                    val responseInfo = catsService.getCatFact()
-                    val resultInfo = responseInfo.body()
-                    if (responseInfo.isSuccessful && resultInfo != null) {
-                        _catsView?.populate(
-                            Result.Success(
-                                responseInfo.body()!!,
-                                null,
-                            )
+                    val resultInfo = catsService.getCatFact()
+                    _catsView?.populate(
+                        Result.Success(
+                            resultInfo,
+                            null,
                         )
-                    }
+                    )
                 }
                 launch {
-                    val responseImage = catsImage.getCatImage()
-                    val resultImage = responseImage.body()
+                    val resultImage = catsImage.getCatImage()
                     Log.d("Cats", resultImage.toString())
-                    if ( responseImage.isSuccessful && resultImage != null) {
-                        _catsView?.populate(
-                            Result.Success(
-                                null,
-                                responseImage.body()!![0].url
-                            )
+                    _catsView?.populate(
+                        Result.Success(
+                            null,
+                            resultImage[0].url
                         )
-                    }
+                    )
                 }
             }.onFailure {
                 if (it is SocketTimeoutException) {
@@ -59,6 +54,8 @@ class CatsPresenter(
                         "Не удалось получить ответ от сервера",
                         Toast.LENGTH_LONG
                     ).show()
+                } else if (it is CancellationException) {
+                    CrashMonitor.trackWarning()
                 }
             }
         }

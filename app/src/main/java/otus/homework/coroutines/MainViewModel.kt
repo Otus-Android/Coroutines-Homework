@@ -31,18 +31,13 @@ class MainViewModel(
         viewModelScope.launch(coroutineExceptionHandler) {
             runCatching {
                 launch {
-                    val responseInfo = catsService.getCatFact()
-                    val resultInfo = responseInfo.body()
-                    if (responseInfo.isSuccessful && resultInfo != null) {
-                        _state.emit(Result.Success(responseInfo.body()!!, null))
-                    }
+                    val resultInfo = catsService.getCatFact()
+                    _state.emit(Result.Success(resultInfo, null))
                 }
                 launch {
-                    val responseImage = catsImage.getCatImage()
-                    val resultImage = responseImage.body()
-                    if (responseImage.isSuccessful && resultImage != null) {
-                        _state.emit(Result.Success(null, responseImage.body()!![0].url))
-                    }
+                    val resultImage = catsImage.getCatImage()
+                    _state.emit(Result.Success(null, resultImage[0].url))
+
                 }
             }.onFailure {
                 CrashMonitor.trackWarning()
