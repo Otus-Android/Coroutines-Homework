@@ -1,6 +1,6 @@
 package otus.homework.coroutines
 
-sealed class Result<out R> {
-    data class Success<out R>(val value: R) : Result<R>()
-    data class Error(val message: String?, val throwable: Throwable?) : Result<Nothing>()
+sealed interface Result<T> {
+    data class Success<T>(val value: T) : Result<T>
+    data class Error<T>(val throwable: Throwable) : Result<T>
 }

@@ -37,6 +37,7 @@ class CatsView @JvmOverloads constructor(
         val text = context.getString(id)
         Toast.makeText(context, text, Toast.LENGTH_LONG).show()
     }
+
 }
 
 interface ICatsView {

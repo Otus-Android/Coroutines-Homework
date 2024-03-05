@@ -3,14 +3,12 @@ package otus.homework.coroutines
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
-import androidx.activity.viewModels
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
     private val diContainer = DiContainer()
-    private val catsViewModel: CatsViewModel by viewModels {
-        CatsViewModel.Factory(diContainer.factService, diContainer.imageService)
-    }
+    private lateinit var viewModel: CatsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,23 +16,27 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsViewModel.factWithImageLiveData.observe(this) { resultFactWithImage ->
-            when (resultFactWithImage) {
-                is Result.Success -> view.populate(resultFactWithImage.value)
-                is Result.Error -> {
-                    val (message, throwable) = resultFactWithImage
-                    if (throwable?.javaClass == java.net.SocketTimeoutException::class.java)
-                        view.showToast(R.string.socket_timeout_exception_message)
-                    else message?.let { view.showToast(it + throwable) }
-                }
-
-            }
-        }
-        catsViewModel.requestFactAndImage()
+        viewModel = ViewModelProvider(
+            this,
+            CatsViewModel.factory(diContainer.factService, diContainer.imageService)
+        ).get(CatsViewModel::class.java)
 
         findViewById<Button>(R.id.button).setOnClickListener {
-            catsViewModel.requestFactAndImage()
+            viewModel.requestFactAndImage()
         }
+
+        viewModel.factWithImageLiveData.observe(this) { result ->
+            when (result) {
+                is Result.Success -> {
+                    view.populate(result.value)
+                }
+
+                is Result.Error -> {
+                    view.showToast(result.throwable.toString())
+                }
+            }
+        }
+
     }
 
     override fun onStop() {
