@@ -30,15 +30,7 @@ class CatsViewModel(
     fun getCatFact() {
         viewModelScope.launch(factCoroutineExceptionHandler) {
             runCatching {
-                launch {
-                    catsService.getCatFact().apply {
-                        if (isSuccessful) {
-                            val body = body()
-                            body ?: return@apply
-                            _catFact.value = Result.Success(body)
-                        }
-                    }
-                }
+                _catFact.value = Result.Success(catsService.getCatFact())
             }.onFailure { throwable ->
                 CrashMonitor.trackWarning()
                 _catFact.value = Result.Error(throwable.message)
@@ -59,18 +51,11 @@ class CatsViewModel(
             }
         }
     }
+
     fun getCatImage() {
         viewModelScope.launch(imageCoroutineExceptionHandler) {
             runCatching {
-                launch {
-                    catsImage.getCatImage().apply {
-                        if (isSuccessful) {
-                            val body = body()
-                            body ?: return@apply
-                            _catImage.value = Result.Success(body.first())
-                        }
-                    }
-                }
+                _catImage.value = Result.Success(catsImage.getCatImage().first())
             }.onFailure { throwable ->
                 CrashMonitor.trackWarning()
                 _catImage.value = Result.Error(throwable.message)

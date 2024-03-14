@@ -15,6 +15,7 @@ class CatsView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
     var viewModel: CatsViewModel? = null
+    var presenter: CatsPresenter? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -23,11 +24,15 @@ class CatsView @JvmOverloads constructor(
                 getCatImage()
                 getCatFact()
             }
+            presenter?.apply {
+                getCatImage()
+                getCatFact()
+            }
         }
     }
 
     override fun populateFact(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.text
+        findViewById<TextView>(R.id.fact_textView).text = fact.fact
     }
 
     override fun populateImage(url: String) {

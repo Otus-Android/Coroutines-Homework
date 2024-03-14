@@ -14,7 +14,6 @@ class DiContainer {
 
     val service by lazy { retrofitCat.create(CatsService::class.java) }
 
-
     private val retrofitImage by lazy {
         Retrofit.Builder()
             .baseUrl("https://api.thecatapi.com/v1/")

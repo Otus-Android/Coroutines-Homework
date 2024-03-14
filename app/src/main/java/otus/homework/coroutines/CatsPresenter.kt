@@ -20,15 +20,7 @@ class CatsPresenter(
     fun getCatFact() {
         presenterScope.launch {
             runCatching {
-                launch {
-                    catsService.getCatFact().apply {
-                        if (isSuccessful) {
-                            val body = body()
-                            body ?: return@apply
-                            _catsView?.populateFact(body)
-                        }
-                    }
-                }
+                _catsView?.populateFact(catsService.getCatFact())
             }.onFailure { throwable ->
                 CrashMonitor.trackWarning()
             }
@@ -38,15 +30,7 @@ class CatsPresenter(
     fun getCatImage() {
         presenterScope.launch {
             runCatching {
-                launch {
-                    catsImage.getCatImage().apply {
-                        if (isSuccessful) {
-                            val body = body()
-                            body ?: return@apply
-                            _catsView?.populateImage(body.first().url)
-                        }
-                    }
-                }
+                _catsView?.populateImage(catsImage.getCatImage().first().url)
             }.onFailure { throwable ->
                 CrashMonitor.trackWarning()
             }

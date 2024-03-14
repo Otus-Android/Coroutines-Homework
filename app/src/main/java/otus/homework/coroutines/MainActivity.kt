@@ -21,6 +21,10 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
+       /* catsPresenter = CatsPresenter(diContainer.service, diContainer.image)
+        view.presenter = catsPresenter
+        catsPresenter.attachView(view)*/
+
         viewModel = CatsViewModel(diContainer.service, diContainer.image)
         view.viewModel = viewModel
         lifecycleScope.launch(Dispatchers.Main) {
