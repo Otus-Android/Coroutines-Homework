@@ -1,30 +1,39 @@
 package otus.homework.coroutines
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var catsPresenter: CatsPresenter
-
     private val diContainer = DiContainer()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val viewModelFactory =
+            ViewModelFactory(diContainer.service, diContainer.photoService)
+        val catsViewModel = ViewModelProvider(this, factory = viewModelFactory)[CatViewViewModel::class.java]
+
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service)
-        view.presenter = catsPresenter
-        catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
-    }
-
-    override fun onStop() {
-        if (isFinishing) {
-            catsPresenter.detachView()
+        view.getViewById(R.id.button).setOnClickListener {
+            catsViewModel.onInitComplete()
         }
-        super.onStop()
+        catsViewModel.catsLiveData.observe(this, Observer { result ->
+            when (result) {
+                is Error -> {
+                    Toast.makeText(this, result.message, Toast.LENGTH_LONG).show()
+                }
+
+                is Success -> {
+                    view.populate(result.fact)
+                }
+            }
+        })
     }
 }
