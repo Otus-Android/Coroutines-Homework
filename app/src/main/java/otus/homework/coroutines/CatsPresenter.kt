@@ -1,28 +1,40 @@
 package otus.homework.coroutines
 
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import otus.homework.coroutines.CrashMonitor.trackWarning
+import otus.homework.coroutines.model.Model
+import java.net.SocketTimeoutException
+
 
 class CatsPresenter(
-    private val catsService: CatsService
+    private val catsService: CatsService,
+    private val imagesService: ImagesService,
+    private val onShowToast: (String?) -> Unit
 ) {
 
     private var _catsView: ICatsView? = null
-
+    private val presenterScope = CoroutineScope(Dispatchers.Main + CoroutineName("CatsCoroutine"))
     fun onInitComplete() {
-        catsService.getCatFact().enqueue(object : Callback<Fact> {
+        presenterScope.launch {
+            try {
+                val fact = async { catsService.getCatFact() }
+                val image = async { imagesService.getImage().firstOrNull() }
 
-            override fun onResponse(call: Call<Fact>, response: Response<Fact>) {
-                if (response.isSuccessful && response.body() != null) {
-                    _catsView?.populate(response.body()!!)
-                }
-            }
+                _catsView?.populate(Model(fact.await(), image.await()?.url))
+            } catch (e: SocketTimeoutException) {
+                println("Caught $e")
+                onShowToast("Не удалось получить ответ от сервера")
 
-            override fun onFailure(call: Call<Fact>, t: Throwable) {
-                CrashMonitor.trackWarning()
+            } catch (e: Exception) {
+                trackWarning(e.message)
+                onShowToast(e.message)
             }
-        })
+        }
     }
 
     fun attachView(catsView: ICatsView) {
@@ -31,5 +43,9 @@ class CatsPresenter(
 
     fun detachView() {
         _catsView = null
+    }
+
+    fun onStop() {
+        presenterScope.cancel()
     }
 }
