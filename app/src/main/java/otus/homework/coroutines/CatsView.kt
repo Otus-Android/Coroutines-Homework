@@ -3,8 +3,12 @@ package otus.homework.coroutines
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.squareup.picasso.Picasso
+import java.net.SocketTimeoutException
 
 class CatsView @JvmOverloads constructor(
     context: Context,
@@ -12,21 +16,37 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
+    var loadAction: (() -> Unit)? = null
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         findViewById<Button>(R.id.button).setOnClickListener {
-            presenter?.onInitComplete()
+            loadAction?.invoke()
         }
     }
 
-    override fun populate(fact: Fact) {
-        findViewById<TextView>(R.id.fact_textView).text = fact.fact
+    override fun populate(catPresentation: CatPresentation) {
+        findViewById<TextView>(R.id.fact_textView).text = catPresentation.fact
+
+        if (catPresentation.imageUrl.isNotEmpty()) {
+            Picasso.get()
+                .load(catPresentation.imageUrl)
+                .into(findViewById<ImageView>(R.id.cat_imageView))
+        }
     }
+
+    override fun showError(message: Exception) {
+        val text = when (message) {
+            is SocketTimeoutException -> context.getString(R.string.error_timeout)
+            else -> message.message ?: context.getString(R.string.error_unknown)
+        }
+        Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+    }
+
 }
 
 interface ICatsView {
 
-    fun populate(fact: Fact)
+    fun populate(catPresentation: CatPresentation)
+    fun showError(message: Exception)
 }
