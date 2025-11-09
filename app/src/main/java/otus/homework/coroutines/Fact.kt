@@ -6,5 +6,7 @@ data class Fact(
 	@field:SerializedName("fact")
 	val fact: String,
 	@field:SerializedName("length")
-	val length: Int
+	val length: Int,
+	@field:SerializedName("url")
+	var url: String
 )
