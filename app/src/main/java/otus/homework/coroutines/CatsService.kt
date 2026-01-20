@@ -6,5 +6,14 @@ import retrofit2.http.GET
 interface CatsService {
 
     @GET("fact")
-    fun getCatFact() : Call<Fact>
+    suspend fun getCatFact() : Fact
 }
+
+interface CatsImageService {
+    @GET("meow")
+    suspend fun getCatImage(): CatImage
+}
+
+data class CatImage(
+    val file: String
+)
