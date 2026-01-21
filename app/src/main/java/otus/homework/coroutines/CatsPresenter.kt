@@ -4,11 +4,9 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.net.SocketTimeoutException
 
 class CatsPresenter(
@@ -26,10 +24,20 @@ class CatsPresenter(
         job?.cancel()
         job = presenterScope.launch {
             try {
-                val fact = withContext(Dispatchers.IO) {
+                val factDeferred = async(Dispatchers.IO) {
                     catsService.getCatFact()
                 }
-                _catsView?.populate(fact)
+                val imageDeferred = async(Dispatchers.IO) {
+                    catsService.getCatImage().first()
+                }
+                val fact = factDeferred.await()
+                val image = imageDeferred.await()
+
+                val model = CatPresentationModel(
+                    fact = fact.fact,
+                    imageUrl = image.url
+                )
+                _catsView?.populate(model)
             } catch (e: SocketTimeoutException) {
                 _catsView?.showToast("Не удалось получить ответ от сервера")
             } catch (e: Exception) {
