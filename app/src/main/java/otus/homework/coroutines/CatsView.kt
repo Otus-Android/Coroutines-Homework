@@ -15,11 +15,9 @@ class CatsView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), ICatsView {
 
-    var presenter :CatsPresenter? = null
-
-    private lateinit var factTextView: TextView
-    private lateinit var catImageView: ImageView
-    private lateinit var button: Button
+    lateinit var factTextView: TextView
+    lateinit var catImageView: ImageView
+    lateinit var button: Button
 
     override fun onFinishInflate() {
         super.onFinishInflate()
@@ -27,10 +25,6 @@ class CatsView @JvmOverloads constructor(
         factTextView = findViewById(R.id.fact_textView)
         catImageView = findViewById(R.id.cat_imageView)
         button = findViewById(R.id.button)
-
-        button.setOnClickListener {
-            presenter?.onInitComplete()
-        }
     }
 
     override fun populate(data: CatPresentationModel) {
