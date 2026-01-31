@@ -15,10 +15,10 @@ class MainActivity : AppCompatActivity() {
         val view = layoutInflater.inflate(R.layout.activity_main, null) as CatsView
         setContentView(view)
 
-        catsPresenter = CatsPresenter(diContainer.service)
+        catsPresenter = CatsPresenter(diContainer.service, resources)
         view.presenter = catsPresenter
         catsPresenter.attachView(view)
-        catsPresenter.onInitComplete()
+        catsPresenter.load()
     }
 
     override fun onStop() {
