@@ -5,6 +5,7 @@ object CrashMonitor {
     /**
      * Pretend this is Crashlytics/AppCenter
      */
-    fun trackWarning() {
+    fun trackWarning(e: Exception) {
+        //Firebase.crashlytics.log("e")
     }
 }
