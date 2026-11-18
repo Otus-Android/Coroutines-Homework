@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -20,16 +21,19 @@ class MainViewModel(private val catsService: CatsService) : ViewModel(), ICatsPr
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         CrashMonitor.trackWarning(throwable)
     }
+    private val scope = viewModelScope + coroutineExceptionHandler
 
-    val scope = viewModelScope + coroutineExceptionHandler
+    private var currentJob: Job? = null
 
     override fun updateFactAndImage() {
-        scope.launch {
+        currentJob?.cancel()
+        currentJob = scope.launch {
             val result = fetchCatFactWithImage()
             _catsView?.populate(result)
             if (result is Result.Error && result.throwable !is SocketTimeoutException) {
                 throw result.throwable
             }
+            currentJob = null
         }
     }
 

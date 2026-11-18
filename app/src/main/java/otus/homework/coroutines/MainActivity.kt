@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : AppCompatActivity() {
 
-//    lateinit var catsPresenter: CatsPresenter
+    lateinit var catsPresenter: CatsPresenter
 
     private val diContainer = DiContainer()
 
@@ -26,16 +26,18 @@ class MainActivity : AppCompatActivity() {
 //        catsPresenter = CatsPresenter(diContainer.service)
 //        view.presenter = catsPresenter
 //        catsPresenter.attachView(view)
-//        catsPresenter.onInitComplete()
+//        catsPresenter.updateFactAndImage()
         view.presenter = viewModel
         viewModel.attachView(view)
         viewModel.updateFactAndImage()
     }
 
     override fun onStop() {
-        if (isFinishing) {
-            viewModel.detachView()
-        }
+//        if (isFinishing) {
+//            catsPresenter.stop()
+//        }
+        viewModel.detachView()
+//        catsPresenter.detachView()
         super.onStop()
     }
 }
